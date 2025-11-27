@@ -2,7 +2,8 @@
     ViewData["Title"] = "Home Page";
 }
 <head>
-    <link rel="stylesheet" href="~/css/index.css" />
+    <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
+
 </head>
 
 <body>
@@ -20,11 +21,12 @@
 
             <div class="typeOfItem">
                 <button id="foundButton">Lost </button>
-                <button id="postButton">/  Post</button>
+                <button class="buttonA">/  </button>
+                <button id="postButton">Post</button>
             </div>
 
 
-            <div class="card">
+            <div class="card" onclick="location.href='@Url.Action("Card","Home",new{id=1})'">
                 <img class="card-img" src="img/item/download.jpg" alt="img" />
                 <div class="card-details">
                     <div class="category">
@@ -78,4 +80,5 @@
 
 
     </div>
+    <script src="~/js/index.js" asp-append-version="true"> </script>
 </body>

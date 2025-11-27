@@ -2,6 +2,10 @@
     height:100%;
 }
 
+* {
+    caret-color: transparent; /* 隐藏插入符号(caret) */
+}
+
 html {
     height: 100%;
 }
@@ -55,11 +59,12 @@ html {
     font-weight: bold;
 }
 
-.typeOfItem #postButton {
-    font-size: 20px;
-    font-weight: bold;
-    padding-top:10px;
-}
+    .typeOfItem .buttonA,
+    .typeOfItem #postButton {
+        font-size: 20px;
+        font-weight: bold;
+        padding-top: 10px;
+    }
 
 .typeOfItem button:hover{
     cursor:pointer;
