@@ -1,0 +1,29 @@
+﻿@*
+    ViewData["Title"] = "Create Post";
+*@
+
+<h1>Create Post</h1>
+
+<form action="@Url.Action("VerifyPost", "Home")" method="post">
+    <div>
+        <label>Item Name:</label>
+        <input type="text" name="ItemName" class="form-control"/>
+    </div>
+
+    <div>
+        <label>Description: </label>
+        <input type="text" />
+    </div>
+
+    <div>
+        <label>Item Category</label>
+        <input type="text" name="ItemCategory" class="form-control" />
+    </div>
+
+    <div>
+        <label>Lost Date</label>
+        <input type="date" name="LostDate" class="=form-control" />
+    </div>
+
+    <button>SUBMIT</button>
+</form>
