@@ -1,0 +1,46 @@
+﻿@{
+    ViewData["Title"] = "Register Page";
+    Layout = null;
+}
+<head>
+    <meta charset="utf-8" />
+    <title>Register</title>
+    <link rel="stylesheet" href="~/css/login.css" />
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="login-card">
+            <div class="login-title">Register</div>
+
+            <form method="post" action="/User/Register">
+
+                <label>Username</label>
+                <input type="text" name="username" required />
+
+                <label>Email</label>
+				<input type="text" name="email" required />
+
+                <label>Phone Number</label>
+				<input type="text" name="phoneNumber" required />
+
+                <label>Password</label>
+                <input type="password" name="password" required />
+
+                <label>Confirm Password</label>
+                <input type="password" name="confirmPassword" required />
+
+                <button type="submit" class="btn-login">Create Account</button>
+
+                <div class="register-text">
+                    Already have an account?
+                    <a href="/User/Login"> Login here</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</body>
+
