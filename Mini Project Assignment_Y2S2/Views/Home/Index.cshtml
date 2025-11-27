@@ -8,11 +8,8 @@
 <body>
     <div class="parent">
         <div class="left-container">
-            <p>you may choose button to find your wheter your lost have pick up from other</p>
-            <span>
-                <button>Lost</button>
-                <button>Found</button>
-            </span>
+            <p>Tips:you may choose button to find your wheter your lost have pick up from other </p>
+
         </div>
 
 
@@ -20,6 +17,13 @@
 
 
         <div class="right-container">
+
+            <div class="typeOfItem">
+                <button id="foundButton">Lost </button>
+                <button id="postButton">/  Post</button>
+            </div>
+
+
             <div class="card">
                 <img class="card-img" src="img/item/download.jpg" alt="img" />
                 <div class="card-details">
@@ -33,6 +37,20 @@
                 </div>
 
             </div>
+            <div class="card">
+                <img class="card-img" src="img/item/download.jpg" alt="img" />
+                <div class="card-details">
+                    <div class="category">
+                        <p>Category</p>
+                    </div>
+                    <div class="details">
+                        <p>Lost At:</p>
+                        <p>Lost Date:</p>
+                    </div>
+                </div>
+
+            </div>
+
             <div class="card">
                 <img class="card-img" src="img/item/download.jpg" alt="img" />
                 <div class="card-details">
@@ -48,9 +66,9 @@
             </div>
 
             <div class="paging">
-                <button id="pagingBack">Back</button>
-                <p>1</p>
-                <button id="pagingNext">Next</button>
+                <button id="pagingBack">< Back</button>
+                <button class="pagingNumber">1</button>
+                <button id="pagingNext">Next ></button>
             </div>
 
         </div>

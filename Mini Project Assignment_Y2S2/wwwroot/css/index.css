@@ -16,8 +16,16 @@ html {
 
 .left-container {
     padding-left: 20px;
-    max-width: 350px;
-    background-color:rgb(169, 164, 148)
+    padding-right: 20px;
+    max-width: 330px;
+    background-color: rgb(169, 164, 148);
+}
+
+.middle-line{
+    height:100%;
+    width:20px;
+    background-color:white;
+    
 }
 
 .right-container {
@@ -28,11 +36,33 @@ html {
     gap: 20px;
 }
 
-.middle-line{
-    height:100%;
-    width:20px;
-    background-color:white;
-    
+.typeOfItem{
+    position:absolute;
+    margin-left:40px;
+    margin-top:20px;
+    display:flex;
+}
+
+
+.typeOfItem button {
+    margin: 0px;
+    border: none;
+    background-color: #efd79b;
+}
+
+.typeOfItem #foundButton {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.typeOfItem #postButton {
+    font-size: 20px;
+    font-weight: bold;
+    padding-top:10px;
+}
+
+.typeOfItem button:hover{
+    cursor:pointer;
 }
 
 .card {
@@ -43,13 +73,15 @@ html {
     font-family: Arial, sans-serif;
     box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
     margin-left: 30px;
-    margin-top: 20px;
+    margin-top: 90px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card:hover{
-    transform:translateX(3px) scale(1.02);
-    box-shadow:
-}
+    .card:hover {
+        transform: translateX(3px) scale(1.02);
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
 
 .card-details p {
     margin-top: 0; 
@@ -74,6 +106,33 @@ html {
     font-size:15px;
 }
 
-.paging{
-    justify-content:center;
+.paging {
+    position: absolute;
+    display: flex;
+    bottom: 4%;
+    gap: 15px;
+    transform:translateX(600px);
+    font-size:13px;
+}
+
+.paging button{
+    border:none;
+    border-radius:15px;
+    height:35px;
+    background-color:#61b255;
+    color:white;
+    font-weight:bold;
+}
+
+.paging button:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+}
+.paging #pagingBack,
+.paging #pagingNext {
+    width: 80px;
+}
+
+.pagingNumber {
+    width: 40px;
 }
