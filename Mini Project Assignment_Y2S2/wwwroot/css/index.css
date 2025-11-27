@@ -9,7 +9,9 @@ html {
 .parent {
     padding-top: 20px;
     display: flex;
-    height: calc(100vh - 76px);
+    height: calc(100vh - 96px);
+    margin-left:20px;
+    margin-right:20px;
 }
 
 .left-container {
@@ -41,7 +43,7 @@ html {
     font-family: Arial, sans-serif;
     box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
     margin-left: 30px;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 .card:hover{
