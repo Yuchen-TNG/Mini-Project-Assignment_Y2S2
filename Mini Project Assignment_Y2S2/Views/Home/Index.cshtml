@@ -1,8 +1,119 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xiaohongshu Style View</title>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f7f7f7;
+        }
+
+        /* 瀑布流容器 */
+        .masonry {
+            column-count: 3;
+            column-gap: 15px;
+            padding: 15px;
+        }
+
+        /* 卡片 */
+        .card {
+            background: white;
+            margin: 0 0 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            break-inside: avoid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        /* hover 效果 */
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card img {
+            width: 100%;
+            display: block;
+        }
+
+        .text-area {
+            padding: 10px 14px;
+        }
+
+        .title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* 手机版两列 */
+        @media (max-width: 768px) {
+            .masonry {
+                column-count: 2;
+            }
+        }
+
+        /* 超小手机一列 */
+        @media (max-width: 480px) {
+            .masonry {
+                column-count: 1;
+            }
+        }
+    </style>
+
+</head>
+<body>
+
+    <h2 style="text-align:center; padding:15px;">小红书风格笔记 View</h2>
+
+    <div class="masonry">
+        <!-- 卡片1 -->
+        <div class="card">
+            <img src="https://picsum.photos/400/600" alt="">
+            <div class="text-area">
+                <div class="title">周末咖啡日常</div>
+                <div class="desc">分享一下今天找到的超好喝拿铁 ☕✨</div>
+            </div>
+        </div>
+
+        <!-- 卡片2 -->
+        <div class="card">
+            <img src="https://picsum.photos/400/500" alt="">
+            <div class="text-area">
+                <div class="title">OOTD</div>
+                <div class="desc">简单穿搭也可以很舒服 ❤️</div>
+            </div>
+        </div>
+
+        <!-- 卡片3 -->
+        <div class="card">
+            <img src="https://picsum.photos/400/700" alt="">
+            <div class="text-area">
+                <div class="title">今日晚餐</div>
+                <div class="desc">我真的太会煮了哈哈哈 🍜</div>
+            </div>
+        </div>
+
+        <!-- 卡片4 -->
+        <div class="card">
+            <img src="https://picsum.photos/400/550" alt="">
+            <div class="text-area">
+                <div class="title">猫咪日常</div>
+                <div class="desc">主子今天特别乖 😺</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
