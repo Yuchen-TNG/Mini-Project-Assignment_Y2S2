@@ -141,3 +141,32 @@ html {
 .pagingNumber {
     width: 40px;
 }
+
+.locationInput {
+    width: 200px;
+    padding: 8px 12px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease; /* 动画过渡 */
+    appearance: none; /* 去掉默认样式 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%23333' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); /* 下拉箭头 */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+}
+
+    .locationInput:hover {
+        border-color: #61b255; /* hover 边框颜色 */
+    }
+
+    .locationInput:focus {
+        outline: none;
+        border-color: #61b255; /* focus 高亮 */
+        box-shadow: 0 0 5px rgba(97, 178, 85, 0.6);
+    }

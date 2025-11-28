@@ -1,16 +1,19 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Mini_Project_Assignment_Y2S2.Models;
+using Mini_Project_Assignment_Y2S2.Data; // ?? DbContext
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context; // ? ?? DbContext
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -23,14 +26,35 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View();
         }
 
+        // GET: ??????
         public IActionResult CreatePost()
         {
             return View("CreatePost");
         }
 
+        // POST: ???????????
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreatePost(Item item)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Items.Add(item);   // ????? DbContext
+                _context.SaveChanges();     // ?????
+                return RedirectToAction("VerifyPost"); // ?????
+            }
+            return View(item); // ????????
+        }
+
         public IActionResult VerifyPost()
         {
             return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }
