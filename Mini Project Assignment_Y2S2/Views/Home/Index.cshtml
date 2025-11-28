@@ -9,7 +9,15 @@
 <body>
     <div class="parent">
         <div class="left-container">
-            <p>Tips:you may choose button to find your wheter your lost have pick up from other </p>
+            <h1>Filter</h1>
+            <hr>
+            <p>Tips:you may click the orange color to do next action </p>
+            <span>Location:  </span>
+            <select class="locationInput">
+                <option value="FOCS">FOCS</option>
+                <option value="">East Campus</option>
+            </select>
+
 
         </div>
 
@@ -24,7 +32,7 @@
                 <button class="buttonA">/  </button>
                 <button id="postButton">Post</button>
             </div>
-
+            <hr />
 
             <div class="card" onclick="location.href='@Url.Action("Card","Home",new{id=1})'">   
                 <img class="card-img" src="img/item/download.jpg" alt="img" />

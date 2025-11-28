@@ -25,6 +25,23 @@ html {
     background-color: rgb(169, 164, 148);
 }
 
+.locationInput {
+    width: 150px;
+    height: 30px;
+    border-radius: 14px;
+    background-color: rgb(255, 197, 134);
+    border: none;
+    text-indent: 10px;
+    appearance: none;
+    cursor: pointer;
+}
+
+.locationInput option {
+    background-color: #e5e5e5;
+    border-radius: 13px;
+    padding: 2px 10px;
+}
+  
 .middle-line{
     height:100%;
     width:20px;
@@ -141,3 +158,5 @@ html {
 .pagingNumber {
     width: 40px;
 }
+
+
