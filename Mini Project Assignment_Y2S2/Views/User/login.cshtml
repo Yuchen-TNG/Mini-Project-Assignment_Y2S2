@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Login Page";
+    Layout = null;
+
+}
+<head>
+    <link rel="stylesheet" href="~/css/login.css" />
+
+</head>
+<body>
+
+    <div class="container">
+        <div class="login-card">
+            <div class="login-title">Login</div>
+
+            <form method="post" action="/User/Login">
+                <label>User id</label>
+                <input type="text" name="id" required />
+
+                <label>Password</label>
+                <input type="password" name="password" required />
+
+                <button type="submit" class="btn-login">Login</button>
+
+                <div class="register-text">
+                    Don't have an account?
+                    <a href="/User/Register"> Register here</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
