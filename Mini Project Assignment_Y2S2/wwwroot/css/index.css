@@ -4,6 +4,12 @@
 
 * {
     caret-color: transparent; /* 隐藏插入符号(caret) */
+
+}
+
+a{
+    color:black;
+    text-decoration:none;
 }
 
 html {
@@ -19,21 +25,25 @@ html {
 }
 
 .left-container {
+    display: flex;
+    flex-direction: column;
     padding-top: 21px;
     padding-left: 20px;
     padding-right: 20px;
     max-width: 330px;
     background-color: rgb(169, 164, 148);
+    border-bottom-left-radius: 17px;
+    border-top-left-radius: 17px;
 }
 
 .left-container hr{
     margin-block:13px;
 }
 
-.filter h1,
-.filter p{
-    margin-bottom:0px;
-    margin-top:0px;
+.filter-container h1,
+.filter-container p {
+    margin-bottom: 0px;
+    margin-top: 0px;
 }
 
 .location span {
@@ -45,7 +55,7 @@ html {
     width: 157px;
     height: 30px;
     border-radius: 14px;
-    background-color: rgb(255, 197, 134);
+    background-color: white;
     border: none;
     text-indent: 10px;
     appearance: none;
@@ -74,7 +84,7 @@ html {
     border-radius: 15px;
     width: 150px;
     height: 30px;
-    background-color: rgb(255, 197, 134);
+    background-color: white;
     border: none;
     padding-left: 10px;
     margin-left: 14px;
@@ -82,6 +92,35 @@ html {
 
 #endDate{
     margin-left:20px;
+}
+
+
+.filter-button {
+    margin-top:auto;
+    position: relative;
+    width: 100%;
+    height: auto;
+    bottom: 5%;
+    background: white;
+    text-align: center;
+    background-color:transparent;
+}
+
+.filter-button button {
+    border-radius: 17px;
+    border: none;
+    width: 70%;
+    height: 50px;
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+
+}
+
+.filter-button button:hover{
+    transform:scale(1.03);
 }
 
 .middle-line {
@@ -93,7 +132,9 @@ html {
 .right-container {
     max-width: 100%;
     background-color: #efd79b;
-    flex:1
+    flex: 1;
+    border-top-right-radius: 17px;
+    border-bottom-right-radius: 17px;
 }
 
 .right-container-top{

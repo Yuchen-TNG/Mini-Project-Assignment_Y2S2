@@ -9,7 +9,7 @@
 <body>
     <div class="parent">
         <div class="left-container">
-            <div class="filter">
+            <div class="filter-container">
                 <h1>Filter</h1>
                 <p>Tips:you may click the orange color to do next action </p>
             </div>
@@ -30,6 +30,12 @@
                 <input type="date" id="endDate">
             </div>
             <hr />
+
+
+                <div class="filter-button">
+                <button>Filter</button>
+                </div>
+
         </div>
 
 
@@ -47,7 +53,7 @@
             </div>
 
             <div class="right-container-bottom">
-                <div class="card" onclick="location.href='@Url.Action("Card","Home",new{id=1})'">   
+                <a class="card" asp-action="CardDetails" asp-controller="Home" asp-route-id="1">
                     <img class="card-img" src="img/item/download.jpg" alt="img" />
                     <div class="card-details">
                         <div class="category">
@@ -58,36 +64,7 @@
                             <p>Lost Date:</p>
                         </div>
                     </div>
-
-                </div>
-
-                <div class="card">
-                    <img class="card-img" src="img/item/download.jpg" alt="img" />
-                    <div class="card-details">
-                        <div class="category">
-                            <p>Category</p>
-                        </div>
-                        <div class="details">
-                            <p>Lost At:</p>
-                            <p>Lost Date:</p>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="card">
-                    <img class="card-img" src="img/item/download.jpg" alt="img" />
-                    <div class="card-details">
-                        <div class="category">
-                            <p>Category</p>
-                        </div>
-                        <div class="details">
-                            <p>Lost At:</p>
-                            <p>Lost Date:</p>
-                        </div>
-                    </div>
-
-                </div>
+                </a>
 
                 <div class="paging">
                     <button id="pagingBack">< Back</button>

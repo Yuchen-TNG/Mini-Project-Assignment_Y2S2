@@ -21,6 +21,11 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View();
         }
 
+        public IActionResult CardDetails(int id)
+        {
+            return View(id);
+        }
+
         public IActionResult Card(int id)
         {
             return View();
