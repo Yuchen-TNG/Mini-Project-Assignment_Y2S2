@@ -12,6 +12,6 @@ namespace Mini_Project_Assignment_Y2S2.Data
         }
 
         public DbSet<Item> Items { get; set; }
-        public DbSet<Location> Location{ get; set; }
+
     }
 }
