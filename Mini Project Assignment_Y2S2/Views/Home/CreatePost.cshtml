@@ -1,47 +1,30 @@
-﻿@model Mini_Project_Assignment_Y2S2.Models.Item
+﻿
+@model Item
 
-@{
-    ViewData["Title"] = "Create Post";
-}
 
-<h1>Create Post</h1>
+<form asp-action="CreatePost" asp-controller="Home" method="post" enctype="multipart/form-data">
 
-<form asp-action="CreatePost" method="post">
-    <div>
-        <label asp-for="Name"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
+	<div class="form-group">
+		<label asp-for="IName" > Item Name: </label>
+		<input asp-for="IName" type="text" class="form-control" />
+	
 
-    <div>
-        <label asp-for="Description"></label>
-        <input asp-for="Description" class="form-control" />
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
+		<label asp-for="IType"> Item Type: </label>
+		<input type="text" asp-for="IType" class="form-control" />
 
-    <div>
-        <label asp-for="Location"></label>
-        <input asp-for="Location" class="form-control" />
-        <span asp-validation-for="Location" class="text-danger"></span>
-    </div>
+		<label asp-for="Idescription"> Item Description: </label>
+		<input type="text" asp-for="Idescription" class="form-control"/>
 
-    <div>
-        <label asp-for="ContactInfo"></label>
-        <input asp-for="ContactInfo" class="form-control" />
-        <span asp-validation-for="ContactInfo" class="text-danger"></span>
-    </div>
+		<label asp-for="Date">Lost Date</label>
+		<input type="date" asp-for="Date" class="form-control" />
 
-    <div>
-        <label asp-for="LostDate"></label>
-        <input asp-for="LostDate" type="date" class="form-control" />
-        <span asp-validation-for="LostDate" class="text-danger"></span>
-    </div>
+		<label asp-for="Image">Item Image</label>
+		<input type="file" asp-for="Image" class="form-control" />
 
-    <button type="submit" class="btn btn-primary">SUBMIT</button>
+		<button type="submit">SUBMIT</button>
+	</div>
 </form>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+//name是input显示要绑定对应model的哪一个attributes
+//label 的 for="Username"---对应到 input 的 id="Username"
+//asp-for会自动生成name,id,for
