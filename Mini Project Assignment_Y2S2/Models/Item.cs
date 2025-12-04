@@ -1,23 +1,30 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
+
 namespace Mini_Project_Assignment_Y2S2.Models
 {
     public class Item
     {
         [Key]
-        public int Id { get; set; }
+        public int ItemID { get; set; }
 
-        [Required(ErrorMessage = "请输入物品名称")]
-        public string? Name { get; set; }
+        [Required]
+        public string IName { get; set; }
 
-        public string? Description { get; set; }
+        [Required]
+        public string IType { get; set; }
 
-        [Required(ErrorMessage = "请选择丢失日期")]
-        public DateTime LostDate { get; set; }
+        [Required]
+        public string Idescription { get; set; }
 
-        public string? Location { get; set; }
+        [Required]
+        public DateTime Date { get; set; } = DateTime.Now;
 
-        public string? ContactInfo { get; set; }
+        [Required]
+        public string Image { get; set; }
+
+        public string Category { get; set; }
+
     }
 }

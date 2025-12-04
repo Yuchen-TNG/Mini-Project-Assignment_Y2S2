@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Data; // ?? DbContext
@@ -31,27 +31,31 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View();
         }
 
-        // GET: ??????
+        // GET: Create Post
         public IActionResult CreatePost()
         {
             return View("CreatePost");
         }
 
-        // POST: ???????????
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult CreatePost(Item item)
         {
             if (ModelState.IsValid)
             {
-                _context.Items.Add(item);   // ????? DbContext
-                _context.SaveChanges();     // ?????
-                return RedirectToAction("VerifyPost"); // ?????
+                _context.Items.Add(item);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
             }
-            return View(item); // ????????
+            return RedirectToAction("Index");
+
         }
 
-        public IActionResult VerifyPost()
+        public IActionResult CreateFoundPost()
+        {
+            return View();
+        }
+
+        public IActionResult ChoosePostType()
         {
             return View();
         }

@@ -1,0 +1,94 @@
+﻿<style>
+    .Choose-group {
+        background: #FF7F00;
+        width: 600px;
+        margin: 50px auto;
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .choose-title {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 30px;
+        color: black;
+        min-height: 28px; /* 防止打字过程中跳动 */
+    }
+
+    /* Container for left + right items */
+    .choose-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 30px;
+        margin-top: 10px;
+    }
+
+    #LOSTITEMGROUP, #FOUNDITEMGROUP {
+        background: white;
+        padding: 40px 0;
+        width: 45%;
+        border-radius: 15px;
+        cursor: pointer;
+        font-weight: bold;
+        border: 2px solid #ddd;
+        transition: 0.3s ease;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .choose-icon {
+        font-size: 40px;
+        margin-bottom: 15px;
+        color: #FF7F00;
+    }
+
+    #LOSTITEMGROUP:hover, #FOUNDITEMGROUP:hover {
+        transform: scale(1.07);
+        border-color: #c95c00;
+    }
+</style>
+
+<div class="Choose-group">
+    <div class="choose-title" id="chooseTitle"></div>
+
+    <div class="choose-flex">
+
+        <button onclick="window.location.href='@Url.Action("CreatePost", "Home")?Category=LOSTITEM'"
+             id="LOSTITEMGROUP" >
+            <div class="choose-icon">📦</div>
+            LOST ITEM
+        </button>
+
+        <button onclick="window.location.href='@Url.Action("CreateFoundPost", "Home")?Category=FOUNDITEM'"
+             id="FOUNDITEMGROUP">
+            <div class="choose-icon">🔍</div>
+            FOUND ITEM
+        </button>
+
+    </div>
+</div>
+
+<script>
+    // Typewriter effect
+    const text = "Please Choose A Category Of Post";
+    const title = document.getElementById("chooseTitle");
+    let i = 0;
+
+    function typeWriter() {
+        if (i < text.length) {
+            title.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typeWriter, 50); // 每个字出现的速度 (ms)
+        }
+    }
+
+    // 页面加载后开始打字
+    window.onload = typeWriter;
+</script>
