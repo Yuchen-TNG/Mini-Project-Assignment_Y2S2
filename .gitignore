@@ -416,3 +416,4 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/Mini Project Assignment_Y2S2/firebase_config.json
