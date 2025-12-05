@@ -5,3 +5,4 @@
 
     [bt1.innerText, bt2.innerText] = [bt2.innerText, bt1.innerText];
 });
+

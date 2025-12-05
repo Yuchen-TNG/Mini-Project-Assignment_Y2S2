@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "CardDetails";
+}
+<head>
+    <link rel="stylesheet" href="~/css/cardDetails.css" asp-append-version="true"/>
+</head>
+
+
+<body>
+    <div class="parent">
+        <div >
+            <a class="back" asp-controller="Home" asp-action="Index">Back</a>
+        </div>
+
+       
+        <div class="CardDetails">
+            <div class="topDetails">
+                <div class="image">
+                    <img src="~/img/item/download.jpg" />
+                </div>
+
+                <div class="userDetails">
+                    <p class="UserDetails">
+                        User Details
+                    </p>
+
+                    <p class="label">Name</p>
+                    <p class="text">Tan Kai Zhen</p>
+
+                    <p class="label">Contact Number</p>
+                    <p class="text">017-230 1463</p>
+
+                    <p class="label">Email</p>
+                    <p class="text">tankz@gmail.com</p>
+
+                    <p class="label">Item Keep At</p>
+                    <p class="text">My House</p>
+                </div>
+
+            </div>
+
+            <div class="bottomDetails">
+                <div class="bottomDetails-left">
+                    <div class="bottomDetails-left2">
+                        <p class="label">Found Date</p>
+                        <p class="text">12th December 2026</p>
+
+                        <p class="label">Type</p>
+                        <p class="text">Wallet</p>
+                    </div>
+                    <div class="bottomDetails-right2">
+                        <p class="label">Found At</p>
+                        <p class="text">East Campus Canteen, Table A12</p>
+                    </div>
+                </div>
+                <div class="bottomDetails-right">
+                    <p class="label">Descritpion</p>
+                    <p class="text">Red colour, I saw him leave on the table just as I was having dinner.</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</body>

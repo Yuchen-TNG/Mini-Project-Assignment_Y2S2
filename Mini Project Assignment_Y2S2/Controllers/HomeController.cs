@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Google.Cloud.Firestore;
 using Mini_Project_Assignment_Y2S2.Models;
@@ -22,35 +22,41 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View();
         }
 
+        public IActionResult CardDetails(int id)
+        {
+            return View(id);
+        }
+
         public IActionResult Card(int id)
         {
             return View();
         }
 
-        // GET: CreatePost page
+        // GET: Create Post
         public IActionResult CreatePost()
         {
             return View();
         }
 
-        // POST: CreatePost - save Item to Firebase
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(Item item)
+        public IActionResult CreatePost(Item item)
         {
             if (ModelState.IsValid)
             {
-                // Save item to Firestore "Items" collection
-                CollectionReference itemsRef = _firestore.Collection("Items");
-                await itemsRef.AddAsync(item);
-
-                return RedirectToAction("VerifyPost");
+                _context.Items.Add(item);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
             }
+            return RedirectToAction("Index");
 
-            return View(item);
         }
 
-        public IActionResult VerifyPost()
+        public IActionResult CreateFoundPost()
+        {
+            return View();
+        }
+
+        public IActionResult ChoosePostType()
         {
             return View();
         }
