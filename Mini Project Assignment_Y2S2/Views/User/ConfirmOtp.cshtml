@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Confirm OTP";
+}
+<link rel="stylesheet" href="~/css/user.css" />
+
+<div class="container">
+    <div class="login-card">
+        <div class="login-title">Enter OTP</div>
+
+        <form method="post" asp-action="ConfirmOtp">
+            <label>OTP Code</label>
+            <input type="text" name="otp" required />
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="error-message">@ViewBag.Error</div>
+            }
+
+            <button type="submit" class="btn-login">Verify OTP</button>
+
+            <div class="register-text">
+                Didn’t receive the code?
+                <a href="/User/ForgotPassword">Resend OTP</a>
+            </div>
+        </form>
+    </div>
+</div>

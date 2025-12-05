@@ -1,10 +1,9 @@
 ﻿@{
     ViewData["Title"] = "Login Page";
-    Layout = null;
 
 }
 <head>
-    <link rel="stylesheet" href="~/css/login.css" />
+    <link rel="stylesheet" href="~/css/user.css" />
 
 </head>
 <body>
@@ -15,12 +14,19 @@
 
             <form method="post" action="/User/Login">
                 <label>User id</label>
-                <input type="text" name="id" required />
+                <input type="text" name="userId" required />
 
                 <label>Password</label>
                 <input type="password" name="password" required />
 
+				<a href="/User/ForgotPassword" class="forgot-password">Forgot Password?</a>
+
                 <button type="submit" class="btn-login">Login</button>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="error-message">@ViewBag.Error</div>
+                }
 
                 <div class="register-text">
                     Don't have an account?

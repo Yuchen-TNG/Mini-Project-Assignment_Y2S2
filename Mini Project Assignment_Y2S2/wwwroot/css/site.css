@@ -25,8 +25,50 @@ li a {
     text-decoration: none;
     font-size: 20px;
     color: black;
+    font-weight: bold;
 }
 
 body {
     margin: 0px
 }
+
+.dropdown {
+    position: relative; /* relative for absolute dropdown */
+}
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 16px);
+    left: 0;
+    background: #ffdda6;
+    border: 1px solid #000;
+    width: 79.24px;
+    padding: 5px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.2s;
+    border-radius: 5px;
+    z-index: 9999;
+    display: block;
+}
+
+    /* Show when active (added via JS) */
+    .dropdown-menu.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* Items */
+    .dropdown-menu li a {
+        display: block;
+        padding: 10px 15px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+        .dropdown-menu li a:hover {
+            background-color: #f0f0f0;
+        }

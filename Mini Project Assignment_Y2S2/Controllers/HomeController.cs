@@ -1,19 +1,20 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Google.Cloud.Firestore;
 using Mini_Project_Assignment_Y2S2.Models;
-using Mini_Project_Assignment_Y2S2.Data; // ?? DbContext
+using Mini_Project_Assignment_Y2S2.Services;
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-        private readonly ApplicationDbContext _context; // ? ?? DbContext
+        private readonly FirestoreDb _firestore;
+        private readonly FirebaseDB _firebaseDB;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+        public HomeController(FirebaseDB firebaseDB)
         {
-            _logger = logger;
-            _context = context;
+            _firebaseDB = firebaseDB;
+            _firestore = firebaseDB.Firestore;
         }
 
         public IActionResult Index()
@@ -26,24 +27,27 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View();
         }
 
-        // GET: ??????
+        // GET: CreatePost page
         public IActionResult CreatePost()
         {
-            return View("CreatePost");
+            return View();
         }
 
-        // POST: ???????????
+        // POST: CreatePost - save Item to Firebase
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreatePost(Item item)
+        public async Task<IActionResult> CreatePost(Item item)
         {
             if (ModelState.IsValid)
             {
-                _context.Items.Add(item);   // ????? DbContext
-                _context.SaveChanges();     // ?????
-                return RedirectToAction("VerifyPost"); // ?????
+                // Save item to Firestore "Items" collection
+                CollectionReference itemsRef = _firestore.Collection("Items");
+                await itemsRef.AddAsync(item);
+
+                return RedirectToAction("VerifyPost");
             }
-            return View(item); // ????????
+
+            return View(item);
         }
 
         public IActionResult VerifyPost()
@@ -54,7 +58,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
     }
 }

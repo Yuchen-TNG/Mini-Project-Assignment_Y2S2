@@ -1,18 +1,28 @@
-using Microsoft.EntityFrameworkCore;
-using Mini_Project_Assignment_Y2S2.Data;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Mini_Project_Assignment_Y2S2.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1?? ?? DbContext??? LocalDB
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// 2?? ?? MVC ??
+// Add services
 builder.Services.AddControllersWithViews();
+
+// Add session services
+builder.Services.AddDistributedMemoryCache(); // Stores session in memory
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session timeout
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// Register your FirebaseDB service
+builder.Services.AddSingleton<FirebaseDB>();
 
 var app = builder.Build();
 
-// 3?? ?? HTTP ????
+// Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -20,13 +30,14 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();  // ???? wwwroot ????
-
+app.UseStaticFiles();
 app.UseRouting();
+
+// Add session middleware **before authorization**
+app.UseSession();
 
 app.UseAuthorization();
 
-// 4?? ????
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

@@ -1,0 +1,36 @@
+﻿@model Mini_Project_Assignment_Y2S2.Models.User
+@{
+    ViewData["Title"] = "My Account";
+}
+<link rel="stylesheet" href="~/css/user.css" />
+
+<div class="container">
+    <div class="login-card">
+
+        <div class="login-title">My Account</div>
+
+        <div class="profile-image">
+            <img src="~/images/default-profile.png" alt="Profile" />
+        </div>
+
+        <form>
+            <label>ID</label>
+            <input type="text" value="@Model.UserID" readonly />
+
+            <label>Name</label>
+            <input type="text" value="@Model.Name" readonly />
+
+            <label>Email</label>
+            <input type="email" value="@Model.Email" readonly />
+
+            <label>Phone Number</label>
+            <input type="text" value="@Model.PhoneNumber" readonly />
+
+            <div class="button-row">
+                <button type="button" class="btn-done" style="width:172px;">Done</button>
+                <a href="/User/ChangeCurrentPassword" class="btn-change">Change Password</a>
+            </div>
+        </form>
+
+    </div>
+</div>

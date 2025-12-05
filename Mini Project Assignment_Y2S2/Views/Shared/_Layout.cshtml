@@ -20,8 +20,15 @@
         <div class="top-right">
             <ul>
                 <li><a href="@Url.Action("CreatePost", "Home")">Post</a></li>
-                <li><a href="">Profile</a></li>
-                <li><a href="@Url.Action("Login", "User")">Login</a>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">Profile ▼</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="@Url.Action("MyAccount", "User")">Account</a></li>
+                        <li><a href="@Url.Action("MyPosts", "User")">My Post</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="@Url.Action("Login", "User")">Login</a>
                 </li>
             </ul>
         </div>
@@ -36,6 +43,25 @@
 
 
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggle = document.querySelector(".dropdown-toggle");
+            const menu = document.querySelector(".dropdown-menu");
 
+            toggle.addEventListener("click", function (e) {
+                e.preventDefault(); // prevent default link behavior
+                menu.classList.toggle("show");
+            });
+
+            // Optional: hide dropdown if clicking outside
+            document.addEventListener("click", function (e) {
+                if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                    menu.classList.remove("show");
+                }
+            });
+        });
+    </script>
 </body>
+
+
 </html>
