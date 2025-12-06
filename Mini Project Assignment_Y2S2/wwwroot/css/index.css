@@ -178,6 +178,10 @@ html {
     display:flex;
 }
 
+.cardparent{
+    display:flex;
+}
+
 .card {
     width: 250px;
     height: 300px;

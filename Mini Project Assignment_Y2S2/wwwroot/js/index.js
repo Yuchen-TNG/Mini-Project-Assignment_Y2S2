@@ -6,19 +6,20 @@
 
 
     [b1.innerHTML, b2.innerHTML] = [b2.innerHTML, b1.innerHTML];
+    [b1.value, b2.value] = [b2.value, b1.value];
 
-    loadItem(b1.innerHTML);
+    loadItem(b1.value);
 
 
 });
 
 
 function loadItem(type) {
-
     fetch(`/Home/updateCard?category=${type}`)
-        .then(response => (response.innerHTML)
-            .then(html => {
-                document.querySelector("right-container-bottom").innerHTML = html;
-            })
-
+        .then(response => response.text())
+        .then(html => {
+            document.querySelector(".cardparent").innerHTML = html;
+        })
+        .catch(err => console.error(err));
 }
+
