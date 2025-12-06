@@ -16,7 +16,7 @@ public class User
     public string PhoneNumber { get; set; }
 
     [FirestoreProperty]
-    public string Password { get; set; }
+    public string PasswordHash { get; set; }
 
     [FirestoreProperty]
     public string Role { get; set; }

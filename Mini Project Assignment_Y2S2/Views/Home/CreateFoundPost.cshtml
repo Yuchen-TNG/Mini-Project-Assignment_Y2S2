@@ -1,19 +1,21 @@
-﻿<div>
-	<form>
-		<label> Item Name: </label>
-		<input type="text" />
+﻿@model Item
 
-		<label> Item Type: </label>
-		<input type="text" />
+<div>
+	<form asp-action="CreateFoundPost" asp-controller="Home" method="post" enctype="multipart/form-data">
+		<label asp-for="IName"> Item Name: </label>
+		<input asp-for="IName" type="text" />
 
-		<label> Item Description: </label>
-		<input type="text" />
+		<label asp-for="IType"> Item Type: </label>
+		<input asp-for="IType" type="text" />
 
-		<label>Lost Date</label>
-		<input type="date" />
+		<label asp-for="Idescription"> Item Description: </label>
+		<input asp-for="Idescription" type="text" />
 
-		<label>Item Image</label>
-		<input type="file" />
+		<label asp-for="Date">Lost Date</label>
+		<input asp-for="Date" type="date" />
+
+		<label asp-for="Image">Item Image</label>
+		<input asp-for="Image" type="file" />
 
 		<button>SUBMIT</button>
 	</form>

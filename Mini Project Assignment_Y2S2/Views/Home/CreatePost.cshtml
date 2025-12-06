@@ -1,30 +1,137 @@
-﻿
-@model Item
+﻿@model Item
+
+<style>
+    /* 背景 */
+    body {
+        background: #f5eaf5;
+        font-family: Arial, sans-serif;
+    }
+
+    /* 外框 */
+    .post-container {
+        width: 80%;
+        margin: 40px auto;
+        background: #f7d596;
+        padding: 40px;
+        border-radius: 12px;
+    }
+
+    /* 标题 */
+    .post-title {
+        text-align: center;
+        font-size: 26px;
+        font-weight: bold;
+        margin-bottom: 30px;
+    }
+
+    /* 表单布局：左边内容 + 右边图片 */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 65% 35%;
+        grid-gap: 30px;
+    }
+
+    /* 左边 input */
+    .form-group label {
+        font-weight: bold;
+        margin-top: 15px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+    }
+
+    /* 图片上传框 */
+    .image-box {
+        width: 100%;
+        height: 300px;
+        border: 2px dotted black;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: white;
+        font-size: 14px;
+    }
+
+    /* 日期三格 */
+    .date-section {
+        display: flex;
+        gap: 10px;
+    }
+
+        .date-section input {
+            width: 33%;
+        }
+
+    /* Submit 按钮 */
+    button[type="submit"] {
+        margin-top: 20px;
+        padding: 10px 25px;
+        background: #333;
+        color: white;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+    }
+</style>
 
 
-<form asp-action="CreatePost" asp-controller="Home" method="post" enctype="multipart/form-data">
+<div class="post-container">
 
-	<div class="form-group">
-		<label asp-for="IName" > Item Name: </label>
-		<input asp-for="IName" type="text" class="form-control" />
-	
+    <div class="post-title">POST FOR LOST ITEM</div>
 
-		<label asp-for="IType"> Item Type: </label>
-		<input type="text" asp-for="IType" class="form-control" />
+    <form asp-action="CreatePost" asp-controller="Home" method="post" enctype="multipart/form-data">
 
-		<label asp-for="Idescription"> Item Description: </label>
-		<input type="text" asp-for="Idescription" class="form-control"/>
+        <!-- 隐藏 Category（用于提交） -->
+        <input type="hidden" asp-for="Category" />
 
-		<label asp-for="Date">Lost Date</label>
-		<input type="date" asp-for="Date" class="form-control" />
+        <div class="form-grid">
 
-		<label asp-for="Image">Item Image</label>
-		<input type="file" asp-for="Image" class="form-control" />
+            <!-- 左边内容 -->
+            <div class="form-group">
 
-		<button type="submit">SUBMIT</button>
-	</div>
-</form>
+                <label asp-for="IName">Item Name</label>
+                <input asp-for="IName" class="form-control" />
 
-//name是input显示要绑定对应model的哪一个attributes
-//label 的 for="Username"---对应到 input 的 id="Username"
-//asp-for会自动生成name,id,for
+                <label asp-for="IType">Item Type</label>
+                <input asp-for="IType" class="form-control" />
+
+                <label asp-for="Idescription">Item Description</label>
+                <textarea asp-for="Idescription" class="form-control" style="height:120px;"> </textarea>
+
+                <label>Lost Date</label>
+                <input asp-for="Date" type="date" class="form-control" />
+
+                <label>Location</label>
+                <select asp-for="LocationID" class="form-control">
+                    <option value="">Select</option>
+                    <option value="EastCampus">East Campus</option>
+                    <option value="FOCS">FOCS</option>
+                </select>
+
+                <label>Category</label>
+                <input type="text" value="@Model.Category" class="form-control" readonly />
+
+                <button type="submit">Submit</button>
+            </div>
+
+            <!-- 右边图片框 -->
+            <div>
+                <label asp-for="ImageFile">Item Image</label>
+
+                <div class="image-box">
+                    <span>Preview will appear here</span>
+                </div>
+                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+            </div>
+
+        </div>
+
+    </form>
+</div>
