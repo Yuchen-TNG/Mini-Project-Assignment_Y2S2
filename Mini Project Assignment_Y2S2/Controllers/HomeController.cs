@@ -1,8 +1,13 @@
 ﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Threading.Tasks;
 using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualBasic;
 using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Services;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
@@ -17,11 +22,32 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             _firestore = firebaseDB.Firestore;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            CollectionReference collection = _firestore.Collection("Item");
+
+            QuerySnapshot snapshot = await collection.GetSnapshotAsync();
+
+            var items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
+
+            return View(items);
         }
 
+        public async Task<IActionResult> updateCard(string category)
+        {
+            //get data first
+            CollectionReference collections = _firestore.Collection("Item");
+
+            //make the condition
+            Query query = collections.WhereEqualTo("Category",category);
+
+            //execute the result
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+            var items = snapshot.Documents.Select(b => b.ConvertTo <Item> ()).ToList();
+                return PartialView("_ItemCard", items);
+
+        }
         public IActionResult CardDetails(int id)
         {
             return View(id);

@@ -1,8 +1,24 @@
 ﻿document.getElementById("postButton").addEventListener("click", () => {
+    
 
-    const bt1 = document.getElementById("foundButton");
-    const bt2 = document.getElementById("postButton");
+    const b1 = document.getElementById("postButton");
+    const b2 = document.getElementById("foundButton");
 
-    [bt1.innerText, bt2.innerText] = [bt2.innerText, bt1.innerText];
+
+    [b1.innerHTML, b2.innerHTML] = [b2.innerHTML, b1.innerHTML];
+
+    loadItem(b1.innerHTML);
+
+
 });
 
+
+function loadItem(type) {
+
+    fetch(`/Home/updateCard?category=${type}`)
+        .then(response => (response.innerHTML)
+            .then(html => {
+                document.querySelector("right-container-bottom").innerHTML = html;
+            })
+
+}
