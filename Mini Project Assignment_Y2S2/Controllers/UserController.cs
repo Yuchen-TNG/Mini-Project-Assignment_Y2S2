@@ -46,9 +46,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             var user = snapshot.ConvertTo<User>();
 
-            if (user.Password != password)
+            if (!PasswordHelper.VerifyPassword(user.PasswordHash, password))
             {
-                ViewBag.Error = "Incorrect password.";
+                ViewBag.Error = "Invalid User ID or password";
                 return View();
             }
 
@@ -74,18 +74,19 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return View();
             }
 
-            // Generate 7-digit UserID
             string userId = GenerateUserId();
+            string passwordHash = PasswordHelper.HashPassword(password);
+
 
             // Create a new user object
             var user = new Dictionary<string, object>
     {
+        { "UserID", userId },       // Store the generated UserID
         { "Name", name },
         { "Email", email },
         { "PhoneNumber", phoneNumber },
-        { "Password", password },  // Consider hashing later
+        { "PasswordHash", passwordHash }, // ✅ HASHED
         { "Role", "Student" },
-        { "UserID", userId }       // Store the generated UserID
     };
 
             // Save to Firestore with document ID = userId
@@ -175,18 +176,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Manual mapping
-            var data = snapshot.ToDictionary();
+            var user = snapshot.ConvertTo<User>();
 
-            var user = new Models.User
-            {
-                UserID = snapshot.Id,
-                Name = data.ContainsKey("Name") ? data["Name"].ToString() : "",
-                Email = data.ContainsKey("Email") ? data["Email"].ToString() : "",
-                PhoneNumber = data.ContainsKey("PhoneNumber") ? data["PhoneNumber"].ToString() : "",
-                Password = data.ContainsKey("Password") ? data["Password"].ToString() : "",
-                Role = data.ContainsKey("Role") ? data["Role"].ToString() : ""
-            };
 
             return View(user);
         }
@@ -200,45 +191,83 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangeCurrentPassword(string currentPassword, string newPassword, string confirmPassword)
+        public async Task<IActionResult> ChangeCurrentPassword(string currentPassword,string newPassword,string confirmPassword)
         {
-            // 1. Validation
             if (newPassword != confirmPassword)
             {
-                ViewBag.Error = "New password and confirmation do not match.";
+                ViewBag.Error = "New passwords do not match";
                 return View();
             }
 
             string userId = HttpContext.Session.GetString("UserId");
-            if (userId == null)
-            {
-                return RedirectToAction("Login", "User");
-            }
 
-            // 2. Retrieve user from Firebase
-            var user = await _firebaseDB.GetDataAsync<User>($"Users/{userId}");
+            var docRef = _firestore.Collection("Users").Document(userId);
+            var snapshot = await docRef.GetSnapshotAsync();
+            var user = snapshot.ConvertTo<User>();
 
-            if (user == null)
+            if (!PasswordHelper.VerifyPassword(user.PasswordHash, currentPassword))
             {
-                ViewBag.Error = "User not found.";
+                ViewBag.Error = "Current password is incorrect";
                 return View();
             }
 
-            // 3. Check current password
-            if (user.Password != currentPassword)
-            {
-                ViewBag.Error = "Current password is incorrect.";
-                return View();
-            }
+            string newHash = PasswordHelper.HashPassword(newPassword);
 
-            // 4. Update password in Firebase
-            user.Password = newPassword;
+            await docRef.UpdateAsync("PasswordHash", newHash);
 
-            await _firebaseDB.UpdateDataAsync($"Users/{userId}", user);
-
-            // 5. Redirect to My Account page
-            TempData["Success"] = "Password updated successfully.";
             return RedirectToAction("MyAccount");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var docRef = _firestore.Collection("Users").Document(userId);
+            var snapshot = await docRef.GetSnapshotAsync();
+
+            if (!snapshot.Exists)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var data = snapshot.ToDictionary();
+
+            var user = new User
+            {
+                UserID = snapshot.Id,
+                Name = data["Name"].ToString(),
+                Email = data["Email"].ToString(),
+                PhoneNumber = data["PhoneNumber"].ToString()
+            };
+
+            return View(user);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditProfile(User model)
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var docRef = _firestore.Collection("Users").Document(userId);
+
+            await docRef.UpdateAsync(new Dictionary<string, object>
+    {
+        { "Name", model.Name },
+        { "Email", model.Email },
+        { "PhoneNumber", model.PhoneNumber }
+    });
+
+            return RedirectToAction("MyAccount");
+        }
+
     }
 }

@@ -1,23 +1,27 @@
 ﻿using Google.Cloud.Firestore;
 
-[FirestoreData]
-public class User
+namespace Mini_Project_Assignment_Y2S2.Models
 {
-    [FirestoreProperty]
-    public string UserID { get; set; }
+    [FirestoreData]
+    public class User
+    {
+        [FirestoreProperty]
+        public string UserID { get; set; }
 
-    [FirestoreProperty]
-    public string Name { get; set; }
+        [FirestoreProperty]
+        public string Name { get; set; }
 
-    [FirestoreProperty]
-    public string Email { get; set; }
+        [FirestoreProperty]
+        public string Email { get; set; }
 
-    [FirestoreProperty]
-    public string PhoneNumber { get; set; }
+        [FirestoreProperty]
+        public string PhoneNumber { get; set; }
 
-    [FirestoreProperty]
-    public string Password { get; set; }
+        [FirestoreProperty]
+        public string PasswordHash { get; set; }
 
-    [FirestoreProperty]
-    public string Role { get; set; }
+        [FirestoreProperty]
+        public string Role { get; set; }
+    }
+
 }

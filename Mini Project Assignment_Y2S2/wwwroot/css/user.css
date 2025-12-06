@@ -148,7 +148,8 @@ input:focus {
     margin-top: 20px;
 }
 
-.btn-done {
+.btn-cancel {
+    display: inline-block; /* important for <a> */
     width: 152px;
     background-color: #53b66c;
     padding: 10px;
@@ -157,9 +158,18 @@ input:focus {
     color: white;
     font-weight: bold;
     cursor: pointer;
+    text-align: center; /* center text */
+    text-decoration: none; /* remove underline */
+    margin-right:72px;
 }
 
+    .btn-edit:hover {
+        background-color: darkgreen;
+    }
+
 .btn-change {
+    display: inline-block;
+    justify-content: right;
     width: 152px;
     background-color: #7676e8;
     padding: 10px;
@@ -169,13 +179,10 @@ input:focus {
     font-weight: bold;
     text-align: center;
     text-decoration: none;
-    display: inline-block;
     cursor: pointer;
 }
 
-.btn-done:hover{
-        background-color:darkgreen;
-}
-.btn-change:hover {
-    background-color: blue;
-}
+    .btn-change:hover {
+        background-color: blue;
+    }
+

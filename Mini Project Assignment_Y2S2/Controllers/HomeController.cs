@@ -43,8 +43,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Items.Add(item);
-                _context.SaveChanges();
                 return RedirectToAction("Index");
             }
             return RedirectToAction("Index");

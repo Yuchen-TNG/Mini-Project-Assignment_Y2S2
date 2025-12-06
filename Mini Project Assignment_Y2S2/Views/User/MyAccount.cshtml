@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "My Account";
 }
-<link rel="stylesheet" href="~/css/user.css" />
+<link rel="stylesheet" href="~/css/user.css" asp-append-version="true"/>
 
 <div class="container">
     <div class="login-card">
@@ -27,8 +27,8 @@
             <input type="text" value="@Model.PhoneNumber" readonly />
 
             <div class="button-row">
-                <button type="button" class="btn-done" style="width:172px;">Done</button>
-                <a href="/User/ChangeCurrentPassword" class="btn-change">Change Password</a>
+                <button type="button" onclick="location.href='@Url.Action("EditProfile")'" class="btn-cancel">Edit Profile</button>
+                <button type="button" onclick="location.href='@Url.Action("ChangeCurrentPassword")'" class="btn-change">Edit Profile</button>
             </div>
         </form>
 

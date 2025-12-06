@@ -1,0 +1,28 @@
+﻿@model Mini_Project_Assignment_Y2S2.Models.User
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+<link rel="stylesheet" href="~/css/user.css" asp-append-version="true"/>
+
+<div class="container">
+    <div class="login-card">
+        <div class="login-title">Edit Profile</div>
+
+        <form asp-action="EditProfile" method="post">
+            
+            <label>Name</label>
+            <input type="text" asp-for="Name" required />
+
+            <label>Email</label>
+            <input type="email" asp-for="Email" required />
+
+            <label>Phone Number</label>
+            <input type="text" asp-for="PhoneNumber" required />
+
+            <button type="button" onclick="location.href='@Url.Action("MyAccount")'" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-change">Save Changes</button>
+
+        </form>
+    </div>
+</div>
