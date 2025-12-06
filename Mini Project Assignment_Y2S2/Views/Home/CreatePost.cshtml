@@ -109,10 +109,10 @@
                 <input asp-for="Date" type="date" class="form-control" />
 
                 <label>Location</label>
-                <select asp-for="Location" class="form-control">
+                <select asp-for="LocationID" class="form-control">
                     <option value="">Select</option>
-                    <option>East Campus</option>
-                    <option>FOCS</option>
+                    <option value="EastCampus">East Campus</option>
+                    <option value="FOCS">FOCS</option>
                 </select>
 
                 <label>Category</label>
@@ -123,11 +123,12 @@
 
             <!-- 右边图片框 -->
             <div>
-                <label asp-for="Image">Item Image</label>
+                <label asp-for="ImageFile">Item Image</label>
+
                 <div class="image-box">
                     <span>Preview will appear here</span>
                 </div>
-                <input asp-for="Image" type="file" class="form-control" accept="image/*" />
+                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
             </div>
 
         </div>

@@ -32,27 +32,128 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View();
         }
 
-        // GET: Create Post
-        public IActionResult CreatePost()
+
+
+
+
+        // GET: CreatePost (显示表单)
+        [HttpGet]
+        public IActionResult CreatePost(string Category)
         {
-            return View();
+            var item = new Item();
+            item.Category = Category; // 通过 query string 设置类别
+            return View(item);
+        }
+
+        // POST: CreatePost (提交表单)
+        [HttpPost]
+        public async Task<IActionResult> CreatePost(Item item)
+        {
+            if (!ModelState.IsValid)
+                return View(item);
+
+            // 处理图片上传
+            if (item.ImageFile != null && item.ImageFile.Length > 0)
+            {
+                // 确保目录存在
+                var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                if (!Directory.Exists(imagesPath))
+                {
+                    Directory.CreateDirectory(imagesPath);
+                }
+
+                // 使用安全文件名，避免中文或特殊字符问题
+                var fileName = Path.GetFileName(item.ImageFile.FileName);
+                var safeFileName = $"{Guid.NewGuid()}_{fileName}";
+                var filePath = Path.Combine(imagesPath, safeFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await item.ImageFile.CopyToAsync(stream);
+                }
+
+                item.Image = "/images/" + safeFileName; // 存图片 URL
+            }
+
+            // Firestore 存储
+            CollectionReference itemsRef = _firestore.Collection("Items");
+            await itemsRef.AddAsync(new
+            {
+                IName = item.IName,
+                IType = item.IType,
+                Description = item.Idescription,
+                LocationID = item.LocationID,
+                Image = item.Image,
+                Category = item.Category,
+                Date = item.Date.ToUniversalTime(),
+                CreatedAt = Timestamp.GetCurrentTimestamp()
+            });
+
+            return RedirectToAction("Index");
+        }
+
+
+
+
+        // GET: CreateFoundPost (显示表单)
+        [HttpGet]
+        public IActionResult CreateFoundPost(string Category)
+        {
+            var item = new Item();
+            item.Category = Category; // 设置类别
+            return View(item);
         }
 
         [HttpPost]
-        public IActionResult CreatePost(Item item)
+        public async Task<IActionResult> CreateFoundPost(Item item)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(item);
+
+            if (item.ImageFile != null && item.ImageFile.Length > 0)
             {
-                return RedirectToAction("Index");
+                var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                if (!Directory.Exists(imagesPath))
+                {
+                    Directory.CreateDirectory(imagesPath);
+                }
+
+                var fileName = Path.GetFileName(item.ImageFile.FileName);
+                var safeFileName = $"{Guid.NewGuid()}_{fileName}";
+                var filePath = Path.Combine(imagesPath, safeFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await item.ImageFile.CopyToAsync(stream);
+                }
+
+                item.Image = "/images/" + safeFileName;
             }
+
+            CollectionReference foundItemsRef = _firestore.Collection("FoundItems");
+            await foundItemsRef.AddAsync(new
+            {
+                IName = item.IName,
+                IType = item.IType,
+                Description = item.Idescription,
+                LocationID = item.LocationID,
+                Image = item.Image,
+                Category = item.Category,
+                Date = item.Date.ToUniversalTime(),
+                CreatedAt = Timestamp.GetCurrentTimestamp()
+            });
+
             return RedirectToAction("Index");
-
         }
 
-        public IActionResult CreateFoundPost()
-        {
-            return View();
-        }
+
+
+
+
+
+
+
+
 
         public IActionResult ChoosePostType()
         {
