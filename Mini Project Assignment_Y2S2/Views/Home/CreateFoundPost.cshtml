@@ -1,22 +1,137 @@
 ﻿@model Item
 
-<div>
-	<form asp-action="CreateFoundPost" asp-controller="Home" method="post" enctype="multipart/form-data">
-		<label asp-for="IName"> Item Name: </label>
-		<input asp-for="IName" type="text" />
+<style>
+    /* 背景 */
+    body {
+        background: #f5eaf5;
+        font-family: Arial, sans-serif;
+    }
 
-		<label asp-for="IType"> Item Type: </label>
-		<input asp-for="IType" type="text" />
+    /* 外框 */
+    .post-container {
+        width: 80%;
+        margin: 40px auto;
+        background: #f7d596;
+        padding: 40px;
+        border-radius: 12px;
+    }
 
-		<label asp-for="Idescription"> Item Description: </label>
-		<input asp-for="Idescription" type="text" />
+    /* 标题 */
+    .post-title {
+        text-align: center;
+        font-size: 26px;
+        font-weight: bold;
+        margin-bottom: 30px;
+    }
 
-		<label asp-for="Date">Lost Date</label>
-		<input asp-for="Date" type="date" />
+    /* 表单布局：左边内容 + 右边图片 */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 65% 35%;
+        grid-gap: 30px;
+    }
 
-		<label asp-for="Image">Item Image</label>
-		<input asp-for="Image" type="file" />
+    /* 左边 input */
+    .form-group label {
+        font-weight: bold;
+        margin-top: 15px;
+        display: block;
+    }
 
-		<button>SUBMIT</button>
-	</form>
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+    }
+
+    /* 图片上传框 */
+    .image-box {
+        width: 100%;
+        height: 300px;
+        border: 2px dotted black;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: white;
+        font-size: 14px;
+    }
+
+    /* 日期三格 */
+    .date-section {
+        display: flex;
+        gap: 10px;
+    }
+
+        .date-section input {
+            width: 33%;
+        }
+
+    /* Submit 按钮 */
+    button[type="submit"] {
+        margin-top: 20px;
+        padding: 10px 25px;
+        background: #333;
+        color: white;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+    }
+</style>
+
+
+<div class="post-container">
+
+    <div class="post-title">POST FOR FOUND ITEM</div>
+
+    <form asp-action="CreatePost" asp-controller="Home" method="post" enctype="multipart/form-data">
+
+        <!-- 隐藏 Category（用于提交） -->
+        <input type="hidden" asp-for="Category" />
+
+        <div class="form-grid">
+
+            <!-- 左边内容 -->
+            <div class="form-group">
+
+                <label asp-for="IName">Item Name</label>
+                <input asp-for="IName" class="form-control" />
+
+                <label asp-for="IType">Item Type</label>
+                <input asp-for="IType" class="form-control" />
+
+                <label asp-for="Idescription">Item Description</label>
+                <textarea asp-for="Idescription" class="form-control" style="height:120px;"> </textarea>
+
+                <label>Found Date</label>
+                <input asp-for="Date" type="date" class="form-control" />
+
+                <label>Location</label>
+                <select asp-for="LocationID" class="form-control">
+                    <option value="">Select</option>
+                    <option value="EastCampus">East Campus</option>
+                    <option value="FOCS">FOCS</option>
+                </select>
+
+                <label>Category</label>
+                <input type="text" value="@Model.Category" class="form-control" readonly />
+
+                <button type="submit">Submit</button>
+            </div>
+
+            <!-- 右边图片框 -->
+            <div>
+                <label asp-for="ImageFile">Item Image</label>
+
+                <div class="image-box">
+                    <span>Preview will appear here</span>
+                </div>
+                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+            </div>
+
+        </div>
+
+    </form>
 </div>
