@@ -20,6 +20,10 @@ builder.Services.AddSession(options =>
 // Register your FirebaseDB service
 builder.Services.AddSingleton<FirebaseDB>();
 
+
+// Add IHttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 // Middleware
