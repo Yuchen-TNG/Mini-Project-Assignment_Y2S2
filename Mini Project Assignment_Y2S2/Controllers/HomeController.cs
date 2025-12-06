@@ -24,7 +24,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         public async Task<IActionResult> Index()
         {
-            CollectionReference collection = _firestore.Collection("Item");
+            CollectionReference collection = _firestore.Collection("Items");
 
             QuerySnapshot snapshot = await collection.GetSnapshotAsync();
 
@@ -35,19 +35,36 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         public async Task<IActionResult> updateCard(string category)
         {
-            //get data first
-            CollectionReference collections = _firestore.Collection("Item");
+            List<Item> items = new List<Item>();
 
-            //make the condition
-            Query query = collections.WhereEqualTo("Category",category);
+            try
+            {
+                // 1. 获取集合
+                CollectionReference collections = _firestore.Collection("Items");
 
-            //execute the result
-            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+                // 2. 条件查询
+                Query query = collections.WhereEqualTo("Category", category);
 
-            var items = snapshot.Documents.Select(b => b.ConvertTo <Item> ()).ToList();
-                return PartialView("_ItemCard", items);
+                // 3. 执行查询
+                QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
+                // 4. 转换为 Item 列表
+                items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
+
+                if (!items.Any())
+                {
+                    TempData["Message"] = $"No items found for category '{category}'";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error fetching items: {ex.Message}";
+            }
+
+            // 返回 PartialView，即使 items 为空
+            return PartialView("_ItemCard", items);
         }
+
         public IActionResult CardDetails(int id)
         {
             return View(id);

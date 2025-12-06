@@ -2,10 +2,7 @@
 @{
     ViewData["Title"] = "Home Page";
 }
-@if (TempData["Message"] != null)
-{
-    <p>@TempData["Message"]</p>
-}
+
 <head>
     <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
 
@@ -16,7 +13,7 @@
         <div class="left-container">
             <div class="filter-container">
                 <h1>Filter</h1>
-                <p>Tips:you may click the orange color to do next action </p>
+                <p>Tips:you may clicks the orange color to do next action </p>
             </div>
             <hr />
             <div class="location">
@@ -51,17 +48,17 @@
             <div class="right-container-top">
 
                 <div class="typeOfItem">
-                    <button id="foundButton">Lost </button>
+                    <button id="foundButton" value="LOSTITEM">Lost </button>
                     <button class="buttonA">/  </button>
-                    <button id="postButton">Found</button>
+                    <button id="postButton" value="FOUNDITEM">Found</button>
                 </div>
                 <hr />
             </div>
 
             <div class="right-container-bottom">
-
+                <div class="cardparent">
                 @await Html.PartialAsync("_ItemCard",Model)
-                    
+                </div>
                 
                 
 
