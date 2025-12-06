@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@inject IHttpContextAccessor HttpContextAccessor
+@using Microsoft.AspNetCore.Http
+
+
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -28,7 +33,14 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="@Url.Action("Login", "User")">Login</a>
+                    @if (!string.IsNullOrEmpty(HttpContextAccessor.HttpContext.Session.GetString("UserId")))
+                    {
+                        <a href="@Url.Action("Logout", "User")">Logout</a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Login", "User")">Login</a>
+                    }
                 </li>
             </ul>
         </div>
