@@ -2,7 +2,10 @@
 @{
     ViewData["Title"] = "Home Page";
 }
-
+@if (TempData["Error"] != null)
+{
+    <p>@TempData["Error"]</p>
+}
 <head>
     <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
 
@@ -15,7 +18,8 @@
                 <h1>Filter</h1>
                 <p>Tips:you may clicks the orange color to do next action </p>
             </div>
-            <hr />
+            
+            <div class="line"></div>
             
             <div class="location">
                 <span>Location:  </span>
@@ -25,15 +29,15 @@
                     <option value="">East Campus</option>
                 </select>
             </div>
-            <hr />
+            <div class="line"></div>
             <div class="dateContainer">
                 <label for="startDate">Start Date:</label>
-                <input type="date" id="startDate">
+                <input type="date" id="startDate" >
                 <p>↓</p>
                 <label for="endDate" >End Date:  </label>
-                <input type="date" id="endDate">
+                <input type="date" id="endDate" >
             </div>
-            <hr />
+            <div class="line"></div>
 
 
                 <div class="filter-button">
@@ -60,16 +64,16 @@
                 <div class="cardparent">
                 @await Html.PartialAsync("_ItemCard",Model)
                 </div>
-                
-                
 
 
+
+            </div>
                 <div class="paging">
                     <button id="pagingBack">< Back</button>
                     <button class="pagingNumber">1</button>
                     <button id="pagingNext">Next ></button>
                 </div>
-            </div>
+            
         </div>
 
 

@@ -20,8 +20,10 @@ html {
     padding-top: 20px;
     display: flex;
     height: calc(100vh - 96px);
-    margin-left:20px;
-    margin-right:20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    width: 1880px;
+    height:849px;
 }
 
 .left-container {
@@ -36,9 +38,12 @@ html {
     border-top-left-radius: 17px;
 }
 
-.left-container hr{
-    margin-block:13px;
-}
+    .left-container .line {
+        margin-block: 20px;
+        width: 100%;
+        background-color: white;
+        height:2px;
+    }
 
 .filter-container h1,
 .filter-container p {
@@ -131,6 +136,7 @@ html {
 
 .right-container {
     max-width: 100%;
+    flex-direction:column;
     background-color: #efd79b;
     flex: 1;
     border-top-right-radius: 17px;
@@ -227,11 +233,11 @@ html {
 }
 
 .paging {
-    position: absolute;
+    position:relative;
+    margin-top:auto;
     display: flex;
-    bottom: 4%;
     gap: 15px;
-    transform:translateX(600px);
+    text-align:center;
     font-size:13px;
 }
 

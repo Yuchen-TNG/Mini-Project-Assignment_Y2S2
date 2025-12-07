@@ -77,20 +77,21 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return PartialView("_ItemCard", items);
         }
 
-        public async Task<IActionResult> filter(string category,DateTime? startDate,DateTime? endDate)
+        public async Task<IActionResult> filter(string category,string? startDate, string? endDate)
         {
             CollectionReference collection = _firestore.Collection("Items");
 
             Query query = collection.WhereEqualTo("Category", category);
 
-            if (startDate != null)
+            if ((startDate != null)&& DateTime.TryParse(startDate, out var start))
             {
-                query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
+                query = query.WhereGreaterThan("Date", start.ToUniversalTime());
             }
 
-            if (endDate != null)
+            if ((endDate != null)&&DateTime.TryParse(endDate, out var end))
             {
-                query = query.WhereLessThanOrEqualTo("Date", endDate.Value.ToUniversalTime());
+                var realEndDate = end.Date.AddDays(1);
+                query = query.WhereLessThanOrEqualTo("Date", realEndDate.ToUniversalTime());
             }
 
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
