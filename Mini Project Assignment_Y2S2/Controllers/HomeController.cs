@@ -17,25 +17,75 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             _firestore = firebaseDB.Firestore;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            CollectionReference collection = _firestore.Collection("Items");
+
+            Query query = collection.WhereEqualTo("Category", "LOSTITEM");
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+            var items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
+
+            return View(items);
         }
 
-        public async Task<IActionResult> filter(string category,DateTime? startDate,DateTime? endDate)
+        public async Task<IActionResult> IndexBack()
+        {
+            CollectionReference collection = _firestore.Collection("Items");
+
+            QuerySnapshot snapshot = await collection.GetSnapshotAsync();
+
+            var items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
+
+            return View("Index",items);
+        }
+        public async Task<IActionResult> updateCard(string category)
+        {
+            List<Item> items = new List<Item>();
+
+            try
+            {
+                // 1. 获取集合
+                CollectionReference collections = _firestore.Collection("Items");
+
+                // 2. 条件查询
+                Query query = collections.WhereEqualTo("Category", category);
+
+                // 3. 执行查询
+                QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+                // 4. 转换为 Item 列表
+                items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
+
+                if (!items.Any())
+                {
+                    TempData["Message"] = $"No items found for category '{category}'";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error fetching items: {ex.Message}";
+            }
+
+            // 返回 PartialView，即使 items 为空
+            return PartialView("_ItemCard", items);
+        }
+
+        public async Task<IActionResult> filter(string category,string? startDate, string? endDate)
         {
             CollectionReference collection = _firestore.Collection("Items");
 
             Query query = collection.WhereEqualTo("Category", category);
 
-            if (startDate != null)
+            if ((startDate != null)&& DateTime.TryParse(startDate, out var start))
             {
-                query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
+                query = query.WhereGreaterThan("Date", start.ToUniversalTime());
             }
 
-            if (endDate != null)
+            if ((endDate != null)&&DateTime.TryParse(endDate, out var end))
             {
-                query = query.WhereLessThanOrEqualTo("Date", endDate.Value.ToUniversalTime());
+                var realEndDate = end.Date.AddDays(1);
+                query = query.WhereLessThanOrEqualTo("Date", realEndDate.ToUniversalTime());
             }
 
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
@@ -167,6 +217,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             return RedirectToAction("Index");
         }
+
+
+
+
 
 
 

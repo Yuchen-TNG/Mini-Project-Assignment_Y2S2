@@ -1,6 +1,10 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+@if (TempData["Error"] != null)
+{
+    <p>@TempData["Error"]</p>
+}
 <head>
     <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
 
@@ -13,7 +17,8 @@
                 <h1>Filter</h1>
                 <p>Tips:you may click the orange color to do next action </p>
             </div>
-            <hr />
+            
+            <div class="line"></div>
             
             <div class="location">
                 <span>Location:  </span>
@@ -22,15 +27,15 @@
                     <option value="">East Campus</option>
                 </select>
             </div>
-            <hr />
+            <div class="line"></div>
             <div class="dateContainer">
                 <label for="startDate">Start Date:</label>
-                <input type="date" id="startDate">
+                <input type="date" id="startDate" >
                 <p>↓</p>
-                <label for="endDate">End Date:  </label>
-                <input type="date" id="endDate">
+                <label for="endDate" >End Date:  </label>
+                <input type="date" id="endDate" >
             </div>
-            <hr />
+            <div class="line"></div>
 
 
             <div class="filter-button">
@@ -54,25 +59,19 @@
             </div>
 
             <div class="right-container-bottom">
-                <a class="card" asp-action="CardDetails" asp-controller="Home" asp-route-id="1">
-                    <img class="card-img" src="img/item/download.jpg" alt="img" />
-                    <div class="card-details">
-                        <div class="category">
-                            <p>Category</p>
-                        </div>
-                        <div class="details">
-                            <p>Lost At:</p>
-                            <p>Lost Date:</p>
-                        </div>
-                    </div>
-                </a>
+                <div class="cardparent">
+                    @await Html.PartialAsync("_ItemCard", (List<Mini_Project_Assignment_Y2S2.Models.Items>)Model)
+                </div>
 
+
+
+            </div>
                 <div class="paging">
                     <button id="pagingBack">< Back</button>
                     <button class="pagingNumber">1</button>
                     <button id="pagingNext">Next ></button>
                 </div>
-            </div>
+            
         </div>
 
 
