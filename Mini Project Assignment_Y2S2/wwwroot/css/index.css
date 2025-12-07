@@ -143,6 +143,7 @@ html {
 
 .right-container-top hr {
     margin-top: 15px;
+    margin-bottom:0px;
     width:100%;
 }
 
@@ -176,10 +177,12 @@ html {
 
 .right-container-bottom{
     display:flex;
+    width:100%;
 }
 
-.cardparent{
-    display:flex;
+.cardparent {
+    display: flex;
+    flex-wrap:wrap;
 }
 
 .card {
@@ -189,8 +192,8 @@ html {
     border-radius: 15px;
     font-family: Arial, sans-serif;
     box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
-    margin-left: 30px;
-    margin-top: 10px;
+    margin-left: 40px;
+    margin-top: 30px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
