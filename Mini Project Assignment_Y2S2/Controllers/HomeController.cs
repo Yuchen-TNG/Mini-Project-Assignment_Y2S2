@@ -22,6 +22,28 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View();
         }
 
+        public async Task<IActionResult> filter(string category,DateTime? startDate,DateTime? endDate)
+        {
+            CollectionReference collection = _firestore.Collection("Items");
+
+            Query query = collection.WhereEqualTo("Category", category);
+
+            if (startDate != null)
+            {
+                query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
+            }
+
+            if (endDate != null)
+            {
+                query = query.WhereLessThanOrEqualTo("Date", endDate.Value.ToUniversalTime());
+            }
+
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+                var item = snapshot.Documents.Select(d => d.ConvertTo<Item>()).ToList();
+
+                return PartialView("_itemCard", item);
+        }
         public IActionResult CardDetails(int id)
         {
             return View(id);
@@ -145,10 +167,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             return RedirectToAction("Index");
         }
-
-
-
-
 
 
 
