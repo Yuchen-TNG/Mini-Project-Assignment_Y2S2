@@ -1,8 +1,6 @@
-﻿@model List<Mini_Project_Assignment_Y2S2.Models.Item>
-@{
+﻿@{
     ViewData["Title"] = "Home Page";
 }
-
 <head>
     <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
 
@@ -13,13 +11,12 @@
         <div class="left-container">
             <div class="filter-container">
                 <h1>Filter</h1>
-                <p>Tips:you may clicks the orange color to do next action </p>
+                <p>Tips:you may click the orange color to do next action </p>
             </div>
             <hr />
             <div class="location">
                 <span>Location:  </span>
                 <select class="locationInput">
-                    <option value=""></option>
                     <option value="FOCS">FOCS</option>
                     <option value="">East Campus</option>
                 </select>
@@ -29,15 +26,15 @@
                 <label for="startDate">Start Date:</label>
                 <input type="date" id="startDate">
                 <p>↓</p>
-                <label for="endDate" >End Date:  </label>
+                <label for="endDate">End Date:  </label>
                 <input type="date" id="endDate">
             </div>
             <hr />
 
 
-                <div class="filter-button">
+            <div class="filter-button">
                 <button>Filter</button>
-                </div>
+            </div>
 
         </div>
 
@@ -48,20 +45,26 @@
             <div class="right-container-top">
 
                 <div class="typeOfItem">
-                    <button id="foundButton" value="LOSTITEM">Lost </button>
+                    <button id="foundButton">Lost </button>
                     <button class="buttonA">/  </button>
-                    <button id="postButton" value="FOUNDITEM">Found</button>
+                    <button id="postButton">Found</button>
                 </div>
                 <hr />
             </div>
 
             <div class="right-container-bottom">
-                <div class="cardparent">
-                @await Html.PartialAsync("_ItemCard",Model)
-                </div>
-                
-                
-
+                <a class="card" asp-action="CardDetails" asp-controller="Home" asp-route-id="1">
+                    <img class="card-img" src="img/item/download.jpg" alt="img" />
+                    <div class="card-details">
+                        <div class="category">
+                            <p>Category</p>
+                        </div>
+                        <div class="details">
+                            <p>Lost At:</p>
+                            <p>Lost Date:</p>
+                        </div>
+                    </div>
+                </a>
 
                 <div class="paging">
                     <button id="pagingBack">< Back</button>

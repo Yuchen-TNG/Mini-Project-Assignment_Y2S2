@@ -1,13 +1,8 @@
 ﻿using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualBasic;
+using Google.Cloud.Firestore;
 using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Services;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
@@ -22,47 +17,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             _firestore = firebaseDB.Firestore;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            CollectionReference collection = _firestore.Collection("Items");
-
-            QuerySnapshot snapshot = await collection.GetSnapshotAsync();
-
-            var items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
-
-            return View(items);
-        }
-
-        public async Task<IActionResult> updateCard(string category)
-        {
-            List<Item> items = new List<Item>();
-
-            try
-            {
-                // 1. 获取集合
-                CollectionReference collections = _firestore.Collection("Items");
-
-                // 2. 条件查询
-                Query query = collections.WhereEqualTo("Category", category);
-
-                // 3. 执行查询
-                QuerySnapshot snapshot = await query.GetSnapshotAsync();
-
-                // 4. 转换为 Item 列表
-                items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
-
-                if (!items.Any())
-                {
-                    TempData["Message"] = $"No items found for category '{category}'";
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error fetching items: {ex.Message}";
-            }
-
-            // 返回 PartialView，即使 items 为空
-            return PartialView("_ItemCard", items);
+            return View();
         }
 
         public IActionResult CardDetails(int id)
