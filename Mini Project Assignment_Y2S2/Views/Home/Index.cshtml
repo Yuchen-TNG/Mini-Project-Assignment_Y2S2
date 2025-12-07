@@ -1,5 +1,4 @@
-﻿@model List<Mini_Project_Assignment_Y2S2.Models.Item>
-@{
+﻿@{
     ViewData["Title"] = "Home Page";
 }
 @if (TempData["Error"] != null)
@@ -16,7 +15,7 @@
         <div class="left-container">
             <div class="filter-container">
                 <h1>Filter</h1>
-                <p>Tips:you may clicks the orange color to do next action </p>
+                <p>Tips:you may click the orange color to do next action </p>
             </div>
             
             <div class="line"></div>
@@ -24,7 +23,6 @@
             <div class="location">
                 <span>Location:  </span>
                 <select class="locationInput">
-                    <option value=""></option>
                     <option value="FOCS">FOCS</option>
                     <option value="">East Campus</option>
                 </select>
@@ -40,10 +38,10 @@
             <div class="line"></div>
 
 
-                <div class="filter-button">
-                <button id="filter">Filter</button>
-                </div>
-            
+            <div class="filter-button">
+                <button>Filter</button>
+            </div>
+
         </div>
 
 
@@ -53,10 +51,10 @@
             <div class="right-container-top">
 
                 <div class="typeOfItem">
-                <button id="foundButton" value="LOSTITEM">Lost </button>
+                    <button id="foundButton">Lost </button>
                     <button class="buttonA">/  </button>
-                <button id="postButton" value="FOUNDITEM">Found</button>
-            </div>
+                    <button id="postButton">Found</button>
+                </div>
                 <hr />
             </div>
 

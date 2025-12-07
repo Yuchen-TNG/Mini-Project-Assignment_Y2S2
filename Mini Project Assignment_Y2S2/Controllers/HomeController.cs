@@ -1,14 +1,8 @@
 ﻿using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Google.Cloud.Firestore;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualBasic;
+using Google.Cloud.Firestore;
 using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Services;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
@@ -223,6 +217,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             return RedirectToAction("Index");
         }
+
+
+
+
 
 
 

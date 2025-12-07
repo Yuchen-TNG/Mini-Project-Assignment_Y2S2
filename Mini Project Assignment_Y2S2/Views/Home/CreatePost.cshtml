@@ -126,12 +126,26 @@
                 <label asp-for="ImageFile">Item Image</label>
 
                 <div class="image-box">
-                    <span>Preview will appear here</span>
+                    <img id="previewImg" src="#" alt="Preview" style="max-width:100%; max-height:100%; display:none;" />
                 </div>
-                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+
+                <input asp-for="ImageFile" id="imgInput" type="file" class="form-control" accept="image/*" />
+
             </div>
 
         </div>
 
     </form>
 </div>
+
+<script>
+    document.getElementById("imgInput").addEventListener("change", function (event) {
+        const preview = document.getElementById("previewImg");
+        const file = event.target.files[0];
+
+        if (file) {
+            preview.style.display = "block";
+            preview.src = URL.createObjectURL(file);  // 更快的方法
+        }
+    });
+</script>
