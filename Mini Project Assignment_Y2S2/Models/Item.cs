@@ -2,27 +2,30 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class Item
+namespace Mini_Project_Assignment_Y2S2.Models
 {
-    [Key]
-    public int ItemID { get; set; }
+    public class Item
+    {
+        [Key]
+        public int ItemID { get; set; }
 
-    [Required]
-    public string? IName { get; set; }
+        [Required]
+        public string? IName { get; set; }
 
-    [Required]
-    public string? IType { get; set; }
+        [Required]
+        public string? IType { get; set; }
 
-    [Required]
-    public string? Idescription { get; set; }
+        [Required]
+        public string? Idescription { get; set; }
 
-    [Required]
-    public DateTime Date { get; set; } = DateTime.Now;
+        [Required]
+        public DateTime Date { get; set; } = DateTime.Now;
 
-    public string? LocationID { get; set; }
-    public string? Image { get; set; }
-    public string Category { get; set; }
+        public string? LocationID { get; set; }
+        public string? Image { get; set; }
+        public string Category { get; set; }
 
-    [NotMapped]
-    public IFormFile? ImageFile { get; set; }
+        [NotMapped]
+        public IFormFile? ImageFile { get; set; }
+    }
 }
