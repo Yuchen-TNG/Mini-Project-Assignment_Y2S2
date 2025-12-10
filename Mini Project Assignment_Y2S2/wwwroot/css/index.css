@@ -141,6 +141,7 @@ html {
     flex: 1;
     border-top-right-radius: 17px;
     border-bottom-right-radius: 17px;
+    display:flex;
 }
 
 .right-container-top{
@@ -233,12 +234,14 @@ html {
 }
 
 .paging {
-    position:relative;
-    margin-top:auto;
+    position: relative;
+    margin-top: auto;
     display: flex;
     gap: 15px;
-    text-align:center;
-    font-size:13px;
+    text-align: center;
+    font-size: 13px;
+    justify-content: center;
+    bottom: 5%;
 }
 
 .paging button{
@@ -248,6 +251,7 @@ html {
     background-color:#61b255;
     color:white;
     font-weight:bold;
+   
 }
 
 .paging button:hover {
