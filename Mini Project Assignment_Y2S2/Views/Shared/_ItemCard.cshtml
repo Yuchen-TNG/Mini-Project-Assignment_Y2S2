@@ -5,7 +5,7 @@
 @foreach (var items in Model)
 {
     <a class="card" asp-action="CardDetails" asp-controller="Home" asp-route-id="1">
-        <img class="card-img" src="@items.Image" alt="img" />
+        <img class="card-img" src="@items.Images" alt="img" />
         <div class="card-details">
             <div class="category">
                 <p>@items.IType </p>

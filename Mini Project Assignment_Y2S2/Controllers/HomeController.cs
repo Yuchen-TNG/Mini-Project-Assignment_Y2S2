@@ -29,7 +29,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 var item = new Item
                 {
                     LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string?>("LocationID") : null,
-                    Image = doc.ContainsField("Image") ? doc.GetValue<string?>("Image") : null,
+                    Images = doc.ContainsField("Image")
+    ? new List<string> { doc.GetValue<string>("Image") }
+    : null,
                     IType = doc.GetValue<string?>("IType"),
                     IName = doc.GetValue<string?>("IName"),
                     Idescription = doc.GetValue<string?>("Description"),
@@ -54,7 +56,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 var item = new Item
                 {
                     LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string?>("LocationID") : null,
-                    Image = doc.ContainsField("Image") ? doc.GetValue<string?>("Image") : null,
+                    Images = doc.ContainsField("Image")
+    ? new List<string> { doc.GetValue<string>("Image") }
+    : null,
                     IType = doc.GetValue<string?>("IType"),
                     IName = doc.GetValue<string?>("IName"),
                     Idescription = doc.GetValue<string?>("Description"),
@@ -87,7 +91,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     var items = new Item
                     {
                         LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string?>("LocationID") : null,
-                        Image = doc.ContainsField("Image") ? doc.GetValue<string?>("Image") : null,
+                        Images = doc.ContainsField("Image")
+    ? new List<string> { doc.GetValue<string>("Image") }
+    : null,
                         IType = doc.GetValue<string?>("IType"),
                         IName = doc.GetValue<string?>("IName"),
                         Idescription = doc.GetValue<string?>("Description"),
@@ -127,7 +133,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 var item = new Item
                 {
                     LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string?>("LocationID") : null,
-                    Image = doc.ContainsField("Image") ? doc.GetValue<string?>("Image") : null,
+                    Images = doc.ContainsField("Image")
+    ? new List<string> { doc.GetValue<string>("Image") }
+    : null,
                     IType = doc.GetValue<string?>("IType"),
                     IName = doc.GetValue<string?>("IName"),
                     Idescription = doc.GetValue<string?>("Description"),
