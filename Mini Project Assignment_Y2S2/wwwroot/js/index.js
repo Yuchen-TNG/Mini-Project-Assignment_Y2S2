@@ -17,10 +17,10 @@ document.getElementById("postButton").addEventListener("click", () => {
     const b2 = document.getElementById("foundButton");
 
 
+    loadItem(b1.value);
+
     [b1.innerHTML, b2.innerHTML] = [b2.innerHTML, b1.innerHTML];
     [b1.value, b2.value] = [b2.value, b1.value];
-
-    loadItem(b2.value);
 
 
 });

@@ -24,7 +24,21 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             Query query = collection.WhereEqualTo("Category", "LOSTITEM");
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
-            var items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
+            var items = snapshot.Documents.Select(doc =>
+            {
+                var item = new Item
+                {
+                    LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string?>("LocationID") : null,
+                    Image = doc.ContainsField("Image") ? doc.GetValue<string?>("Image") : null,
+                    IType = doc.GetValue<string?>("IType"),
+                    IName = doc.GetValue<string?>("IName"),
+                    Idescription = doc.GetValue<string?>("Description"),
+                    Date = doc.GetValue<DateTime>("Date"),
+                    Category = doc.GetValue<string>("Category")
+                    // ImageFile 不需要从 Firestore 读取
+                };
+                return item;
+            }).ToList();
 
             return View(items);
         }
@@ -35,16 +49,29 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             QuerySnapshot snapshot = await collection.GetSnapshotAsync();
 
-            var items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
+                        var items = snapshot.Documents.Select(doc =>
+            {
+                var item = new Item
+                {
+                    LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string?>("LocationID") : null,
+                    Image = doc.ContainsField("Image") ? doc.GetValue<string?>("Image") : null,
+                    IType = doc.GetValue<string?>("IType"),
+                    IName = doc.GetValue<string?>("IName"),
+                    Idescription = doc.GetValue<string?>("Description"),
+                    Date = doc.GetValue<DateTime>("Date"),
+                    Category = doc.GetValue<string>("Category")
+                    // ImageFile 不需要从 Firestore 读取
+                };
+                return item;
+            }).ToList();
 
             return View("Index",items);
         }
         public async Task<IActionResult> updateCard(string category)
         {
-            List<Item> items = new List<Item>();
+            
 
-            try
-            {
+    
                 // 1. 获取集合
                 CollectionReference collections = _firestore.Collection("Items");
 
@@ -55,20 +82,25 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
                 // 4. 转换为 Item 列表
-                items = snapshot.Documents.Select(b => b.ConvertTo<Item>()).ToList();
-
-                if (!items.Any())
+                var item = snapshot.Documents.Select(doc =>
                 {
-                    TempData["Message"] = $"No items found for category '{category}'";
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error fetching items: {ex.Message}";
-            }
+                    var items = new Item
+                    {
+                        LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string?>("LocationID") : null,
+                        Image = doc.ContainsField("Image") ? doc.GetValue<string?>("Image") : null,
+                        IType = doc.GetValue<string?>("IType"),
+                        IName = doc.GetValue<string?>("IName"),
+                        Idescription = doc.GetValue<string?>("Description"),
+                        Date = doc.GetValue<DateTime>("Date"),
+                        Category = doc.GetValue<string>("Category")
+                        // ImageFile 不需要从 Firestore 读取
+                    };
+                    return items;
+                }).ToList();
 
+              
             // 返回 PartialView，即使 items 为空
-            return PartialView("_ItemCard", items);
+            return PartialView("_ItemCard", item);
         }
 
         public async Task<IActionResult> filter(string category,string? startDate, string? endDate)
@@ -90,9 +122,23 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
-                var item = snapshot.Documents.Select(d => d.ConvertTo<Item>()).ToList();
+            var items = snapshot.Documents.Select(doc =>
+            {
+                var item = new Item
+                {
+                    LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string?>("LocationID") : null,
+                    Image = doc.ContainsField("Image") ? doc.GetValue<string?>("Image") : null,
+                    IType = doc.GetValue<string?>("IType"),
+                    IName = doc.GetValue<string?>("IName"),
+                    Idescription = doc.GetValue<string?>("Description"),
+                    Date = doc.GetValue<DateTime>("Date"),
+                    Category = doc.GetValue<string>("Category")
+                    // ImageFile 不需要从 Firestore 读取
+                };
+                return item;
+            }).ToList();
 
-                return PartialView("_itemCard", item);
+            return PartialView("_itemCard", items);
         }
         public IActionResult CardDetails(int id)
         {
