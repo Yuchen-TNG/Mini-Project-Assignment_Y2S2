@@ -22,10 +22,10 @@ namespace Mini_Project_Assignment_Y2S2.Models
         public DateTime Date { get; set; } = DateTime.Now;
 
         public string? LocationID { get; set; }
-        public string? Image { get; set; }
+        public List<string>? Images { get; set; }
         public string Category { get; set; }
 
         [NotMapped]
-        public IFormFile? ImageFile { get; set; }
+        public List<IFormFile>? ImageFiles { get; set; }
     }
 }

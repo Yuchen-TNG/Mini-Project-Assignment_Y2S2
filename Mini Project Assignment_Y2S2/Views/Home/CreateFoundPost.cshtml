@@ -123,12 +123,12 @@
 
             <!-- 右边图片框 -->
             <div>
-                <label asp-for="ImageFile">Item Image</label>
+                <label asp-for="ImageFiles">Item Image</label>
 
                 <div class="image-box">
                     <span>Preview will appear here</span>
                 </div>
-                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                <input asp-for="ImageFiles" id="imgInput" type="file" class="form-control" accept="image/*" multiple />
             </div>
 
         </div>
