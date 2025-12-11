@@ -1,64 +1,96 @@
-﻿@{
+﻿@model Mini_Project_Assignment_Y2S2.Models.Item
+@{
     ViewData["Title"] = "CardDetails";
 }
-<head>
-    <link rel="stylesheet" href="~/css/cardDetails.css" asp-append-version="true"/>
-</head>
 
+<link rel="stylesheet" href="~/css/cardDetails.css" asp-append-version="true" />
 
-<body>
-    <div class="parent">
-        <div >
-            <a class="back" href="@Url.Action("IndexBack", "Home")">Back</a>
-        </div>
+<div class="parent">
+    <a class="back" href="@Url.Action("IndexBack", "Home")">Back</a>
 
-       
-        <div class="CardDetails">
-            <div class="topDetails">
-                <div class="image">
-                    <img src="~/img/item/download.jpg" />
-                </div>
+    <div class="CardDetails">
 
-                <div class="userDetails">
-                    <p class="UserDetails">
-                        User Details
-                    </p>
+        <div class="topDetails">
+            <!-- 图片轮播 -->
+            <div class="image">
+                <div class="carousel-container">
 
-                    <p class="label">Name</p>
-                    <p class="text">Tan Kai Zhen</p>
-
-                    <p class="label">Contact Number</p>
-                    <p class="text">017-230 1463</p>
-
-                    <p class="label">Email</p>
-                    <p class="text">tankz@gmail.com</p>
-
-                    <p class="label">Item Keep At</p>
-                    <p class="text">My House</p>
-                </div>
-
-            </div>
-
-            <div class="bottomDetails">
-                <div class="bottomDetails-left">
-                    <div class="bottomDetails-left2">
-                        <p class="label">Found Date</p>
-                        <p class="text">12th December 2026</p>
-
-                        <p class="label">Type</p>
-                        <p class="text">Wallet</p>
-                    </div>
-                    <div class="bottomDetails-right2">
-                        <p class="label">Found At</p>
-                        <p class="text">East Campus Canteen, Table A12</p>
-                    </div>
-                </div>
-                <div class="bottomDetails-right">
-                    <p class="label">Descritpion</p>
-                    <p class="text">Red colour, I saw him leave on the table just as I was having dinner.</p>
+                    @if (Model.Images != null && Model.Images.Count > 0)
+                    {
+                        <img id="carouselImage" src="@Model.Images[0]" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />
+                        @if (Model.Images.Count > 1)
+                        {
+                            <button id="prevBtn" style="position:absolute; top:50%; left:0; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; padding:5px;">&#10094;</button>
+                            <button id="nextBtn" style="position:absolute; top:50%; right:0; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; padding:5px;">&#10095;</button>
+                        }
+                    }
+                    else
+                    {
+                        <img src="/images/default.png" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />
+                    }
                 </div>
             </div>
-            
+
+            <!-- 用户详情，这里改成动态绑定，如果有对应字段的话 -->
+            <div class="userDetails">
+                <p class="UserDetails">User Details</p>
+
+                <p class="label">Name</p>
+                <p class="text">Tan Kai Zhen</p>
+
+                <p class="label">Contact Number</p>
+                <p class="text">011-999 9999</p>
+
+                <p class="label">Email</p>
+                <p class="text">people@gmail.com</p>
+
+                <p class="label">Item Keep At</p>
+                <p class="text">Home</p>
+            </div>
+
         </div>
+
+        <!-- 物品详情 -->
+        <div class="bottomDetails">
+            <div class="bottomDetails-left">
+                <div class="bottomDetails-left2">
+                    <p class="label">Found Date</p>
+                    <p class="text">@Model.Date.ToString("dd/MM/yyyy")</p>
+                    <p class="label">Type</p>
+                    <p class="text">@Model.IType</p>
+                </div>
+                <div class="bottomDetails-right2">
+                    <p class="label">Found At</p>
+                    <p class="text">@Model.LocationID</p>
+                </div>
+            </div>
+            <div class="bottomDetails-right">
+                <p class="label">Description</p>
+                <p class="text">@Model.Idescription</p>
+            </div>
+        </div>
+
     </div>
-</body>
+</div>
+
+<script>
+    // 图片轮播
+    let images = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Images ?? new List<string>()));
+    let currentIndex = 0;
+
+    const carouselImage = document.getElementById("carouselImage");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    if (prevBtn && nextBtn) {
+        prevBtn.addEventListener("click", () => {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            carouselImage.src = images[currentIndex];
+        });
+
+        nextBtn.addEventListener("click", () => {
+            currentIndex = (currentIndex + 1) % images.length;
+            carouselImage.src = images[currentIndex];
+        });
+    }
+</script>

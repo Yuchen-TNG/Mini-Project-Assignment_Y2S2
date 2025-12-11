@@ -1,4 +1,4 @@
-﻿
+﻿/* 全局布局 */
 html, body {
     height: 100%;
     margin: 0;
@@ -7,129 +7,132 @@ html, body {
 }
 
 * {
-    caret-color:transparent;
-    text-decoration:none;
+    caret-color: transparent;
+    text-decoration: none;
 }
 
+/* 外层容器 */
 .parent {
-    box-sizing: border-box;
     width: 100%;
-    flex:1;
+    flex: 1;
+    box-sizing: border-box;
     padding: 35px 280px;
 }
 
+/* 返回按钮 */
 .back {
     height: 40px;
     width: 70px;
-    font-size:20px;
+    font-size: 20px;
     background-color: #FF9500;
     border-radius: 15px;
+    display: flex;
     justify-content: center;
     align-items: center;
-    display: flex;
-    color:black;
-    margin-bottom:10px;
+    margin-bottom: 10px;
+    color: black;
 }
 
-
-
+/* 总卡片 */
 .CardDetails {
-    border-radius:10px;
     background-color: #efd79b;
-    width: 100%;
-    flex-grow:1;
-    box-sizing: border-box;
-    padding: 20px 20px;
+    border-radius: 10px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
 }
 
+/* 顶部两栏 */
 .topDetails {
-    display:flex;
-    width: 100%;
+    display: flex;
     height: 480px;
-    margin-bottom:20px;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
+/* 左侧图片区 */
 .image {
     width: 960px;
     height: 100%;
 }
 
-.image img {
-    border-top-left-radius:15px;
+.carousel-container {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* 保持比例裁剪多余部分 */
+    position: relative;
 }
 
+    .carousel-container img {
+        width: 100%;
+        height: 100%;
+        border-top-left-radius: 15px;
+        object-fit: cover;
+    }
+
+/* 右侧用户详情 */
 .userDetails {
-    border-top-right-radius:15px;
-    margin-left: 20px;
-    height: 100%;
-    background-color: white;
     flex-grow: 1;
-    padding:18px;
-    box-sizing:border-box;
+    background: white;
+    margin-left: 20px;
+    padding: 18px;
+    box-sizing: border-box;
+    border-top-right-radius: 15px;
 }
 
-.userDetails .UserDetails {
-    font-size:40px;
-    font-weight:bold;
-    margin:0px;
-    letter-spacing:4px;
-    padding-bottom:8px;
-    border-bottom:3px solid black;
-    margin-bottom:13px;
-}
+    .userDetails .UserDetails {
+        font-size: 40px;
+        font-weight: bold;
+        margin: 0;
+        padding-bottom: 8px;
+        margin-bottom: 13px;
+        border-bottom: 3px solid black;
+        letter-spacing: 3px;
+    }
 
-.label{
-    font-size:29px;
-    margin:0;
-    padding-bottom:5px;
+/* 标签 + 文本 */
+.label {
+    font-size: 29px;
+    margin: 0;
+    padding-bottom: 5px;
 }
 
 .text {
-    margin: 0;
     font-size: 25px;
     color: grey;
-    padding-bottom:13px;
+    margin: 0 0 13px 0;
 }
 
+/* 底部两栏 */
 .bottomDetails {
-    flex-grow: 1;
     display: flex;
-
     width: 100%;
-    height: 100%;
+    flex-grow: 1;
 }
 
-.bottomDetails-left{
-    width:55%;
-    flex-grow:1;
-    display:flex;
-    flex-direction:row;
-    background-color:white;
-    margin-right:20px;
-    padding:20px;
-    border-bottom-left-radius:15px;
+/* 底部左边 */
+.bottomDetails-left {
+    display: flex;
+    flex-grow: 1;
+    background: white;
+    margin-right: 20px;
+    padding: 20px;
+    border-bottom-left-radius: 15px;
 }
 
-.bottomDetails-left2{
-    width:45%;
-    border-right:3px solid black;
-    height:100%;
+.bottomDetails-left2 {
+    width: 45%;
+    border-right: 3px solid black;
 }
 
 .bottomDetails-right2 {
-    padding-left:20px;
     width: 55%;
-    height: 100%;
+    padding-left: 20px;
 }
 
+/* 底部右侧：描述 */
 .bottomDetails-right {
-    padding: 20px;
+    background: white;
     flex-grow: 1;
-    background-color: white;
+    padding: 20px;
     border-bottom-right-radius: 15px;
 }
