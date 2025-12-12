@@ -1,14 +1,14 @@
-kz part
-when click lost/found need clear filter value
+﻿kz part
 need to build a clear button on filter
 paging haven't done
 
-
-
+yc part
+有做item的userid？就是谁post的
+东西现在keep在哪里
 
 chengkeat part
-??image???
-user register?????id
-???login???userprofile
-???????my profile??????????????login
-??????remember me?
+你的image还没做
+user register了怎样知道id
+为什么login了后是userprofile
+还没登陆后，按my profile应该出现提示而不是直接飞过去login
+有没有打算做remember me？
