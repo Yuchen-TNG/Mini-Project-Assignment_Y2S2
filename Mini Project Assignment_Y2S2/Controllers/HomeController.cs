@@ -130,6 +130,28 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return PartialView("_ItemCard", items);
         }
 
+        public async Task<IActionResult> IndexPaging(int size,int page)
+        {
+            var skip = (page -1) *size;
+            CollectionReference collection = _firestore.Collection("Items");
+            QuerySnapshot snapshots = await collection.GetSnapshotAsync();
+
+            var items =snapshots.Documents.Select(doc=>new Item
+            {
+                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
+                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
+                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
+                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
+                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
+            }).ToList();
+
+            var pageItems = items.Skip(skip).Take(size).ToList();
+            return PartialView("_ItemCard", pageItems);
+        }
         public async Task<IActionResult> CardDetails(int itemId)
         {
 
