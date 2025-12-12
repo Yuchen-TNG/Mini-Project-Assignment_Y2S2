@@ -25,7 +25,7 @@ document.getElementById("postButton").addEventListener("click", () => {
 
 });
 
-document.getElementById("tempdata").
+
 
 function loadItem(type) {
     fetch(`/Home/updateCard?category=${type}`)
