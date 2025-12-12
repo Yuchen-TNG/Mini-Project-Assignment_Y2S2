@@ -25,7 +25,15 @@ document.getElementById("postButton").addEventListener("click", () => {
 
 });
 
-
+const temp = document.getElementById("tempdata");
+if (temp) {
+    setTimeout(() => {
+        temp.classList.add("hide");
+        setTimeout(() => {
+            temp.style.display = "none";
+        }, 1000);
+    }, 3000);
+}
 
 function loadItem(type) {
     fetch(`/Home/updateCard?category=${type}`)

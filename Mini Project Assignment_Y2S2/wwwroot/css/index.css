@@ -17,14 +17,19 @@
     left: 50%;
     transform: translate(-50%,-50%);
     background-color: red;
-    font-size:20px;
+    font-size: 20px;
     border-radius: 13px;
     color: white;
     text-align: center; /* 可选：文字居中 */
     line-height: 50px; /* 可选：让文字垂直居中 */
     z-index: 4;
+    opacity: 1;
+    transition: opacity 1s;
 }
 
+    .tempdata.hide {
+        opacity: 0; /* 添加 hide 类后慢慢透明消失 */
+    }
 
 a {
     color: black;
