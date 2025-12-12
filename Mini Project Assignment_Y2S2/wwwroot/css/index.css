@@ -7,9 +7,28 @@
 
 }
 
-a{
-    color:black;
-    text-decoration:none;
+.tempdata {
+    width: auto;
+    height: 50px;
+    padding-left: 20px;
+    padding-right: 20px;
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background-color: red;
+    font-size:20px;
+    border-radius: 13px;
+    color: white;
+    text-align: center; /* 可选：文字居中 */
+    line-height: 50px; /* 可选：让文字垂直居中 */
+    z-index: 4;
+}
+
+
+a {
+    color: black;
+    text-decoration: none;
 }
 
 html {
@@ -17,13 +36,14 @@ html {
 }
 
 .parent {
+    position: relative;
     padding-top: 20px;
     display: flex;
     height: calc(100vh - 96px);
     margin-left: 20px;
     margin-right: 20px;
     width: 1880px;
-    height:849px;
+    height: 849px;
 }
 
 .left-container {

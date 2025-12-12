@@ -1,22 +1,30 @@
 ﻿@model List<Mini_Project_Assignment_Y2S2.Models.Item>
 
-@foreach (var item in Model)
+@if (Model != null && Model.Any())
 {
-    <a class="card" asp-action="CardDetails" asp-controller="Home" asp-route-itemId="@item.ItemID">
-        <div class="card-img-container">
-            <img class="card-img"
-                 src="@(item.Images != null && item.Images.Count > 0 ? item.Images[0] : "/images/default.png")"
-                 alt="img"
-                 style="width:100%; height:150px; object-fit:cover; border-radius:4px;" />
-        </div>
-        <div class="card-details">
-            <div class="category">
-                <p>@item.IType</p>
+    string currentCategory = Context.Session.GetString("CurrentCategory") ?? "LOSTITEM";
+
+    // 先筛选出当前类别的 item
+    var filteredItems = Model.Where(i => i.Category == currentCategory).ToList();
+
+    @foreach (var item in filteredItems)
+    {
+        <a class="card" asp-action="CardDetails" asp-controller="Home" asp-route-itemId="@item.ItemID">
+            <div class="card-img-container">
+                <img class="card-img"
+                     src="@(item.Images != null && item.Images.Count > 0 ? item.Images[0] : "/images/default.png")"
+                     alt="img"
+                     style="width:100%; height:150px; object-fit:cover; border-radius:4px;" />
             </div>
-            <div class="details">
-                <p>@item.LocationID</p>
-                <p>@item.Date.ToString("dd/MM/yyyy")</p>
+            <div class="card-details">
+                <div class="category">
+                    <p>@item.IType</p>
+                </div>
+                <div class="details">
+                    <p>@item.LocationID</p>
+                    <p>@item.Date.ToString("dd/MM/yyyy")</p>
+                </div>
             </div>
-        </div>
-    </a>
+        </a>
+    }
 }

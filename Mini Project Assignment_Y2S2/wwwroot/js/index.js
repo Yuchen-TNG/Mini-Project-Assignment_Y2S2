@@ -25,6 +25,7 @@ document.getElementById("postButton").addEventListener("click", () => {
 
 });
 
+document.getElementById("tempdata").
 
 function loadItem(type) {
     fetch(`/Home/updateCard?category=${type}`)
@@ -42,6 +43,7 @@ document.getElementById("filter").addEventListener("click", () => {
 
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
+    const locationID = document.getElementById("location").value;
 
     let category;
     if (b1.value == "FOUNDITEM") {
@@ -49,13 +51,13 @@ document.getElementById("filter").addEventListener("click", () => {
     } else {
         category = "LOSTITEM";
     }
-    filterCard(category, startDate, endDate);
+    filterCard(category, startDate, endDate,locationID);
     
 })
 
-function filterCard(category, startDate, endDate) {
+function filterCard(category, startDate, endDate,locationID) {
 
-    fetch(`/Home/filter?category=${category}&startDate=${startDate}&endDate=${endDate}`)
+    fetch(`/Home/filter?category=${category}&startDate=${startDate}&endDate=${endDate}&locationID=${locationID}`)
         .then(response => response.text())
         .then(html => document.querySelector(".cardparent").innerHTML = html)
 

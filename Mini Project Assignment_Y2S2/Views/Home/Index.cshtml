@@ -1,9 +1,13 @@
-﻿@{
+﻿@model List<Mini_Project_Assignment_Y2S2.Models.Item>
+@{
     ViewData["Title"] = "Home Page";
+    string currentCategory = Context.Session.GetString("CurrentCategory") ?? "LOSTITEM";
+
 }
+
 @if (TempData["Error"] != null)
 {
-    <p>@TempData["Error"]</p>
+    <p id="tempdata" class="tempdata">@TempData["Error"]</p>
 }
 <head>
     <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
@@ -22,24 +26,35 @@
             
             <div class="location">
                 <span>Location:  </span>
-                <select class="locationInput">
-                    <option value="FOCS">FOCS</option>
-                    <option value="">East Campus</option>
+                <select class="locationInput" id="location">
+                    <option value=""></option>
+                    @{
+                        var locations = Model
+                        .Where(i => !string.IsNullOrEmpty(i.LocationID))
+                        .Select(i => i.LocationID)
+                        .Distinct()
+                        .ToList() ?? new List<string>();
+                    }
+                    @foreach (var loc in locations)
+                    {
+                        <option value="@loc">@loc</option>
+                    }
                 </select>
             </div>
+
             <div class="line"></div>
             <div class="dateContainer">
                 <label for="startDate">Start Date:</label>
-                <input type="date" id="startDate" >
+                <input type="date" id="startDate" min="@ViewData["MinDate"]" max="@ViewData["MaxDate"]">
                 <p>↓</p>
                 <label for="endDate" >End Date:  </label>
-                <input type="date" id="endDate" >
+                <input type="date" id="endDate" min="@ViewData["MinDate"]" max="@ViewData["MaxDate"]">
             </div>
             <div class="line"></div>
 
 
             <div class="filter-button">
-                <button>Filter</button>
+                <button id="filter">Filter</button>
             </div>
 
         </div>
@@ -51,10 +66,18 @@
             <div class="right-container-top">
 
                 <div class="typeOfItem">
-                    <button id="foundButton" value="LOSTITEM">Lost</button>
-                    
-                    <button class="buttonA">/  </button>
-                    <button id="postButton" value="FOUNDITEM">Found</button>
+                    @if (currentCategory == "LOSTITEM")
+                    {
+                        <button id="foundButton" value="LOSTITEM" class="active">Lost</button>
+                        <button class="buttonA">/</button>
+                        <button id="postButton" value="FOUNDITEM">Found</button>
+                    }
+                    else
+                    {
+                        <button id="foundButton" value="FOUNDITEM">Found</button>
+                        <button class="buttonA">/</button>
+                        <button id="postButton" value="LOSTITEM" class="active">Lost</button>
+                    }
                 </div>
                 <hr />
             </div>

@@ -1,4 +1,5 @@
-﻿@model Mini_Project_Assignment_Y2S2.Models.Item
+﻿@model Mini_Project_Assignment_Y2S2.Models.CardDetailsViewModel
+
 @{
     ViewData["Title"] = "CardDetails";
 }
@@ -6,7 +7,7 @@
 <link rel="stylesheet" href="~/css/cardDetails.css" asp-append-version="true" />
 
 <div class="parent">
-    <a class="back" href="@Url.Action("IndexBack", "Home")">Back</a>
+    <a class="back" href="@Url.Action("IndexBack", "Home",new {category=Model.Item.Category})">Back</a>
 
     <div class="CardDetails">
 
@@ -15,10 +16,10 @@
             <div class="image">
                 <div class="carousel-container">
 
-                    @if (Model.Images != null && Model.Images.Count > 0)
+                    @if (Model.Item.Images != null && Model.Item.Images.Count > 0)
                     {
-                        <img id="carouselImage" src="@Model.Images[0]" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />
-                        @if (Model.Images.Count > 1)
+                        <img id="carouselImage" src="@Model.Item.Images[0]" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />
+                        @if (Model.Item.Images.Count > 1)
                         {
                             <button id="prevBtn" style="position:absolute; top:50%; left:0; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; padding:5px;">&#10094;</button>
                             <button id="nextBtn" style="position:absolute; top:50%; right:0; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; padding:5px;">&#10095;</button>
@@ -55,18 +56,18 @@
             <div class="bottomDetails-left">
                 <div class="bottomDetails-left2">
                     <p class="label">Found Date</p>
-                    <p class="text">@Model.Date.ToString("dd/MM/yyyy")</p>
+                    <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
                     <p class="label">Type</p>
-                    <p class="text">@Model.IType</p>
+                    <p class="text">@Model.Item.IType</p>
                 </div>
                 <div class="bottomDetails-right2">
                     <p class="label">Found At</p>
-                    <p class="text">@Model.LocationID</p>
+                    <p class="text">@Model.Item.LocationID</p>
                 </div>
             </div>
             <div class="bottomDetails-right">
                 <p class="label">Description</p>
-                <p class="text">@Model.Idescription</p>
+                <p class="text">@Model.Item.Idescription</p>
             </div>
         </div>
 
@@ -75,7 +76,7 @@
 
 <script>
     // 图片轮播
-    let images = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Images ?? new List<string>()));
+    let images = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Item.Images ?? new List<string>()));
     let currentIndex = 0;
 
     const carouselImage = document.getElementById("carouselImage");

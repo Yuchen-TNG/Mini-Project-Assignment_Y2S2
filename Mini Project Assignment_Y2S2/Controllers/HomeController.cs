@@ -19,28 +19,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         public async Task<IActionResult> Index()
         {
-            CollectionReference collection = _firestore.Collection("Items");
-            Query query = collection.WhereEqualTo("Category", "LOSTITEM");
-            QuerySnapshot snapshot = await query.GetSnapshotAsync();
-
-            var items = snapshot.Documents.Select(doc => new Item
-            {
-                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
-                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
-            }).ToList();
-
-            return View(items);
-        }
-
-        public async Task<IActionResult> IndexBack()
-        {
+            HttpContext.Session.SetString("CurrentCategory", "LOSTITEM");
             CollectionReference collection = _firestore.Collection("Items");
             QuerySnapshot snapshot = await collection.GetSnapshotAsync();
 
@@ -57,11 +36,48 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
             }).ToList();
 
+
+            var dates = items.Where(i => i.Date != DateTime.MinValue).Select(i => i.Date).ToList();
+            DateTime minDate = dates.Any() ? dates.Min() : DateTime.Today;
+            DateTime maxDate = dates.Any() ? dates.Max() : DateTime.Today;
+            ViewData["MinDate"] = minDate.ToString("yyyy-MM-dd");
+            ViewData["MaxDate"] = maxDate.ToString("yyyy-MM-dd");
+
+            return View(items);
+        }
+
+        public async Task<IActionResult> IndexBack(string category)
+        {
+
+            CollectionReference collection = _firestore.Collection("Items");
+            Query query = collection.WhereEqualTo("Category", category);
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+            var items = snapshot.Documents.Select(doc => new Item
+            {
+                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
+                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
+                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
+                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
+                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
+            }).ToList();
+
+            var dates = items.Where(i => i.Date != DateTime.MinValue).Select(i => i.Date).ToList();
+            DateTime minDate = dates.Any() ? dates.Min() : DateTime.Today;
+            DateTime maxDate = dates.Any() ? dates.Max() : DateTime.Today;
+            ViewData["MinDate"] = minDate.ToString("yyyy-MM-dd");
+            ViewData["MaxDate"] = maxDate.ToString("yyyy-MM-dd");
             return View("Index", items);
         }
 
         public async Task<IActionResult> updateCard(string category)
         {
+            HttpContext.Session.SetString("CurrentCategory", category);
+
             CollectionReference collection = _firestore.Collection("Items");
             Query query = collection.WhereEqualTo("Category", category);
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
@@ -82,7 +98,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return PartialView("_ItemCard", items);
         }
 
-        public async Task<IActionResult> filter(string category, string? startDate, string? endDate)
+        public async Task<IActionResult> filter(string category, string? startDate, string? endDate,string? locationID)
         {
             CollectionReference collection = _firestore.Collection("Items");
             Query query = collection.WhereEqualTo("Category", category);
@@ -92,6 +108,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             if (endDate != null && DateTime.TryParse(endDate, out var end))
                 query = query.WhereLessThanOrEqualTo("Date", end.Date.AddDays(1).ToUniversalTime());
+
+            if (locationID != null)
+                query = query.WhereEqualTo("LocationID", locationID);
 
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
@@ -108,11 +127,38 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
             }).ToList();
 
-            return PartialView("_itemCard", items);
+            return PartialView("_ItemCard", items);
         }
 
         public async Task<IActionResult> CardDetails(int itemId)
         {
+
+            string userId = HttpContext.Session.GetString("UserId");
+            if (userId == null)
+            {
+               TempData["Error"] = "You haven't sign in yet";
+                return RedirectToAction("Index");
+            }
+            User user = null;
+            var collectionUser = _firestore.Collection("Users");
+            Query queryUser = collectionUser.WhereEqualTo("UserID", "8840882");
+            QuerySnapshot snapshotsUser = await queryUser.GetSnapshotAsync();
+
+            if (snapshotsUser.Documents == null)
+            {
+                TempData["Error"] = "Can't find your UserID, please register again";
+                return RedirectToAction("Index");
+            }
+
+            var userDoc = snapshotsUser.Documents[0];
+            user = new User
+            {
+                Name = userDoc.GetValue<string>("Name"),
+                PhoneNumber = userDoc.GetValue<string>("PhoneNumber"),
+                Email = userDoc.GetValue<string>("Email"),
+                UserID = userDoc.GetValue<string>("UserID")
+            };
+
             var collection = _firestore.Collection("Items");
             Query query = collection.WhereEqualTo("ItemID", itemId);
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
@@ -135,7 +181,12 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
             };
 
-            return View(item);
+            var viewModel = new CardDetailsViewModel
+            {
+                Item = item,
+                User = user
+            };
+            return View(viewModel);
         }
 
 

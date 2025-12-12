@@ -51,7 +51,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 ViewBag.Error = "Invalid User ID or password";
                 return View();
             }
-
+            HttpContext.Session.SetString("CurrentCategory", "LOSTITEM");
             // Store session
             HttpContext.Session.SetString("UserId", userId);
 
@@ -163,6 +163,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         public async Task<IActionResult> MyAccount()
         {
             string userId = HttpContext.Session.GetString("UserId");
+
             if (string.IsNullOrEmpty(userId))
             {
                 return RedirectToAction("Login");
