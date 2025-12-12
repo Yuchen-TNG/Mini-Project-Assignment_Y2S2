@@ -192,19 +192,40 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
 
         public IActionResult Card(string id) => View();
-
         [HttpGet]
-        public IActionResult CreatePost(string Category)
+        public async Task<IActionResult> CreatePost(string Category)
         {
             var item = new Item { Category = Category };
+
+            var locationSnap = await _firestore.Collection("Location").GetSnapshotAsync();
+
+            // 手动映射
+            var locations = locationSnap.Documents.Select(doc => new Location
+            {
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationName = doc.ContainsField("LocationName") ? doc.GetValue<string>("LocationName") : null
+            }).ToList();
+
+            ViewBag.Locations = locations;
+
             return View(item);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePost(Item item)
+        public async Task<IActionResult> CreatePost(Item item, string? OtherLocation)
         {
-            if (!ModelState.IsValid) return View(item);
+            if (!ModelState.IsValid)
+            {
+                return View(item);
+            }
 
+            // 如果用户选择 Other → 用输入框的值
+            if (item.LocationID == "Other")
+            {
+                item.LocationID = OtherLocation;
+            }
+
+            // 处理图片上传
             var imageUrls = new List<string>();
             var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
             Directory.CreateDirectory(imagesPath);
@@ -224,6 +245,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 }
             }
 
+            // ItemID 自增
             var itemsRef = _firestore.Collection("Items");
             var counterRef = _firestore.Collection("Counters").Document("ItemCounter");
             int newItemID = 0;
@@ -231,22 +253,18 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             await _firestore.RunTransactionAsync(async transaction =>
             {
                 var snapshot = await transaction.GetSnapshotAsync(counterRef);
-
-                // 如果文档不存在，初始化为 1
                 newItemID = snapshot.ContainsField("NextItemID") ? snapshot.GetValue<int>("NextItemID") : 1;
 
-                // 使用 Set + MergeAll，无论文档是否存在都可以
                 transaction.Set(counterRef, new Dictionary<string, object>
-    {
-        { "NextItemID", newItemID + 1 }
-    }, SetOptions.MergeAll);
+        {
+            { "NextItemID", newItemID + 1 }
+        }, SetOptions.MergeAll);
             });
-
 
             item.ItemID = newItemID;
 
-            // 🔹 保存 Item
-            DocumentReference docRef = itemsRef.Document(); // DocID 仍可自动生成
+            // 保存到 Firestore
+            DocumentReference docRef = itemsRef.Document();
             await docRef.SetAsync(new
             {
                 ItemID = item.ItemID,
@@ -265,11 +283,24 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
 
         [HttpGet]
-        public IActionResult CreateFoundPost(string Category)
+        public async Task<IActionResult> CreateFoundPost(string Category)
         {
             var item = new Item { Category = Category };
+
+            // 读取 Location
+            var locationSnap = await _firestore.Collection("Location").GetSnapshotAsync();
+
+            var locations = locationSnap.Documents.Select(doc => new Location
+            {
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationName = doc.ContainsField("LocationName") ? doc.GetValue<string>("LocationName") : null
+            }).ToList();
+
+            ViewBag.Locations = locations;
+
             return View(item);
         }
+
 
         public IActionResult ChoosePostType() => View();
 
