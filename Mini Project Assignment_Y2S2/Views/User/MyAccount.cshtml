@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "My Account";
 }
-<link rel="stylesheet" href="~/css/user.css" asp-append-version="true"/>
+<link rel="stylesheet" href="~/css/user.css" asp-append-version="true" />
 
 <div class="container">
     <div class="login-card">
@@ -10,8 +10,12 @@
         <div class="login-title">My Account</div>
 
         <div class="profile-image">
-            <img src="~/images/default-profile.png" alt="Profile" />
+            <img src="@(string.IsNullOrEmpty(Model.ProfileImageUrl)
+                         ? Url.Content("~/images/default-profile.png")
+                         : Model.ProfileImageUrl)"
+                 alt="Profile" />
         </div>
+
 
         <form>
             <label>ID</label>

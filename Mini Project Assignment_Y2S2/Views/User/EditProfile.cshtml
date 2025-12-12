@@ -3,14 +3,30 @@
 @{
     ViewData["Title"] = "Edit Profile";
 }
-<link rel="stylesheet" href="~/css/user.css" asp-append-version="true"/>
+<link rel="stylesheet" href="~/css/user.css" asp-append-version="true" />
 
 <div class="container">
     <div class="login-card">
         <div class="login-title">Edit Profile</div>
 
-        <form asp-action="EditProfile" method="post">
-            
+        <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
+
+            <div class="profile-pic-container">
+                @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                {
+                    <img id="profilePreview" src="@Model.ProfileImageUrl" alt="Profile" class="profile-pic" />
+
+                }
+                else
+                {
+                    <div id="profilePlaceholder" class="profile-placeholder">
+                        Click to Add Picture
+                    </div>
+                }
+
+                <input type="file" name="ProfileImage" accept="image/*" id="profileInput" hidden />
+            </div>
+
             <label>Name</label>
             <input type="text" asp-for="Name" required />
 
@@ -26,3 +42,74 @@
         </form>
     </div>
 </div>
+
+<style>
+    .profile-pic-container {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        margin: 0 auto 20px auto;
+        overflow: hidden;
+        cursor: pointer;
+        border: 3px solid #ccc;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
+        color: #666;
+        background-color: #f0f0f0;
+        text-align: center;
+        transition: 0.3s;
+    }
+
+        .profile-pic-container:hover {
+            opacity: 0.8;
+        }
+
+    .profile-pic {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .profile-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+</style>
+
+<script>
+    const profileInput = document.getElementById('profileInput');
+    const profileContainer = document.querySelector('.profile-pic-container');
+    const profilePreview = document.getElementById('profilePreview');
+    const profilePlaceholder = document.getElementById('profilePlaceholder');
+
+    profileContainer.addEventListener('click', function () {
+        profileInput.click();
+    });
+
+    profileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+
+            if (profilePreview) {
+                profilePreview.src = url;
+            } else if (profilePlaceholder) {
+                // Replace placeholder with image
+                profilePlaceholder.remove();
+                const img = document.createElement('img');
+                img.id = 'profilePreview';
+                img.src = url;
+                img.classList.add('profile-pic');
+                profileContainer.prepend(img);
+            }
+        }
+    });
+
+</script>

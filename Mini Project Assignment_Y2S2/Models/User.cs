@@ -22,6 +22,10 @@ namespace Mini_Project_Assignment_Y2S2.Models
 
         [FirestoreProperty]
         public string Role { get; set; }
+
+        [FirestoreProperty]
+        public string? ProfileImageUrl { get; set; }
+
     }
 
 }
