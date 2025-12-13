@@ -124,24 +124,30 @@ html {
     margin-left:20px;
 }
 
-
+.left-button {
+    margin-top: auto;
+    display: flex;
+    bottom:5%;
+    position:relative;
+}
 .filter-button {
-    margin-top:auto;
+    
     position: relative;
-    width: 100%;
+    width: 65%;
     height: auto;
-    bottom: 5%;
+   
     background: white;
     text-align: center;
     background-color:transparent;
+    margin-right:5%;
 }
 
 .filter-button button {
     border-radius: 17px;
     border: none;
-    width: 70%;
+    width: 100%;
     height: 50px;
-    font-size: 20px;
+    font-size: 30px;
     font-weight: bold;
     letter-spacing: 5px;
     cursor: pointer;
@@ -149,8 +155,33 @@ html {
 
 }
 
-.filter-button button:hover{
-    transform:scale(1.03);
+.reset-button {
+    
+    position: relative;
+    width: 30%;
+    height: auto;
+    
+    background: white;
+    text-align: center;
+    background-color: transparent;
+}
+
+.reset-button button {
+    border-radius: 17px;
+    border: none;
+    width: 100%;
+    height: 50px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+
+
+.filter-button button:hover {
+    transform: scale(1.03);
 }
 
 .middle-line {
@@ -293,5 +324,12 @@ html {
 }
 
 
+.paging button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
 
-
+.not_available{
+    margin-left:35px;
+    font-size:20px;
+}

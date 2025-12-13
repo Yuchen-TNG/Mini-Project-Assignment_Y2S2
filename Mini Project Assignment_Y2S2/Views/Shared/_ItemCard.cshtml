@@ -1,13 +1,8 @@
-﻿@model List<Mini_Project_Assignment_Y2S2.Models.Item>
+﻿@model List<ItemCardViewModel>
 
 @if (Model != null && Model.Any())
 {
-    string currentCategory = Context.Session.GetString("CurrentCategory") ?? "LOSTITEM";
-
-    // 先筛选出当前类别的 item
-    var filteredItems = Model.Where(i => i.Category == currentCategory).ToList();
-
-    @foreach (var item in filteredItems)
+    @foreach (var item in Model.Take(10))
     {
         <a class="card" asp-action="CardDetails" asp-controller="Home" asp-route-itemId="@item.ItemID">
             <div class="card-img-container">
@@ -22,10 +17,15 @@
                     <p>@item.IType</p>
                 </div>
                 <div class="details">
-                    <p>@item.LocationID</p>
+                    <p>@item.LocationName</p>
                     <p>@item.Date.ToString("dd/MM/yyyy")</p>
                 </div>
             </div>
         </a>
     }
 }
+else
+{
+    <p class="not_available">not available search, try more</p>
+}
+
