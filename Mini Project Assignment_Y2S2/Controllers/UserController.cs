@@ -117,11 +117,34 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public IActionResult ForgotPassword(string email)
+        public async Task<IActionResult> ForgotPassword(string email)
         {
-            // After user submits email → go to OTP page
+            if (string.IsNullOrEmpty(email))
+            {
+                ModelState.AddModelError("Email", "Email is required");
+                return View();
+            }
+
+            // Query Firestore for matching email
+            Query query = _firestore.Collection("Users")
+                                    .WhereEqualTo("Email", email)
+                                    .Limit(1);
+
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+            if (snapshot.Count == 0)
+            {
+                // Email not found
+                ModelState.AddModelError("Email", "Email not found");
+                return View();
+            }
+
+            // Email exists → store email temporarily
+            TempData["ResetEmail"] = email;
+
             return RedirectToAction("ConfirmOtp");
         }
+
 
 
         // ============================
