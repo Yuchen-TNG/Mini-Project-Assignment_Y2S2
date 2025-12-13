@@ -210,3 +210,10 @@ input:focus {
         background-color: blue;
     }
 
+.text-danger {
+    color: red;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: block;
+    margin-top: 3px;
+}
