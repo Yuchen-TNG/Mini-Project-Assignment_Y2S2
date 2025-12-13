@@ -1,26 +1,27 @@
 ﻿kz part
-need to build a clear button on filter
-paging haven't done(dont know why return 8 page only should be 10, and also will keep improve css dont worry, i know very bad css hahahaha)
 
-            var dates = items.Where(i => i.Date != DateTime.MinValue).Select(i => i.Date).ToList();
-            DateTime minDate = dates.Any() ? dates.Min() : DateTime.Today;
-            DateTime maxDate = dates.Any() ? dates.Max() : DateTime.Today;
-            ViewData["MinDate"] = minDate.ToString("yyyy-MM-dd");
-            ViewData["MaxDate"] = maxDate.ToString("yyyy-MM-dd");
+
 
 
 yc part
 有做item的userid？就是谁post的
 东西现在keep在哪里
 
+
+
+
 chengkeat part
 你的image还没做
-：因为还没做
+：因为还没做（damnnnnn）
 user register了怎样知道id
-：admin send email
+：admin send email（ok）
 为什么login了后是userprofile
-：因为那个时候我拿来check
+：因为那个时候我拿来check（噢噢噢噢）
 还没登陆后，按my profile应该出现提示而不是直接飞过去login
 ：厉害
 有没有打算做remember me？
-：不是摆美罢了的吗？
+：不是摆美罢了的吗？(没有啦，click了remember me 就不用每次退出都要login多一次，现在退一次要一次不是咩)
+
+settle 了删罢了
+
+from kz
