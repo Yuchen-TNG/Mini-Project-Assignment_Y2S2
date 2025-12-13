@@ -12,6 +12,7 @@
         background: #f7d596;
         padding: 40px;
         border-radius: 12px;
+        box-sizing: border-box;
     }
 
     .post-title {
@@ -25,6 +26,7 @@
         display: grid;
         grid-template-columns: 65% 35%;
         grid-gap: 30px;
+        align-items: start;
     }
 
     .form-group label {
@@ -38,23 +40,44 @@
         padding: 10px;
         border-radius: 8px;
         border: 1px solid #ccc;
-        margin-bottom: 10px;
+        margin-bottom: 3px;
+        box-sizing: border-box;
     }
 
+    .text-danger {
+        color: red;
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    /* ===== Drag & Drop Image Box ===== */
     .image-box {
         width: 100%;
         height: 300px;
-        border: 2px dotted black;
+        border: 2px dashed #333;
         border-radius: 12px;
         padding: 10px;
         background: white;
         overflow-y: auto;
+        box-sizing: border-box;
+        transition: background 0.2s, border-color 0.2s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
     }
+
+        .image-box.dragover {
+            background: #fff3cd;
+            border-color: #ff9800;
+        }
 
     #previewContainer {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
         gap: 8px;
+        width: 100%;
     }
 
         #previewContainer img {
@@ -65,40 +88,125 @@
             border: 1px solid #ccc;
         }
 
-    button[type="submit"] {
+    .placeholder-icon {
+        font-size: 50px;
+        color: #ccc;
+        text-align: center;
+    }
+
+    /* ===== Custom Choose File Button ===== */
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+        .file-input-wrapper button {
+            border: none;
+            color: white;
+            background-color: #333;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .file-input-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+    .remove-btn {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.6); /* 半透明黑色 */
+        color: white;
+        border: none;
+        font-size: 14px;
+        line-height: 22px;
+        text-align: center;
+        cursor: pointer;
+        z-index: 2;
+    }
+
+        .remove-btn:hover {
+            background: rgba(0,0,0,0.85); /* hover 更深的黑色 */
+        }
+
+    button[type="submit"], #cancelBtn, #clearBtn {
         margin-top: 20px;
         padding: 10px 25px;
-        background: #333;
-        color: white;
         border-radius: 8px;
         border: none;
         cursor: pointer;
     }
+
+    button[type="submit"] {
+        background: #333; /* 深色 */
+        color: white;
+    }
+
+    #cancelBtn {
+        background: #888; /* 灰色 */
+        margin-left: 10px;
+    }
+
+    #clearBtn {
+        background: #555; /* 深灰色 */
+        margin-left: 10px;
+    }
+
+
 </style>
 
 <div class="post-container">
     <div class="post-title">POST FOR LOST ITEM</div>
 
-    <form asp-action="CreatePost" asp-controller="Home" method="post" enctype="multipart/form-data">
+    <form asp-action="CreatePost"
+          asp-controller="Home"
+          method="post"
+          enctype="multipart/form-data">
+
         <input type="hidden" asp-for="Category" />
 
         <div class="form-grid">
+            <!-- LEFT -->
             <div class="form-group">
 
                 <label asp-for="IName">Item Name</label>
                 <input asp-for="IName" class="form-control" />
+                <span asp-validation-for="IName" class="text-danger"></span>
 
                 <label asp-for="IType">Item Type</label>
                 <input asp-for="IType" class="form-control" />
+                <span asp-validation-for="IType" class="text-danger"></span>
 
                 <label asp-for="Idescription">Item Description</label>
-                <textarea asp-for="Idescription" class="form-control" style="height:120px;"></textarea>
+                <textarea asp-for="Idescription"
+                          class="form-control"
+                          style="height:120px;"></textarea>
+                <span asp-validation-for="Idescription" class="text-danger"></span>
 
-                <label>Lost Date</label>
-                <input asp-for="Date" type="date" class="form-control" />
+                <label asp-for="Date">Lost Date</label>
+                <input asp-for="Date"
+                       type="date"
+                       class="form-control"
+                       max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="Date" class="text-danger"></span>
 
                 <label>Location</label>
-                <select asp-for="LocationID" class="form-control" id="locationSelect">
+                <select asp-for="LocationID"
+                        class="form-control"
+                        id="locationSelect">
                     <option value="">Select</option>
                     @if (ViewBag.Locations != null)
                     {
@@ -108,70 +216,148 @@
                         }
                     }
                 </select>
+                <span asp-validation-for="LocationID" class="text-danger"></span>
 
-
-                <!-- Other Location textbox -->
                 <div id="otherLocationBox" style="display:none; margin-top:10px;">
                     <label>Enter Other Location</label>
                     <input type="text" name="OtherLocation" class="form-control" />
                 </div>
 
                 <label>Category</label>
-                <input type="text" value="@Model.Category" class="form-control" readonly />
+                <input type="text" value="@Model.Category"
+                       class="form-control" readonly />
 
                 <button type="submit">Submit</button>
+                <button type="button" id="clearBtn">Clear</button>
+
             </div>
 
+            <!-- RIGHT -->
             <div>
                 <label>Item Images</label>
-                <div class="image-box" id="previewContainer">
-                    <p style="color:gray;">No Images Selected</p>
+
+                <div class="image-box" id="dropArea">
+                    <div id="previewContainer">
+                        <div class="placeholder-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="#ccc" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM5 5h14v14H5V5zm8 7l-3-4-4 5h10l-3-4z" /></svg>
+                        </div>
+                    </div>
                 </div>
-                <input name="ImageFiles" id="imgInput" type="file" class="form-control" accept="image/*" multiple />
+
+                <div class="file-input-wrapper">
+                    <button type="button">Choose Images</button>
+                    <input asp-for="ImageFiles"
+                           id="imgInput"
+                           type="file"
+                           accept="image/*"
+                           multiple />
+                </div>
+
+                <span asp-validation-for="ImageFiles" class="text-danger"></span>
             </div>
         </div>
     </form>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const select = document.getElementById("locationSelect");
-        const otherBox = document.getElementById("otherLocationBox");
 
-        function checkOther() {
-            const selectedOption = select.options[select.selectedIndex];
-            const name = selectedOption.text.trim(); // 取选中 option 的文本，也就是 LocationName
-            if (name.toLowerCase() === "other") {
-                otherBox.style.display = "block";
-            } else {
-                otherBox.style.display = "none";
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const select = document.getElementById("locationSelect");
+            const otherBox = document.getElementById("otherLocationBox");
+            const imgInput = document.getElementById("imgInput");
+            const dropArea = document.getElementById("dropArea");
+            const previewContainer = document.getElementById("previewContainer");
+
+            let uploadedFiles = [];
+
+            // 显示或隐藏 Other Location 输入框
+            function checkOther() {
+                const name = select.options[select.selectedIndex]?.text.toLowerCase();
+                otherBox.style.display = (name === "other") ? "block" : "none";
             }
-        }
+            checkOther();
+            select.addEventListener("change", checkOther);
 
-        // 页面加载时检查
-        checkOther();
-
-        // 选项改变时检查
-        select.addEventListener("change", checkOther);
-
-        // 图片预览
-        const imgInput = document.getElementById("imgInput");
-        const previewContainer = document.getElementById("previewContainer");
-
-        imgInput.addEventListener("change", function (event) {
-            previewContainer.innerHTML = "";
-            const files = event.target.files;
-            if (files.length === 0) {
-                previewContainer.innerHTML = "<p style='color: gray;'>No Images Selected</p>";
-                return;
+            // 同步 input[type=file] 文件
+            function syncInputFiles() {
+                const dt = new DataTransfer();
+                uploadedFiles.forEach(f => dt.items.add(f));
+                imgInput.files = dt.files;
             }
-            for (let i = 0; i < files.length; i++) {
-                let img = document.createElement("img");
-                img.src = URL.createObjectURL(files[i]);
-                previewContainer.appendChild(img);
+
+            // 更新图片预览
+            function updatePreview() {
+                previewContainer.innerHTML = "";
+                if (uploadedFiles.length === 0) {
+                    previewContainer.innerHTML = `<div class="placeholder-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="#ccc" viewBox="0 0 24 24">
+                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM5 5h14v14H5V5zm8 7l-3-4-4 5h10l-3-4z"/>
+                        </svg>
+                    </div>`;
+                    return;
+                }
+
+                uploadedFiles.forEach((file, index) => {
+                    const wrap = document.createElement("div");
+                    wrap.style.position = "relative";
+
+                    const img = document.createElement("img");
+                    img.src = URL.createObjectURL(file);
+
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.textContent = "×";
+                    btn.className = "remove-btn";
+                    btn.addEventListener("click", () => {
+                        uploadedFiles.splice(index, 1);
+                        syncInputFiles();
+                        updatePreview();
+                    });
+
+                    wrap.appendChild(img);
+                    wrap.appendChild(btn);
+                    previewContainer.appendChild(wrap);
+                });
             }
+
+            // 点击 Choose Images
+            document.querySelector(".file-input-wrapper button").addEventListener("click", () => imgInput.click());
+
+            // 选择图片
+            imgInput.addEventListener("change", e => {
+                uploadedFiles = uploadedFiles.concat(Array.from(e.target.files));
+                syncInputFiles();
+                updatePreview();
+            });
+
+            // 拖拽上传
+            dropArea.addEventListener("dragover", e => e.preventDefault());
+            dropArea.addEventListener("drop", e => {
+                e.preventDefault();
+                uploadedFiles = uploadedFiles.concat(Array.from(e.dataTransfer.files));
+                syncInputFiles();
+                updatePreview();
+            });
+
+        const clearBtn = document.getElementById("clearBtn");
+
+        clearBtn.addEventListener("click", () => {
+            document.querySelector("form").reset();
+            uploadedFiles = [];
+            syncInputFiles();
+            updatePreview();
         });
-    });
 
 
-</script>
+            // 初始化预览
+            updatePreview();
+        });
+    </script>
+}
+
+
+
+}

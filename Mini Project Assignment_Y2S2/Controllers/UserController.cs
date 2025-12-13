@@ -117,11 +117,34 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public IActionResult ForgotPassword(string email)
+        public async Task<IActionResult> ForgotPassword(string email)
         {
-            // After user submits email → go to OTP page
+            if (string.IsNullOrEmpty(email))
+            {
+                ModelState.AddModelError("Email", "Email is required");
+                return View();
+            }
+
+            // Query Firestore for matching email
+            Query query = _firestore.Collection("Users")
+                                    .WhereEqualTo("Email", email)
+                                    .Limit(1);
+
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+            if (snapshot.Count == 0)
+            {
+                // Email not found
+                ModelState.AddModelError("Email", "Email not found");
+                return View();
+            }
+
+            // Email exists → store email temporarily
+            TempData["ResetEmail"] = email;
+
             return RedirectToAction("ConfirmOtp");
         }
+
 
 
         // ============================
@@ -150,8 +173,13 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public IActionResult ChangePassword(string newPassword, string confirmPassword)
+        public IActionResult ChangePassword(ChangePasswordViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             // After changing password → return to login
             return RedirectToAction("Login");
         }
@@ -197,32 +225,37 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangeCurrentPassword(string currentPassword,string newPassword,string confirmPassword)
+        public async Task<IActionResult> ChangeCurrentPassword(ChangeCurrentPasswordViewModel model)
         {
-            if (newPassword != confirmPassword)
+
+            if (!ModelState.IsValid)
             {
-                ViewBag.Error = "New passwords do not match";
-                return View();
+                return View(model);
             }
 
             string userId = HttpContext.Session.GetString("UserId");
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login");
+            }
 
             var docRef = _firestore.Collection("Users").Document(userId);
             var snapshot = await docRef.GetSnapshotAsync();
             var user = snapshot.ConvertTo<User>();
 
-            if (!PasswordHelper.VerifyPassword(user.PasswordHash, currentPassword))
+            if (!PasswordHelper.VerifyPassword(user.PasswordHash, model.CurrentPassword))
             {
-                ViewBag.Error = "Current password is incorrect";
-                return View();
+                ModelState.AddModelError("CurrentPassword", "Current password is incorrect");
+                return View(model);
             }
 
-            string newHash = PasswordHelper.HashPassword(newPassword);
-
+            string newHash = PasswordHelper.HashPassword(model.NewPassword);
             await docRef.UpdateAsync("PasswordHash", newHash);
 
             return RedirectToAction("MyAccount");
         }
+
 
         [HttpGet]
         public async Task<IActionResult> EditProfile()
