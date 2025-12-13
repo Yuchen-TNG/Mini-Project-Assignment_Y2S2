@@ -28,19 +28,21 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string userId, string password)
         {
+            string errorMessage = "Invalid User ID or Password";
+
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(password))
             {
-                ViewBag.Error = "Please enter both UserID and password.";
+                ViewBag.Error = errorMessage;
                 return View();
             }
 
-            // Get user from Firestore (document ID = userId)
+            // Get user from Firestore
             DocumentReference docRef = _firestore.Collection("Users").Document(userId);
             DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
 
             if (!snapshot.Exists)
             {
-                ViewBag.Error = "User ID not found.";
+                ViewBag.Error = errorMessage;
                 return View();
             }
 
@@ -48,17 +50,18 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             if (!PasswordHelper.VerifyPassword(user.PasswordHash, password))
             {
-                ViewBag.Error = "Invalid User ID or password";
+                ViewBag.Error = errorMessage;
                 return View();
             }
+
             HttpContext.Session.SetString("CurrentCategory", "LOSTITEM");
             // Store session
             HttpContext.Session.SetString("UserId", userId);
 
-            return RedirectToAction("MyAccount");
+            return RedirectToAction("Index", "Home");
         }
 
-        // GET: /User/Register   (optional)
+        [HttpGet]
         public IActionResult Register()
         {
             return View();
@@ -66,32 +69,34 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         // POST: /User/Register
         [HttpPost]
-        public async Task<IActionResult> Register(string name, string email, string phoneNumber, string password, string confirmPassword)
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (password != confirmPassword)
+            if (!ModelState.IsValid)
             {
-                ViewBag.Error = "Passwords do not match.";
-                return View();
+                return View(model); // Return view with validation errors
             }
 
             string userId = GenerateUserId();
-            string passwordHash = PasswordHelper.HashPassword(password);
+            string passwordHash = PasswordHelper.HashPassword(model.Password);
 
 
             // Create a new user object
             var user = new Dictionary<string, object>
     {
-        { "UserID", userId },       // Store the generated UserID
-        { "Name", name },
-        { "Email", email },
-        { "PhoneNumber", phoneNumber },
-        { "PasswordHash", passwordHash }, // ✅ HASHED
-        { "Role", "Student" },
+        { "UserID", userId },
+        { "Name", model.Name },
+        { "Email", model.Email },
+        { "PhoneNumber", model.PhoneNumber },
+        { "PasswordHash", passwordHash },
+        { "Role", "Student" }
     };
 
             // Save to Firestore with document ID = userId
             CollectionReference usersRef = _firestore.Collection("Users");
             await usersRef.Document(userId).SetAsync(user);
+
+            TempData["RegisterSuccess"] = "You have successfully registered! We have sent your student ID via Email.";
+
 
             return RedirectToAction("Login");
         }
@@ -243,14 +248,16 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 UserID = snapshot.Id,
                 Name = data["Name"].ToString(),
                 Email = data["Email"].ToString(),
-                PhoneNumber = data["PhoneNumber"].ToString()
+                PhoneNumber = data["PhoneNumber"].ToString(),
+                ProfileImageUrl = data.ContainsKey("ProfileImageUrl") ? data["ProfileImageUrl"].ToString() : null
+
             };
 
             return View(user);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditProfile(User model)
+        public async Task<IActionResult> EditProfile(User model, IFormFile? ProfileImage)
         {
             string userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
@@ -260,11 +267,32 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             var docRef = _firestore.Collection("Users").Document(userId);
 
+            string imageUrl = null;
+
+            // Handle profile image upload
+            if (ProfileImage != null && ProfileImage.Length > 0)
+            {
+                var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/profile");
+                Directory.CreateDirectory(imagesPath);
+
+                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(ProfileImage.FileName)}";
+                string filePath = Path.Combine(imagesPath, fileName);
+
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await ProfileImage.CopyToAsync(stream);
+
+                imageUrl = "/profile/" + fileName;
+
+                await docRef.UpdateAsync("ProfileImageUrl", imageUrl);
+            }
+
+            // Update other fields
             await docRef.UpdateAsync(new Dictionary<string, object>
     {
         { "Name", model.Name },
         { "Email", model.Email },
         { "PhoneNumber", model.PhoneNumber }
+
     });
 
             return RedirectToAction("MyAccount");

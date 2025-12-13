@@ -1,50 +1,148 @@
-﻿@{
-    ViewData["Title"] = "Register Page";
+﻿@model Mini_Project_Assignment_Y2S2.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
 }
-<head>
-    <meta charset="utf-8" />
-    <title>Register</title>
-    <link rel="stylesheet" href="~/css/user.css" />
-</head>
 
-<body>
+<div class="container">
+    <div class="login-card">
+        <div class="login-title">Register</div>
 
-    <div class="container">
-        <div class="login-card">
-            <div class="login-title">Register</div>
+        <form asp-action="Register" method="post" id="registerForm">
+            <label>Username</label>
+            <input asp-for="Name" />
+            <span asp-validation-for="Name" class="text-danger"></span>
 
-            <form method="post" action="/User/Register">
+            <label>Email</label>
+            <input asp-for="Email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
 
-                <label>Username</label>
-                <input type="text" name="name" required />
+            <label>Phone Number</label>
+            <input asp-for="PhoneNumber" />
+            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
 
-                <label>Email</label>
-				<input type="email" name="email" required />
+            <label>Password</label>
+            <input asp-for="Password" type="password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
 
-                <label>Phone Number</label>
-				<input type="text" name="phoneNumber" required />
+            <label>Confirm Password</label>
+            <input asp-for="ConfirmPassword" type="password" />
+            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
 
-                <label>Password</label>
-                <input type="password" name="password" required />
+            <button type="submit" class="btn-login">Create Account</button>
 
-                <label>Confirm Password</label>
-                <input type="password" name="confirmPassword" required />
-
-                <button type="submit" class="btn-login">Create Account</button>
-
-                @if (ViewBag.Error != null)
-                {
-                    <div class="error-message">@ViewBag.Error</div>
-                }
-
-                <div class="register-text">
-                    Already have an account?
-                    <a href="/User/Login"> Login here</a>
-                </div>
-
-            </form>
-        </div>
+            <div class="register-text">
+                Already have an account? <a href="/User/Login">Login here</a>
+            </div>
+        </form>
     </div>
+</div>
 
-</body>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
 
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+        background-color: white;
+    }
+
+
+    .container {
+        height: 88vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* --- LOGIN CARD --- */
+    .login-card {
+        background: #ffcf82;
+        width: 380px;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .login-title {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        justify-content: center;
+        display: flex;
+    }
+
+    label {
+        font-size: 16px;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+        width: 93%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #c4b08a;
+        margin-bottom: 5px;
+    }
+
+    input:focus {
+        border-color: #a9905b;
+    }
+
+    
+
+    .btn-login {
+        width: 100%;
+        padding: 12px;
+        background-color: #6ab672;
+        color: white;
+        border-radius: 12px;
+        font-size: 18px;
+        cursor: pointer;
+        border: none;
+    }
+
+        .btn-login:hover {
+            background-color: #5ca965;
+        }
+
+    .register-text {
+        text-align: center;
+        text-decoration: none;
+        margin-top: 15px;
+    }
+
+        .register-text a {
+            text-decoration: none;
+            color: #4e8c52;
+        }
+
+            .register-text a:hover {
+                text-decoration: underline;
+                cursor: pointer;
+            }
+
+    .form-group {
+        margin-bottom: 5px;
+        min-height: 50px; /* reserves space for error message */
+        position: relative;
+    }
+
+    .text-danger {
+        color: red;
+        font-size: 0.9em;
+        font-weight: bold;
+        display: block;
+        margin-top: 3px;
+    }
+
+    
+</style>

@@ -1,13 +1,11 @@
-﻿@model Item
+﻿@model Mini_Project_Assignment_Y2S2.Models.Item
 
 <style>
-    /* 背景 */
     body {
         background: #f5eaf5;
         font-family: Arial, sans-serif;
     }
 
-    /* 外框 */
     .post-container {
         width: 80%;
         margin: 40px auto;
@@ -16,7 +14,6 @@
         border-radius: 12px;
     }
 
-    /* 标题 */
     .post-title {
         text-align: center;
         font-size: 26px;
@@ -24,14 +21,12 @@
         margin-bottom: 30px;
     }
 
-    /* 表单布局：左边内容 + 右边图片 */
     .form-grid {
         display: grid;
         grid-template-columns: 65% 35%;
         grid-gap: 30px;
     }
 
-    /* 左边 input */
     .form-group label {
         font-weight: bold;
         margin-top: 15px;
@@ -46,7 +41,6 @@
         margin-bottom: 10px;
     }
 
-    /* 图片框（容器） */
     .image-box {
         width: 100%;
         height: 300px;
@@ -57,7 +51,6 @@
         overflow-y: auto;
     }
 
-    /* 多图预览格子 */
     #previewContainer {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -72,7 +65,6 @@
             border: 1px solid #ccc;
         }
 
-    /* Submit 按钮 */
     button[type="submit"] {
         margin-top: 20px;
         padding: 10px 25px;
@@ -84,19 +76,13 @@
     }
 </style>
 
-
 <div class="post-container">
-
     <div class="post-title">POST FOR LOST ITEM</div>
 
     <form asp-action="CreatePost" asp-controller="Home" method="post" enctype="multipart/form-data">
-
-        <!-- 隐藏 Category（用于提交） -->
         <input type="hidden" asp-for="Category" />
 
         <div class="form-grid">
-
-            <!-- 左边内容 -->
             <div class="form-group">
 
                 <label asp-for="IName">Item Name</label>
@@ -112,11 +98,23 @@
                 <input asp-for="Date" type="date" class="form-control" />
 
                 <label>Location</label>
-                <select asp-for="LocationID" class="form-control">
+                <select asp-for="LocationID" class="form-control" id="locationSelect">
                     <option value="">Select</option>
-                    <option value="EastCampus">East Campus</option>
-                    <option value="FOCS">FOCS</option>
+                    @if (ViewBag.Locations != null)
+                    {
+                        foreach (var loc in ViewBag.Locations)
+                        {
+                            <option value="@loc.LocationID">@loc.LocationName</option>
+                        }
+                    }
                 </select>
+
+
+                <!-- Other Location textbox -->
+                <div id="otherLocationBox" style="display:none; margin-top:10px;">
+                    <label>Enter Other Location</label>
+                    <input type="text" name="OtherLocation" class="form-control" />
+                </div>
 
                 <label>Category</label>
                 <input type="text" value="@Model.Category" class="form-control" readonly />
@@ -124,42 +122,56 @@
                 <button type="submit">Submit</button>
             </div>
 
-            <!-- 右边图片上传 + 预览 -->
             <div>
-
                 <label>Item Images</label>
-
                 <div class="image-box" id="previewContainer">
                     <p style="color:gray;">No Images Selected</p>
                 </div>
-
                 <input name="ImageFiles" id="imgInput" type="file" class="form-control" accept="image/*" multiple />
-
-
             </div>
-
         </div>
-
     </form>
 </div>
 
 <script>
-    document.getElementById("imgInput").addEventListener("change", function (event) {
+    document.addEventListener("DOMContentLoaded", function () {
+        const select = document.getElementById("locationSelect");
+        const otherBox = document.getElementById("otherLocationBox");
 
-        const container = document.getElementById("previewContainer");
-        container.innerHTML = ""; // 清空
-
-        const files = event.target.files;
-
-        if (files.length === 0) {
-            container.innerHTML = "<p style='color: gray;'>No Images Selected</p>";
-            return;
+        function checkOther() {
+            const selectedOption = select.options[select.selectedIndex];
+            const name = selectedOption.text.trim(); // 取选中 option 的文本，也就是 LocationName
+            if (name.toLowerCase() === "other") {
+                otherBox.style.display = "block";
+            } else {
+                otherBox.style.display = "none";
+            }
         }
 
-        for (let i = 0; i < files.length; i++) {
-            let img = document.createElement("img");
-            img.src = URL.createObjectURL(files[i]);
-            container.appendChild(img);
-        }
+        // 页面加载时检查
+        checkOther();
+
+        // 选项改变时检查
+        select.addEventListener("change", checkOther);
+
+        // 图片预览
+        const imgInput = document.getElementById("imgInput");
+        const previewContainer = document.getElementById("previewContainer");
+
+        imgInput.addEventListener("change", function (event) {
+            previewContainer.innerHTML = "";
+            const files = event.target.files;
+            if (files.length === 0) {
+                previewContainer.innerHTML = "<p style='color: gray;'>No Images Selected</p>";
+                return;
+            }
+            for (let i = 0; i < files.length; i++) {
+                let img = document.createElement("img");
+                img.src = URL.createObjectURL(files[i]);
+                previewContainer.appendChild(img);
+            }
+        });
     });
+
+
 </script>
