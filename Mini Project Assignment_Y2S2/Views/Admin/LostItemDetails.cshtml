@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@model Mini_Project_Assignment_Y2S2.Models.Item
+
+<h2 class="text-2xl font-bold mb-4">Item Details</h2>
+
+<div class="bg-white shadow-md rounded-lg p-6">
+    <p><strong>ID:</strong> @Model.ItemID</p>
+    <p><strong>Name:</strong> @Model.IName</p>
+    <p><strong>Type:</strong> @Model.IType</p>
+    <p><strong>Description:</strong> @Model.Idescription</p>
+    <p><strong>Date:</strong> @Model.Date.ToString("yyyy-MM-dd")</p>
+    <p><strong>Location:</strong> @Model.LocationID</p>
+    <p><strong>Category:</strong> @Model.Category</p>
+
+    @if (Model.Images != null && Model.Images.Any())
+    {
+        <h3 class="mt-4 font-semibold">Images:</h3>
+        <div class="flex flex-wrap gap-2 mt-2">
+            @foreach (var img in Model.Images)
+            {
+                <img src="@img" class="w-32 h-32 object-cover rounded border" />
+            }
+        </div>
+    }
+
+    <a asp-action="LostItem" class="mt-4 inline-block text-indigo-600 hover:underline">Back to List</a>
+</div>
