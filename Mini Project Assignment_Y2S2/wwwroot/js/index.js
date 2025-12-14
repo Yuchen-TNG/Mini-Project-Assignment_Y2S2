@@ -4,6 +4,7 @@ const next = document.getElementById("pagingNext");
 
 back.disabled = true;
 
+
 async function checkTotal() {
     const response = await fetch(`/Home/totalItem`);
     const data = await response.json();
@@ -13,7 +14,7 @@ async function checkTotal() {
 let currentPaging = localStorage.getItem("currentPaging")
     ? parseInt(localStorage.getItem("currentPaging"))
     : 1;
-
+refresh()
 function refresh(){
     const b1 = document.getElementById("postButton");
     const b2 = document.getElementById("foundButton");
