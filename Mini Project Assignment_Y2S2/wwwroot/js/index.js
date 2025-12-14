@@ -18,7 +18,7 @@ function calculatePageSize() {
     } else {
         if (width > 1883) size = 5;
         else if (width > 1595) size = 4;
-        else if (width > 1260) size = 3;
+        else if (width > 1280) size = 3;
         else if (width > 1014) size = 2;
         else size = 1;
     }
