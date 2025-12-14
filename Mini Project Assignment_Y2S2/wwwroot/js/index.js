@@ -14,7 +14,7 @@ let currentPaging = localStorage.getItem("currentPaging")
     ? parseInt(localStorage.getItem("currentPaging"))
     : 1;
 
-document.getElementById("index").addEventListener("click", () => {
+function refresh(){
     const b1 = document.getElementById("postButton");
     const b2 = document.getElementById("foundButton");
 
@@ -29,7 +29,11 @@ document.getElementById("index").addEventListener("click", () => {
 
     currentPaging = 1
     localStorage.setItem("currentPaging", 1);
-    loadPage(currentPaging,null,null,null);
+    loadPage(currentPaging, null, null, null);
+}
+
+document.getElementById("index").addEventListener("click", () => {
+    refresh()
 })
 
 document.getElementById("postButton").addEventListener("click", () => {
