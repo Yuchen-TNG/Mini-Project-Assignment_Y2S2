@@ -170,20 +170,30 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             HttpContext.Session.SetObject("FilteredItems", items);
 
-            return RedirectToAction("IndexPaging",(1,10));
+            return RedirectToAction("IndexPaging",1);
         }
 
-        public IActionResult IndexPaging(int page, int size = 10)
+        public IActionResult IndexPaging(int page, int? size)
         {
+            var finalsize = 0;
+            if (size != null)
+            {
+                HttpContext.Session.SetObject("sizee", size);
+                finalsize = HttpContext.Session.GetObject<int>("sizee");
+            }
+            else
+            {
+                finalsize = HttpContext.Session.GetObject<int>("sizee");
+            }
             var items = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
             var locations = HttpContext.Session.GetObject<List<Location>>("Location");
 
-            var skip = (page - 1) * size;
+            var skip = (page - 1) * finalsize;
             HttpContext.Session.SetObject("Page", page);
 
             var itemCards = items
                 .Skip(skip)
-                .Take(size)
+                .Take(finalsize)
                 .Select(item =>
                 {
                     var loc = (locations ?? new List<Location>()).FirstOrDefault(l => l.LocationID == item.LocationID);

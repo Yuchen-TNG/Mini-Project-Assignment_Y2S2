@@ -4,11 +4,33 @@ const next = document.getElementById("pagingNext");
 
 back.disabled = true;
 
+function calculatePageSize() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    let size;
+
+    if (height > 800) {
+        if (width > 1883) size = 10;
+        else if (width > 1595) size = 8;
+        else if (width > 1304) size = 6;
+        else if (width > 1014) size = 4;
+        else size = 2;
+    } else {
+        if (width > 1883) size = 5;
+        else if (width > 1595) size = 4;
+        else if (width > 1260) size = 3;
+        else if (width > 1014) size = 2;
+        else size = 1;
+    }
+
+    return Math.max(1, Math.min(10, size));
+}
 
 async function checkTotal() {
     const response = await fetch(`/Home/totalItem`);
     const data = await response.json();
-    return Math.ceil(data.totalCount / 10); // 向上取整
+    // 不在这里除以固定值，因为每页size是动态的
+    return data.totalCount; // 只返回总数量
 }
 
 let currentPaging = localStorage.getItem("currentPaging")
@@ -88,7 +110,6 @@ document.getElementById("filter").addEventListener("click", () => {
 })
 
 async function filterCard(category, startDate, endDate, locationID) {
-
     // 1️⃣ fetch filter 结果
     const response = await fetch(`/Home/filter?category=${category}&startDate=${startDate}&endDate=${endDate}&locationID=${locationID}`);
     const html = await response.text();
@@ -99,14 +120,19 @@ async function filterCard(category, startDate, endDate, locationID) {
     localStorage.setItem("currentPaging", 1);
     document.getElementById("currentPage").innerHTML = 1;
 
-    // 3️⃣ 获取总页数（确保按钮状态正确）
-    const total = await checkTotal();
+    // 3️⃣ 获取总数量（不是总页数）
+    const totalCount = await checkTotal();  // ✅ 返回的是总数量
 
-    // 4️⃣ 根据总页数设置按钮状态
-    back.disabled = true;           // 一定是第一页
-    next.disabled = total <= 1;     // 如果只有一页，禁用 next
+    // 4️⃣ 需要计算当前size来计算总页数
+
+
+    const size = calculatePageSize(); // 替换原来的逻辑
+
+    // 5️⃣ 计算总页数并设置按钮状态
+    const totalPages = Math.ceil(totalCount / size);
+    back.disabled = true;
+    next.disabled = totalPages <= 1;
 }
-
 
 const startDate = document.getElementById("startDate");
 const endDate = document.getElementById("endDate");
@@ -133,50 +159,100 @@ endDate.addEventListener("change", () => {
 
 
 document.getElementById("pagingNext").addEventListener("click", async () => {
-    const total = await checkTotal();
-    if (currentPaging < total) {
+    const size = calculatePageSize();
+
+    const totalCount = await checkTotal();
+    const totalPages = Math.ceil(totalCount / size);
+
+    if (currentPaging < totalPages) {
         currentPaging++;
         loadPage(currentPaging);
-        
     } else {
-        
-       return;
-    }
-});
-
-
-
-document.getElementById("pagingBack").addEventListener("click", async () => {
-    const total = await checkTotal();
-    if (currentPaging > 1) {   // 上一页逻辑判断
-        currentPaging--;
-        loadPage(currentPaging);
-        
-    } else {
-        
+        console.log("已是最后一页");
         return;
     }
-
 });
 
+document.getElementById("pagingBack").addEventListener("click", async () => {
+    if (currentPaging > 1) {
+        currentPaging--;
+        loadPage(currentPaging);
+    } else {
+        console.log("已是第一页");
+        return;
+    }
+});
 
-async function loadPage(page) {
-    const size = 10;
-    const total = await checkTotal();
+let lastDevicePixelRatio = window.devicePixelRatio;
+let lastInnerWidth = window.innerWidth;
 
-    fetch(`/Home/IndexPaging?size=${size}&page=${page}`)
-        .then(res => res.text())
-        .then(html => {
-            document.querySelector(".cardparent").innerHTML = html;
-            document.getElementById("currentPage").innerHTML = page;
-        });
-    currentPaging = page;
-    localStorage.setItem("currentPaging", page); // 保存到 localStorage
+function checkZoomChange() {
+    const currentDPR = window.devicePixelRatio;
+    const currentWidth = window.innerWidth;
 
-    document.getElementById("pagingBack").disabled = page <= 1;
-    document.getElementById("pagingNext").disabled = page >= total;
+    // 如果devicePixelRatio变化或innerWidth变化较大，可能是缩放
+    if (currentDPR !== lastDevicePixelRatio ||
+        Math.abs(currentWidth - lastInnerWidth) > 50) {
+
+        console.log(`🔄 检测到缩放: DPR ${lastDevicePixelRatio} → ${currentDPR}`);
+        lastDevicePixelRatio = currentDPR;
+        lastInnerWidth = currentWidth;
+
+        // 重新加载当前页
+        if (currentPaging) {
+            loadPage(currentPaging);
+        }
+    }
 }
 
+// 监听resize（缩放会触发resize）
+let resizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        checkZoomChange();
+    }, 200);
+});
+
+// 在fetch后添加错误处理
+async function loadPage(page) {
+    try {
+        const size = calculatePageSize();
+        console.log(`🔍 加载第 ${page} 页，每页 ${size} 个`);
+
+        const totalCount = await checkTotal();
+        console.log(`📊 总数据量: ${totalCount}`);
+
+        const response = await fetch(`/Home/IndexPaging?page=${page}&size=${size}`);
+
+        if (!response.ok) {
+            console.error(`❌ 请求失败: ${response.status} ${response.statusText}`);
+            return;
+        }
+
+        const html = await response.text();
+        console.log(`✅ 获取到HTML长度: ${html.length} 字符`);
+
+        if (!html || html.trim().length === 0) {
+            console.warn(`⚠️ 返回的HTML为空或过短`);
+        }
+
+        document.querySelector(".cardparent").innerHTML = html;
+        document.getElementById("currentPage").innerHTML = page;
+
+        currentPaging = page;
+        localStorage.setItem("currentPaging", page);
+
+        const totalPages = Math.ceil(totalCount / size);
+        console.log(`📄 总页数: ${totalPages}`);
+
+        document.getElementById("pagingBack").disabled = page <= 1;
+        document.getElementById("pagingNext").disabled = page >= totalPages;
+
+    } catch (error) {
+        console.error(`🚨 loadPage错误:`, error);
+    }
+}
 document.getElementById("resetFilter").addEventListener("click", () => {
     // 1️⃣ 重置 Location
     document.getElementById("location").value = "";

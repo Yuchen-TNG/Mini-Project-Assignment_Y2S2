@@ -47,8 +47,8 @@ html {
     height: calc(100vh - 96px);
     margin-left: 20px;
     margin-right: 20px;
-    width: 1880px;
-    height: 849px;
+    max-width: 1880px;
+    max-height: 849px;
 }
 
 .left-container {
