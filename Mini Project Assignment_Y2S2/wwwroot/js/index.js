@@ -4,6 +4,7 @@ const next = document.getElementById("pagingNext");
 
 back.disabled = true;
 
+
 async function checkTotal() {
     const response = await fetch(`/Home/totalItem`);
     const data = await response.json();
@@ -13,8 +14,8 @@ async function checkTotal() {
 let currentPaging = localStorage.getItem("currentPaging")
     ? parseInt(localStorage.getItem("currentPaging"))
     : 1;
-
-document.getElementById("index").addEventListener("click", () => {
+refresh()
+function refresh(){
     const b1 = document.getElementById("postButton");
     const b2 = document.getElementById("foundButton");
 
@@ -29,7 +30,11 @@ document.getElementById("index").addEventListener("click", () => {
 
     currentPaging = 1
     localStorage.setItem("currentPaging", 1);
-    loadPage(currentPaging,null,null,null);
+    loadPage(currentPaging, null, null, null);
+}
+
+document.getElementById("index").addEventListener("click", () => {
+    refresh()
 })
 
 document.getElementById("postButton").addEventListener("click", () => {

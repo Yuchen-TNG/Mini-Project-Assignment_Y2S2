@@ -72,6 +72,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             HttpContext.Session.Remove("PageItems");
             HttpContext.Session.Remove("Location");
+            HttpContext.Session.Remove("Page");
             HttpContext.Session.SetObject("FilteredItems", items);
             
 
@@ -172,29 +173,13 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return RedirectToAction("IndexPaging",(1,10));
         }
 
-        public IActionResult IndexPagingNull()
-        {
-            var page = HttpContext.Session.GetObject<int>("Page");
-            if (page <= 0) page = 1;
-
-            var items = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
-
-            var skip = (page - 1) * 10;
-            var pageItems = items.Skip(skip).Take(10).ToList();
-
-            // ⭐ 用 pageItems 做你要的操作
-            HttpContext.Session.SetObject("PageItems", pageItems);
-
-            // ⭐ 再回到“唯一入口”
-            return RedirectToAction("UpdateCard");
-        }
-
         public IActionResult IndexPaging(int page, int size = 10)
         {
             var items = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
             var locations = HttpContext.Session.GetObject<List<Location>>("Location");
 
             var skip = (page - 1) * size;
+            HttpContext.Session.SetObject("Page", page);
 
             var itemCards = items
                 .Skip(skip)
@@ -211,19 +196,13 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                         LocationName = loc?.LocationName ?? "Unknown"
                     };
                 }).ToList();
-
+            
             return PartialView("_ItemCard", itemCards);
         }
 
+
         public async Task<IActionResult> CardDetails(int itemId)
         {
-
-            string userId = HttpContext.Session.GetString("UserId");
-            if (userId == null)
-            {
-                TempData["Error"] = "You haven't sign in yet";
-                return RedirectToAction("IndexPagingNull");
-            }
 
             User user = null;
             var collectionUser = _firestore.Collection("Users");
@@ -254,10 +233,17 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             var item = MapToItem(snapshot.Documents[0]);
 
+            var locationCollection = _firestore.Collection("Location");
+            Google.Cloud.Firestore.Query locationQuery = locationCollection.WhereEqualTo("LocationID", item.LocationID);
+            QuerySnapshot locationSnapshot = await locationQuery.GetSnapshotAsync();
+
+            var location = MapToLocation(locationSnapshot.Documents[0]);
+
             var viewModel = new CardDetailsViewModel
             {
                 Item = item,
-                User = user
+                User = user,
+                Location=location
             };
             return View(viewModel);
         }
