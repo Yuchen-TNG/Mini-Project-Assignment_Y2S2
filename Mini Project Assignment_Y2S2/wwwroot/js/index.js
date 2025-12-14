@@ -178,7 +178,7 @@ document.getElementById("pagingBack").addEventListener("click", async () => {
         currentPaging--;
         loadPage(currentPaging);
     } else {
-        console.log("已是第一页");
+
         return;
     }
 });
@@ -194,7 +194,7 @@ function checkZoomChange() {
     if (currentDPR !== lastDevicePixelRatio ||
         Math.abs(currentWidth - lastInnerWidth) > 50) {
 
-        console.log(`🔄 检测到缩放: DPR ${lastDevicePixelRatio} → ${currentDPR}`);
+
         lastDevicePixelRatio = currentDPR;
         lastInnerWidth = currentWidth;
 
@@ -218,10 +218,10 @@ window.addEventListener('resize', () => {
 async function loadPage(page) {
     try {
         const size = calculatePageSize();
-        console.log(`🔍 加载第 ${page} 页，每页 ${size} 个`);
+
 
         const totalCount = await checkTotal();
-        console.log(`📊 总数据量: ${totalCount}`);
+
 
         const response = await fetch(`/Home/IndexPaging?page=${page}&size=${size}`);
 
@@ -231,10 +231,10 @@ async function loadPage(page) {
         }
 
         const html = await response.text();
-        console.log(`✅ 获取到HTML长度: ${html.length} 字符`);
+
 
         if (!html || html.trim().length === 0) {
-            console.warn(`⚠️ 返回的HTML为空或过短`);
+
         }
 
         document.querySelector(".cardparent").innerHTML = html;
@@ -244,7 +244,7 @@ async function loadPage(page) {
         localStorage.setItem("currentPaging", page);
 
         const totalPages = Math.ceil(totalCount / size);
-        console.log(`📄 总页数: ${totalPages}`);
+
 
         document.getElementById("pagingBack").disabled = page <= 1;
         document.getElementById("pagingNext").disabled = page >= totalPages;
