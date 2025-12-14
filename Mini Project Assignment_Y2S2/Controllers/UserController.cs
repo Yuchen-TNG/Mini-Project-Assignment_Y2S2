@@ -88,7 +88,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         { "Email", model.Email },
         { "PhoneNumber", model.PhoneNumber },
         { "PasswordHash", passwordHash },
-        { "Role", "Student" }
+        { "Role", "Student" },
+        { "IsArchived", false }
     };
 
             // Save to Firestore with document ID = userId

@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="text-2xl font-bold mb-10 text-indigo-700 tracking-wide">Dashboard Overview</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+    <!-- LEFT CARD GRID -->
+    <div class="space-y-8">
+
+        <!-- TOTAL USERS -->
+        <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="p-4 bg-blue-100 rounded-xl text-blue-600 flex items-center justify-center">
+                    <i class="fas fa-user-plus text-2xl"></i>
+                </div>
+                <span class="text-lg font-semibold text-gray-600">Total Users</span>
+            </div>
+            <span class="text-4xl font-extrabold text-gray-800">120</span>
+        </div>
+
+        <!-- TOTAL LOST ITEMS -->
+        <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="p-4 bg-red-100 rounded-xl text-red-500 flex items-center justify-center">
+                    <i class="fas fa-box text-2xl"></i>
+                </div>
+                <span class="text-lg font-semibold text-gray-600">Total Lost Items</span>
+            </div>
+            <span class="text-4xl font-extrabold text-gray-800">30</span>
+        </div>
+
+        <!-- TOTAL FOUND ITEMS -->
+        <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="p-4 bg-green-100 rounded-xl text-green-600 flex items-center justify-center">
+                    <i class="fas fa-box text-2xl"></i>
+                </div>
+                <span class="text-lg font-semibold text-gray-600">Total Found Items</span>
+            </div>
+            <span class="text-4xl font-extrabold text-gray-800">15</span>
+        </div>
+
+        <!-- PENDING POSTS -->
+        <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="p-4 bg-yellow-100 rounded-xl text-yellow-600 flex items-center justify-center">
+                    <i class="fas fa-server text-2xl"></i>
+                </div>
+                <span class="text-lg font-semibold text-gray-600">Pending Verify Posts</span>
+            </div>
+            <span class="text-4xl font-extrabold text-gray-800">12</span>
+        </div>
+
+    </div>
+
+    <!-- RIGHT CHART -->
+    <div class="bg-white rounded-xl shadow-md p-10 flex flex-col items-center justify-center hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-6 uppercase tracking-wide">
+            Lost vs Found Items
+        </h3>
+
+        <div class="relative w-56 h-56 rounded-full overflow-hidden">
+            <div class="absolute inset-0 bg-white rounded-full shadow-inner flex items-center justify-center flex-col">
+                <span class="text-3xl font-bold text-gray-800">60%</span>
+                <span class="text-xs text-gray-400 uppercase">Lost Rate</span>
+            </div>
+            <!-- Conic gradient donut -->
+            <div style="
+                position:absolute;
+                inset:0;
+                border-radius:50%;
+                background: conic-gradient(#ef4444 0% 67%, #22c55e 67% 100%);
+                "></div>
+        </div>
+
+        <!-- LEGEND -->
+        <div class="flex gap-6 mt-10 text-sm">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-red-500 rounded"></div>
+                <span class="text-gray-600">Lost (30)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-green-500 rounded"></div>
+                <span class="text-gray-600">Found (15)</span>
+            </div>
+        </div>
+
+    </div>
+</div>

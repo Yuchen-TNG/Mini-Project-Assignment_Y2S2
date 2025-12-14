@@ -1,0 +1,580 @@
+﻿@using Mini_Project_Assignment_Y2S2.ViewModels
+@model List<UserManagementViewModel>
+
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div style="margin-bottom:16px; position:relative;">
+    <input id="searchInput"
+           placeholder="Search by name, email, or User ID..."
+           oninput="debounceLoad()"
+           style="width:100%; padding:12px 16px 12px 40px;
+                  border:1px solid #e5e7eb; border-radius:8px; font-size:14px;" />
+    <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#9ca3af;">
+        🔍
+    </span>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <h2 style="margin:0; font-size:24px; color:#4f46e5;">User List</h2>
+
+        <select id="roleFilter"
+                onchange="loadTable(1)"
+                style="padding:8px 12px; border-radius:8px; border:1px solid #e5e7eb;">
+            <option value="All">All Roles</option>
+            <option value="staff">Staff</option>
+            <option value="student">Student</option>
+        </select>
+    </div>
+
+    <button onclick="openAddModal()"
+            style="padding:10px 16px; background:#4f46e5; color:white;
+                   border-radius:8px; border:none; cursor:pointer;">
+        + Add User
+    </button>
+</div>
+
+<div style="border:1px solid #e5e7eb; border-radius:8px; overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse;">
+        <thead style="background:#f9fafb;">
+            <tr>
+                <th style="padding:12px; text-align:left;">User ID</th>
+                <th style="text-align:left;">Name</th>
+                <th style="text-align:left;">Email</th>
+                <th style="text-align:left;">Phone</th>
+                <th style="text-align:left;">Role</th>
+                <th style="text-align:left;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <tr>
+                <td colspan="6" style="text-align:center; padding:20px;">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="pagination" style="display:flex; justify-content:center; gap:8px; margin-top:16px;"></div>
+
+<!-- Archive Confirmation Modal -->
+<div id="archiveModal" class="modal">
+    <div class="modal-content" style="max-width:400px;">
+        <h3 style="margin-top:0;">Archive User?</h3>
+        <p>Are you sure you want to archive <strong id="archiveUserName"></strong>? This will deactivate the user's access.</p>
+
+        <div style="display:flex; gap:8px; margin-top:20px;">
+            <button onclick="closeArchiveModal()" class="btn-secondary" style="flex:1;">
+                Cancel
+            </button>
+            <button onclick="confirmArchive()" class="btn-danger" style="flex:1;">
+                Archive
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeAddModal()">&times;</span>
+        <h2>Add New User</h2>
+        <form id="addUserForm">
+            <div class="form-group">
+                <label for="addName">Name: <span style="color:red;">*</span></label>
+                <input type="text" id="addName" name="Name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="addEmail">Email: <span style="color:red;">*</span></label>
+                <input type="email" id="addEmail" name="Email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="addPhoneNumber">Phone Number:</label>
+                <input type="text" id="addPhoneNumber" name="PhoneNumber">
+            </div>
+
+            <div class="form-group">
+                <label for="addPassword">Password: <span style="color:red;">*</span></label>
+                <input type="password" id="addPassword" name="Password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="addRole">Role: <span style="color:red;">*</span></label>
+                <select id="addRole" name="Role" required>
+                    <option value="student">Student</option>
+                    <option value="staff">Staff</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" onclick="closeAddModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" id="addUserButton" class="btn-primary">Add User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeEditModal()">&times;</span>
+        <h2>Edit User</h2>
+        <form id="editUserForm">
+            <input type="hidden" id="editDocId" name="Id">
+
+            <div class="form-group">
+                <label for="editUserId">User ID:</label>
+                <input type="text" id="editUserId" name="UserID" readonly style="background:#f9fafb;">
+            </div>
+
+            <div class="form-group">
+                <label for="editName">Name: <span style="color:red;">*</span></label>
+                <input type="text" id="editName" name="Name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editEmail">Email: <span style="color:red;">*</span></label>
+                <input type="email" id="editEmail" name="Email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editPhoneNumber">Phone Number:</label>
+                <input type="text" id="editPhoneNumber" name="PhoneNumber">
+            </div>
+
+            <div class="form-group">
+                <label for="editRole">Role: <span style="color:red;">*</span></label>
+                <select id="editRole" name="Role" required>
+                    <option value="student">Student</option>
+                    <option value="staff">Staff</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" onclick="closeEditModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" id="saveUserButton" class="btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentPage = 1;
+    let archiveUserId = '';
+    let debounceTimer = null;
+
+    // Load table on page load
+    loadTable(1);
+
+    // Debounce search input
+    function debounceLoad() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => loadTable(1), 400);
+    }
+
+    // Load table data
+    function loadTable(page) {
+        currentPage = page;
+        const searchInput = document.getElementById('searchInput').value;
+        const roleFilter = document.getElementById('roleFilter').value;
+        const tableBody = document.getElementById('tableBody');
+
+        const url = '@Url.Action("GetTableData", "UserManagement", new { Area = "Admin" })';
+        const params = `?page=${page}&search=${encodeURIComponent(searchInput)}&roleFilter=${encodeURIComponent(roleFilter)}`;
+
+        fetch(url + params)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server error: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderTable(data.users);
+                renderPagination(data.currentPage, data.totalPages);
+            })
+            .catch(error => {
+                console.error('Error loading table:', error);
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:20px;">Failed to load data. Please refresh the page.</td></tr>`;
+            });
+    }
+
+    // Render table rows
+    function renderTable(users) {
+        const tableBody = document.getElementById('tableBody');
+
+        if (users.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#9ca3af;">No users found</td></tr>`;
+            return;
+        }
+
+        tableBody.innerHTML = users.map(user => {
+            const isArchived = user.isArchived;
+            const roleColor = isArchived ? '#fef2f2' : (user.role === 'staff' ? '#dbeafe' : '#d1fae5');
+            const rowStyle = isArchived ? 'opacity:0.6; background:#fef2f2;' : '';
+            const roleDisplay = isArchived ? 'Archived' : (user.role.charAt(0).toUpperCase() + user.role.slice(1));
+
+            let actionButtons = '';
+            if (isArchived) {
+                actionButtons = `
+                    <button onclick="handleArchiveAction('${user.id}', false)"
+                            style="background:#10b981; color:white; padding:6px 12px; border:none; border-radius:4px; cursor:pointer; font-size:13px;">
+                        Reactivate
+                    </button>`;
+            } else {
+                actionButtons = `
+                    <button onclick="openEditModal('${user.id}')"
+                            style="margin-right:8px; color:#4f46e5; background:none; border:none; cursor:pointer; text-decoration:underline; font-size:13px;">
+                        Edit
+                    </button>
+                    <button onclick="openArchiveModal('${user.id}', '${user.name}')"
+                            style="background:#ef4444; color:white; padding:6px 12px; border:none; border-radius:4px; cursor:pointer; font-size:13px;">
+                        Archive
+                    </button>`;
+            }
+
+            return `
+                <tr style="${rowStyle}">
+                    <td style="padding:12px;">${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.phoneNumber || '-'}</td>
+                    <td>
+                        <span style="padding:4px 10px; border-radius:999px; background:${roleColor}; font-size:12px;">
+                            ${roleDisplay}
+                        </span>
+                    </td>
+                    <td>${actionButtons}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Render pagination
+    function renderPagination(current, total) {
+        const pagination = document.getElementById('pagination');
+
+        if (total <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+
+        let buttons = '';
+
+        if (current > 1) {
+            buttons += `<button onclick="loadTable(${current - 1})" style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px; background:white; cursor:pointer;">Previous</button>`;
+        }
+
+        for (let i = 1; i <= total; i++) {
+            const isActive = i === current;
+            const style = isActive
+                ? 'padding:8px 12px; border:1px solid #4f46e5; border-radius:4px; background:#4f46e5; color:white; cursor:pointer;'
+                : 'padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px; background:white; cursor:pointer;';
+            buttons += `<button onclick="loadTable(${i})" style="${style}">${i}</button>`;
+        }
+
+        if (current < total) {
+            buttons += `<button onclick="loadTable(${current + 1})" style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px; background:white; cursor:pointer;">Next</button>`;
+        }
+
+        pagination.innerHTML = buttons;
+    }
+
+    // Archive Modal Functions
+    function openArchiveModal(userId, userName) {
+        archiveUserId = userId;
+        document.getElementById('archiveUserName').textContent = userName;
+        document.getElementById('archiveModal').style.display = 'flex';
+    }
+
+    function closeArchiveModal() {
+        document.getElementById('archiveModal').style.display = 'none';
+    }
+
+    function confirmArchive() {
+        handleArchiveAction(archiveUserId, true);
+        closeArchiveModal();
+    }
+
+    function handleArchiveAction(userId, isArchiving) {
+        const action = isArchiving ? 'ArchiveUser' : 'UnarchiveUser';
+        const url = '@Url.Action("ArchiveUser", "UserManagement", new { Area = "Admin" })'.replace('ArchiveUser', action);
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id=${encodeURIComponent(userId)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                loadTable(currentPage);
+            } else {
+                alert('Error: ' + (data.message || data.error));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to process request. Please try again.');
+        });
+    }
+
+    // Add User Modal Functions
+    function openAddModal() {
+        document.getElementById('addUserForm').reset();
+        document.getElementById('addUserModal').style.display = 'block';
+    }
+
+    function closeAddModal() {
+        document.getElementById('addUserModal').style.display = 'none';
+    }
+
+    document.getElementById('addUserForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const submitButton = document.getElementById('addUserButton');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Adding...';
+
+        const formData = {
+            Name: document.getElementById('addName').value,
+            Email: document.getElementById('addEmail').value,
+            PhoneNumber: document.getElementById('addPhoneNumber').value,
+            Password: document.getElementById('addPassword').value,
+            Role: document.getElementById('addRole').value
+        };
+
+        try {
+            const response = await fetch('@Url.Action("AddUser", "UserManagement", new { Area = "Admin" })', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('User added successfully!');
+                closeAddModal();
+                loadTable(1);
+            } else {
+                alert('Error: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error adding user:', error);
+            alert('Failed to add user. Please try again.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Add User';
+        }
+    });
+
+    // Edit User Modal Functions
+    function closeEditModal() {
+        document.getElementById('editUserModal').style.display = 'none';
+    }
+
+    async function openEditModal(docId) {
+        const url = '@Url.Action("GetUserJson", "UserManagement", new { Area = "Admin" })' + `/${docId}`;
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('Failed to load user data. Status: ' + response.status);
+            }
+
+            const data = await response.json();
+
+            document.getElementById('editDocId').value = data.id;
+            document.getElementById('editUserId').value = data.userID;
+            document.getElementById('editName').value = data.name;
+            document.getElementById('editEmail').value = data.email;
+            document.getElementById('editPhoneNumber').value = data.phoneNumber;
+            document.getElementById('editRole').value = data.role.toLowerCase();
+
+            document.getElementById('editUserModal').style.display = 'block';
+        } catch (error) {
+            console.error('Error loading user data:', error);
+            alert('Failed to load user data. Please try again.');
+        }
+    }
+
+    document.getElementById('editUserForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const submitButton = document.getElementById('saveUserButton');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+
+        const formData = {
+            Id: document.getElementById('editDocId').value,
+            Name: document.getElementById('editName').value,
+            Email: document.getElementById('editEmail').value,
+            PhoneNumber: document.getElementById('editPhoneNumber').value,
+            Role: document.getElementById('editRole').value
+        };
+
+        try {
+            const response = await fetch('@Url.Action("UpdateUser", "UserManagement", new { Area = "Admin" })', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('User updated successfully!');
+                closeEditModal();
+                loadTable(currentPage);
+            } else {
+                alert('Error: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error updating user:', error);
+            alert('Failed to update user. Please try again.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save Changes';
+        }
+    });
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        const editModal = document.getElementById('editUserModal');
+        const addModal = document.getElementById('addUserModal');
+        const archiveModal = document.getElementById('archiveModal');
+
+        if (event.target === editModal) closeEditModal();
+        if (event.target === addModal) closeAddModal();
+        if (event.target === archiveModal) closeArchiveModal();
+    }
+</script>
+
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .close-button {
+        position: absolute;
+        right: 20px;
+        top: 15px;
+        font-size: 28px;
+        font-weight: bold;
+        color: #9ca3af;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+        .close-button:hover {
+            color: #4b5563;
+        }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+            .form-group input:focus,
+            .form-group select:focus {
+                outline: none;
+                border-color: #4f46e5;
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 24px;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
+        flex: 1;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: #4f46e5;
+        color: white;
+    }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #4338ca;
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+    .btn-secondary {
+        background: white;
+        border: 1px solid #e5e7eb;
+        color: #374151;
+    }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+</style>
