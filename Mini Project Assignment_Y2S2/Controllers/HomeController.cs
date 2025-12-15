@@ -287,6 +287,11 @@
             [HttpPost]
             public async Task<IActionResult> CreatePost(Item item, string? OtherLocation)
             {
+
+            var userId = HttpContext.Session.GetString("UserId");
+
+
+
             if (!ModelState.IsValid)
             {
                 var locationSnap = await _firestore.Collection("Location").GetSnapshotAsync();
@@ -346,12 +351,7 @@
             }, SetOptions.MergeAll);
                 });
 
-                var userId = HttpContext.Session.GetString("UserId");
 
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return RedirectToAction("Login", "User");
-                }
 
                 item.ItemID = newItemID;
 
@@ -395,7 +395,18 @@
             }
 
 
-            public IActionResult ChoosePostType() => View();
+            public IActionResult ChoosePostType()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["Error"] = "Please login before you create a post";
+                return RedirectToAction("Index", "Home");
+            }
+            return View();
+
+        }
 
             [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
             public IActionResult Error()
