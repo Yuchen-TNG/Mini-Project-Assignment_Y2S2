@@ -223,6 +223,12 @@
                     <input type="text" name="OtherLocation" class="form-control" />
                 </div>
 
+                <label>Posted By (User ID)</label>
+                <input type="text"
+                       class="form-control"
+                       value="@ViewBag.UserId"
+                       readonly />
+
                 <label>Category</label>
                 <input type="text" value="@Model.Category"
                        class="form-control" readonly />
