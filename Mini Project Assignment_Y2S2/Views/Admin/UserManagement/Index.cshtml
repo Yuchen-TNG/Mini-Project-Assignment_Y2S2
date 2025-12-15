@@ -350,7 +350,7 @@
         const idLabel = document.getElementById('idLabel');
         const idInput = document.getElementById('addUserId');
         const idHint = document.getElementById('idHint');
-        
+
         if (roleSelect.value === 'Admin') {
             idLabel.textContent = 'Staff ID:';
             idInput.placeholder = 'Auto-generated (e.g., S3452)';
@@ -392,7 +392,7 @@
                 const generatedId = result.user.StaffID || result.user.UserID;
                 document.getElementById('addUserId').value = generatedId;
                 console.log('[v0] Generated ID:', generatedId);
-                
+
                 // Close modal after a brief delay so user can see the ID
                 setTimeout(() => {
                     closeAddModal();

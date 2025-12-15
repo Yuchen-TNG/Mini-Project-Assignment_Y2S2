@@ -68,7 +68,7 @@ e. post management (Xinyee) - Not yet
 should be able to
 1. retrieve post from user posting
 2. verify post (given option: approved, rejected)
-
+-still dealing with the redirect action problem
 
 f. history (RueyEn) - Not yet 
 should be able to view history of item

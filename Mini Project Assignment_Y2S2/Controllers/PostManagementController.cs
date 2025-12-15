@@ -150,49 +150,49 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         // GET ALL POSTS (FOR VIEWING HISTORY)
         // =================================================================
 
-        [HttpGet]
-        [Route("History")]
-        public async Task<IActionResult> History(string statusFilter = "All", int page = 1)
-        {
-            try
-            {
-                int pageSize = 10;
-                Query query = _firestore.Collection("Posts");
+        //[HttpGet]
+        //[Route("History")]
+        //public async Task<IActionResult> History(string statusFilter = "All", int page = 1)
+        //{
+        //    try
+        //    {
+        //        int pageSize = 10;
+        //        Query query = _firestore.Collection("Posts");
 
-                // Filter by status if not "All"
-                if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "All")
-                {
-                    query = query.WhereEqualTo("Status", statusFilter);
-                }
+        //        // Filter by status if not "All"
+        //        if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "All")
+        //        {
+        //            query = query.WhereEqualTo("Status", statusFilter);
+        //        }
 
-                QuerySnapshot snapshot = await query
-                    .OrderByDescending("DatePosted")
-                    .GetSnapshotAsync();
+        //        QuerySnapshot snapshot = await query
+        //            .OrderByDescending("DatePosted")
+        //            .GetSnapshotAsync();
 
-                var posts = snapshot.Documents.Select(doc =>
-                {
-                    var post = doc.ConvertTo<Post>();
-                    post.Id = doc.Id;
-                    return post;
-                }).ToList();
+        //        var posts = snapshot.Documents.Select(doc =>
+        //        {
+        //            var post = doc.ConvertTo<Post>();
+        //            post.Id = doc.Id;
+        //            return post;
+        //        }).ToList();
 
-                int totalCount = posts.Count;
-                var pagedPosts = posts
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
+        //        int totalCount = posts.Count;
+        //        var pagedPosts = posts
+        //            .Skip((page - 1) * pageSize)
+        //            .Take(pageSize)
+        //            .ToList();
 
-                ViewBag.CurrentPage = page;
-                ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-                ViewBag.StatusFilter = statusFilter;
+        //        ViewBag.CurrentPage = page;
+        //        ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        //        ViewBag.StatusFilter = statusFilter;
 
-                return View("~/Views/Admin/PostManagement/History.cshtml", pagedPosts);
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Error = "Failed to load post history: " + ex.Message;
-                return View("~/Views/Admin/PostManagement/History.cshtml", new List<Post>());
-            }
-        }
+        //        return View("~/Views/Admin/PostManagement/History.cshtml", pagedPosts);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ViewBag.Error = "Failed to load post history: " + ex.Message;
+        //        return View("~/Views/Admin/PostManagement/History.cshtml", new List<Post>());
+        //    }
+        // }
     }
 }
