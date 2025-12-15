@@ -15,8 +15,8 @@
 .role-switch {
     display: flex;
     justify-content: center;
-    gap: 100px;
-    margin-bottom: 60px;
+    gap: 50px;
+    margin-bottom: 20px;
     margin-top: 0px;
 }
 
@@ -27,16 +27,17 @@
     text-decoration: none;
     color: black;
     font-weight: bold;
+    font-size:17px;
     border: 2px solid #f5c77d;
     transition: 0.3s;
-    width: 60px;
+    width: 90px;
     height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
     .role-btn:hover {
-        background: #ffd38a;
+        background: #6ab672;
     }
 
     .role-btn.active {

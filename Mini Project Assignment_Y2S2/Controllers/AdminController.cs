@@ -21,9 +21,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
     {
         private readonly string projectId = "miniproject-d280e";
         private readonly FirestoreDb firestoreDb;
-
-        private FirestoreDb firestoreDb;
-
         public AdminController()
         {
             // JSON FILE
@@ -76,13 +73,13 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
             if (snapshot.Count == 0)
-                {
+            {
                 ViewBag.Error = error;
                 return View("Login/Login");
-                    }
-                }
+            }
+        
 
-            var user = snapshot.Documents[0].ConvertTo<User>();
+        var user = snapshot.Documents[0].ConvertTo<User>();
 
             // ❌ Not admin
             if (user.Role != "Admin")
@@ -295,6 +292,90 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View("~/Views/Admin/UserManagement/Index.cshtml");
         }
 
+        public async Task<IActionResult> LostItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 9)
+        {
+            var query = firestoreDb.Collection("Items").WhereEqualTo("Category", "LOSTITEM");
+
+            // Filter by location
+            if (!string.IsNullOrEmpty(locationID))
+                query = query.WhereEqualTo("LocationID", locationID);
+
+            // Firestore requires exact types for date comparison
+            if (startDate.HasValue)
+                query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
+
+            if (endDate.HasValue)
+                query = query.WhereLessThanOrEqualTo("Date", endDate.Value.ToUniversalTime());
+
+            var snapshot = await query.GetSnapshotAsync();
+            var items = snapshot.Documents.Select(MapToItem).OrderByDescending(x => x.Date).ToList();
+
+            var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(items.Count / (double)pageSize);
+
+            // For filter dropdown
+            var locationSnapshot = await firestoreDb.Collection("Location").GetSnapshotAsync();
+            ViewBag.Locations = locationSnapshot.Documents.Select(d => d.GetValue<string>("LocationID")).ToList();
+
+            return View(pagedItems);
+        }
+
+        public async Task<IActionResult> FoundItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 9)
+        {
+            var query = firestoreDb.Collection("Items").WhereEqualTo("Category", "FOUNDITEM");
+
+            if (!string.IsNullOrEmpty(locationID))
+                query = query.WhereEqualTo("LocationID", locationID);
+
+            if (startDate.HasValue)
+                query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
+
+            if (endDate.HasValue)
+                query = query.WhereLessThanOrEqualTo("Date", endDate.Value.ToUniversalTime());
+
+            var snapshot = await query.GetSnapshotAsync();
+            var items = snapshot.Documents.Select(MapToItem).OrderByDescending(x => x.Date).ToList();
+
+            var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(items.Count / (double)pageSize);
+
+            var locationSnapshot = await firestoreDb.Collection("Location").GetSnapshotAsync();
+            ViewBag.Locations = locationSnapshot.Documents.Select(d => d.GetValue<string>("LocationID")).ToList();
+
+            return View(pagedItems);
+        }
+
+
+        public async Task<IActionResult> LostItemDetail(int itemId)
+        {
+            var snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+
+            var doc = snapshot.Documents.FirstOrDefault(d =>
+                d.ContainsField("ItemID") && d.GetValue<int>("ItemID") == itemId);
+
+            if (doc == null) return NotFound();
+
+            var item = MapToItem(doc);
+            return View(item);
+        }
+
+
+        public async Task<IActionResult> FoundItemDetail(int itemId)
+        {
+            var snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+
+            var doc = snapshot.Documents.FirstOrDefault(d =>
+                d.ContainsField("ItemID") && d.GetValue<int>("ItemID") == itemId);
+
+            if (doc == null) return NotFound();
+
+            var item = MapToItem(doc);
+            return View(item);
+        }
+
+        #endregion
     }
 }
 
