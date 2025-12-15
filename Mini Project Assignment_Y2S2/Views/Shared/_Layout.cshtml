@@ -1,8 +1,6 @@
 ﻿@inject IHttpContextAccessor HttpContextAccessor
 @using Microsoft.AspNetCore.Http
 
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,15 +8,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Mini_Project_Assignment_Y2S2</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <script src="~/js/site.js" asp-append-version="true"></script>
 
+    <!-- 第一步：加载jQuery库（必须放在最前面） -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- 第二步：加载验证插件（如果你有这些文件的话） -->
+    <!-- 如果你的项目有这些文件，取消注释下面三行 -->
+    <!--
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    -->
+    <!-- 如果你没有上面的本地文件，使用CDN版本 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
 </head>
 
 <body>
     <nav class="top-nav">
         <div class="top-left">
             <ul>
-                <li><a id="index" href="@Url.Action("Index","Home")">Index</a></li>
+                <li><a id="index" href="@Url.Action("Index", "Home")">Index</a></li>
             </ul>
         </div>
 
@@ -46,14 +57,9 @@
         </div>
     </nav>
 
-
-
-
     @RenderBody()
 
     @RenderSection("Scripts", required: false)
-
-
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -61,11 +67,10 @@
             const menu = document.querySelector(".dropdown-menu");
 
             toggle.addEventListener("click", function (e) {
-                e.preventDefault(); // prevent default link behavior
+                e.preventDefault();
                 menu.classList.toggle("show");
             });
 
-            // Optional: hide dropdown if clicking outside
             document.addEventListener("click", function (e) {
                 if (!toggle.contains(e.target) && !menu.contains(e.target)) {
                     menu.classList.remove("show");
@@ -74,6 +79,4 @@
         });
     </script>
 </body>
-
-
 </html>

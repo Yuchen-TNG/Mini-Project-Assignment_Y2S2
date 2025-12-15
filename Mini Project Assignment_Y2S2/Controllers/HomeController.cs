@@ -36,7 +36,8 @@
                                         : null,
                     Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                     Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                     UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null // ⭐ 加这行
+                    LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
+                    UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null // ⭐ 加这行
                 };
             }
 
@@ -165,7 +166,9 @@
                 if (!string.IsNullOrEmpty(locationID)&& locationID!="null")
                     query = query.WhereEqualTo("LocationID", locationID);
 
-                QuerySnapshot snapshot = await query.GetSnapshotAsync();
+            query = query.OrderByDescending("Date");
+
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
                 var items = snapshot.Documents.Select(MapToItem).ToList();
 
@@ -368,7 +371,8 @@
                     Category = item.Category,
                     Date = item.Date.ToUniversalTime(),
                     UserID = userId,
-                    CreatedAt = Timestamp.GetCurrentTimestamp()
+                    CreatedAt = Timestamp.GetCurrentTimestamp(),
+                    LocationFound=item.LocationFound
                 });
 
                 return RedirectToAction("Index");
