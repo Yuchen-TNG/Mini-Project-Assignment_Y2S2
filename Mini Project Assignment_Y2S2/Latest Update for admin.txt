@@ -1,6 +1,21 @@
 Latest Update
 15 DEC 2025
-02:45am
+18:20PM
+
+
+########### ACTUAL WORKABLE VERSION FOR ADMIN LOGIN CREDENTIALS #############
+xinyee6833@gmail.com
+user1234
+
+
+
+// ADMIN EMAIL AND PASSWORD//
+-that added manually using user management page
+admin12@example.com
+admintest1
+
+-but now try to login said access denied
+-will fix it later
 
 ---MINI PROJECT---
 W6 thrusday present mini project
@@ -22,11 +37,14 @@ eg. https://localhost:7007/admin/Login
 using email and hardcoded password to login (can get from firebase - Admins)
 admin account profile not clickable, not viewable
 
+update -- file path problem solve by zj
+
 
 b. dashboard (Xinyee & RueyEn) - done
 -display the dashboard for admin
 -display fake data(only number) on the section itself
 https://localhost:7007/Admin/Dashboard
+-file path still got redirect problem, sometime works well, but sometime dont
 
 c. user management (Xinyee) - done
 able to display user list, can filter by selecting the role (all/admin/student)
@@ -53,7 +71,7 @@ should be able to
 
 
 f. history (RueyEn) - Not yet 
-able to view history of item
+should be able to view history of item
 
 
 --- ADDITIONAL ---
@@ -69,5 +87,61 @@ added one field IsArchived bool to user (for user management purpose)
 created a Shared layout only for admin
 
 
+
+
+UPDATE--
+tried to combine user collection and admin collection into one collection (xy)
+-to ensure the role works well, manually type in the field 
+-ensure sucure (password must be hashed)
+-admin collection will still keep it for future reference(maybe deleted afterward once done the setting up)
+
+-unarchive user fuction not yet test
+--> if this works, user login page (for archived user) need to be inform that 
+"Your account is now being archived, please contact administrtor for assisstance" and 
+a feedback box should be provided that included admin email (contact us page) for user to contact admin directly
+
+eg. Situation:
+If IsArchived: false --> Login Successful
+If IsArchived: true  --> Login Failed (Custom Message Triggered)
+
+
+** IMPORTANCE **
+Actual Role (for filter purpose)
+i. All
+ii. Admin
+iii. Student
+
+
+
+15 DEC 2025
+11:30AM
+testing for manual type in to add admin account in user collection (firebase)
+-manual add in password will not be hashed
+-testing that if login works?
+--works fine
+
+now testing if the admin that added by munual type in can add user?
+(email and password)
+admin12@example.com
+admintest1
+
+-- testing requirement
+whether munual added admin can add user? edit (update user)? archive user?
+whether password is hashed for add user?
+
+
+--different role should be display as different color, will add later
+
+
+
+15 DEC 2025
+18:15PM
+admin role problem solved
+-admin now can add user and save changes
+== for add user == successfully display hashed password even manually added user using admin user management 
+== admin collection can be delete afterward use single collection(User) and manage all user using this single collection
+-able to edit (update) user and save changes
+-able to archive and unarchive user
+-- action can be save into firebase
 
 

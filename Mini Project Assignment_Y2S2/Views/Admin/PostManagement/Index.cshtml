@@ -1,12 +1,28 @@
-﻿@{
+﻿@model IEnumerable<Mini_Project_Assignment_Y2S2.Models.Post>
+
+@{
     ViewData["Title"] = "Post Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="mb-6">
     <h2 class="text-xl font-bold">Post Management</h2>
-    <p class="text-gray-400 text-sm">Verify Post</p>
+    <p class="text-gray-400 text-sm">Verify Posts - Pending Approval</p>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        @TempData["Error"]
+    </div>
+}
 
 <div class="space-y-6">
     @if (Model != null && Model.Any())
@@ -18,7 +34,7 @@
                 <div class="w-40 h-40 bg-gray-300 rounded flex items-center justify-center shrink-0 overflow-hidden">
                     @if (!string.IsNullOrEmpty(item.ImageUrl))
                     {
-                        <img src="@item.ImageUrl" class="w-full h-full object-cover" />
+                        <img src="@item.ImageUrl" alt="Post Image" class="w-full h-full object-cover" />
                     }
                     else
                     {
@@ -30,13 +46,23 @@
                     <div>
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="font-bold text-lg">@item.Title</h3>
-                            <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-white text-gray-600">
-                                @item.PostType
-                            </span>
+                            <div class="flex gap-2 items-center">
+                                <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-white text-gray-600">
+                                    @item.PostType
+                                </span>
+                                @* Display status with black color for pending *@
+                                <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-gray-100 text-black">
+                                    @item.Status
+                                </span>
+                            </div>
                         </div>
 
-                        <p class="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
+                        <p class="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-3">
                             @item.Description
+                        </p>
+
+                        <p class="text-xs text-gray-400 mb-2">
+                            Posted by: <span class="font-medium">@item.UserName</span>
                         </p>
 
                         <p class="text-xs text-gray-400 mb-4">
@@ -45,13 +71,13 @@
                     </div>
 
                     <div class="flex gap-4">
-                        <form asp-controller="Post" asp-action="Approve" asp-route-id="@item.Id" method="post">
+                        <form asp-controller="PostManagement" asp-action="Approve" asp-route-id="@item.Id" method="post">
                             <button type="submit" class="bg-[#b9f6ca] text-green-900 px-6 py-1.5 rounded shadow-sm hover:bg-green-300 font-medium transition">
                                 Approve
                             </button>
                         </form>
 
-                        <form asp-controller="Post" asp-action="Reject" asp-route-id="@item.Id" method="post">
+                        <form asp-controller="PostManagement" asp-action="Reject" asp-route-id="@item.Id" method="post">
                             <button type="submit" class="bg-[#f8bbd0] text-pink-900 px-6 py-1.5 rounded shadow-sm hover:bg-pink-200 font-medium transition">
                                 Reject
                             </button>

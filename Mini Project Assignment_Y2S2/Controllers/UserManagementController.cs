@@ -1,5 +1,6 @@
 ﻿using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
+using Mini_Project_Assignment_Y2S2.Filters;
 using Mini_Project_Assignment_Y2S2.Services;
 using Mini_Project_Assignment_Y2S2.ViewModels;
 using System;
@@ -29,6 +30,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
     [Area("Admin")]
     [Route("Admin/UserManagement")]
+    [AdminAuthorize] // Apply admin authorization filter to protect all routes
     public class UserManagementController : Controller
     {
         private readonly FirestoreDb _firestore;
@@ -166,27 +168,32 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [Route("AddUser")]
         public async Task<IActionResult> AddUser([FromBody] AddUserRequest request)
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
-            if (userRole?.ToLower() != "staff")
-            {
-                return Json(new { success = false, error = "Only staff can create users" });
-            }
-
             try
             {
+                Console.WriteLine("[v0] AddUser called");
+                Console.WriteLine($"[v0] Request data - Name: {request.Name}, Email: {request.Email}, Role: {request.Role}");
+
                 if (string.IsNullOrWhiteSpace(request.Name) ||
                     string.IsNullOrWhiteSpace(request.Email) ||
                     string.IsNullOrWhiteSpace(request.Password) ||
                     string.IsNullOrWhiteSpace(request.Role))
                 {
+                    Console.WriteLine("[v0] Validation failed - missing fields");
                     return Json(new { success = false, error = "All fields are required" });
                 }
 
-                string roleLower = request.Role.ToLower();
-                if (roleLower != "staff" && roleLower != "student")
+                string roleInput = request.Role.Trim();
+                string roleLower = roleInput.ToLower();
+
+                if (roleLower != "admin" && roleLower != "student")
                 {
-                    return Json(new { success = false, error = "Invalid role. Must be Staff or Student" });
+                    Console.WriteLine($"[v0] Invalid role: {request.Role}");
+                    return Json(new { success = false, error = "Invalid role. Must be Admin or Student" });
                 }
+
+                // Set proper role casing for storage
+                string roleValue = roleLower == "admin" ? "Admin" : "Student";
+                Console.WriteLine($"[v0] Role set to: {roleValue}");
 
                 QuerySnapshot emailSnapshot = await _firestore.Collection("Users")
                     .WhereEqualTo("Email", request.Email)
@@ -195,11 +202,27 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 if (emailSnapshot.Count > 0)
                 {
+                    Console.WriteLine("[v0] Email already exists");
                     return Json(new { success = false, error = "Email already exists" });
                 }
 
-                string userId = GenerateUserId();
+                string userId;
+                string staffId = null;
+
+                if (roleValue == "Admin")
+                {
+                    staffId = GenerateStaffId();
+                    userId = staffId; // Use StaffID as the document ID for admins
+                    Console.WriteLine($"[v0] Generated StaffID: {staffId}");
+                }
+                else
+                {
+                    userId = GenerateUserId();
+                    Console.WriteLine($"[v0] Generated UserID: {userId}");
+                }
+
                 string passwordHash = PasswordHelper.HashPassword(request.Password);
+                Console.WriteLine("[v0] Password hashed successfully");
 
                 var newUser = new Dictionary<string, object>
                 {
@@ -209,11 +232,18 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     { "Email", request.Email },
                     { "PhoneNumber", request.PhoneNumber ?? "" },
                     { "PasswordHash", passwordHash },
-                    { "Role", roleLower },
+                    { "Role", roleValue }, // Use proper casing
                     { "IsArchived", false }
                 };
 
+                if (roleValue == "Admin" && staffId != null)
+                {
+                    newUser.Add("StaffID", staffId);
+                }
+
+                Console.WriteLine($"[v0] Attempting to save user to Firestore with ID: {userId}");
                 await _firestore.Collection("Users").Document(userId).SetAsync(newUser);
+                Console.WriteLine("[v0] User saved successfully to Firestore");
 
                 return Json(new
                 {
@@ -223,14 +253,17 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     {
                         Id = userId,
                         UserID = userId,
+                        StaffID = staffId,
                         Name = request.Name,
                         Email = request.Email,
-                        Role = roleLower
+                        Role = roleValue
                     }
                 });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[v0] Error creating user: {ex.Message}");
+                Console.WriteLine($"[v0] Stack trace: {ex.StackTrace}");
                 return StatusCode(500, new { success = false, error = "Failed to create user", message = ex.Message });
             }
         }
@@ -243,12 +276,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [Route("UpdateUser")]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
-            if (userRole?.ToLower() != "staff")
-            {
-                return Json(new { success = false, error = "Only staff can edit users" });
-            }
-
             if (string.IsNullOrEmpty(request.Id))
             {
                 return Json(new { success = false, error = "User ID is required" });
@@ -257,9 +284,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             try
             {
                 string roleLower = request.Role?.ToLower() ?? "student";
-                if (roleLower != "staff" && roleLower != "student")
+                if (roleLower != "admin" && roleLower != "student")
                 {
-                    return Json(new { success = false, error = "Invalid role. Must be Staff or Student" });
+                    return Json(new { success = false, error = "Invalid role. Must be Admin or Student" });
                 }
 
                 var docRef = _firestore.Collection("Users").Document(request.Id);
@@ -296,12 +323,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [Route("ArchiveUser")]
         public async Task<IActionResult> ArchiveUser(string id)
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
-            if (userRole?.ToLower() != "staff")
-            {
-                return Json(new { success = false, message = "Only staff can archive users" });
-            }
-
             if (string.IsNullOrEmpty(id))
             {
                 return Json(new { success = false, message = "User ID is required" });
@@ -335,12 +356,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [Route("UnarchiveUser")]
         public async Task<IActionResult> UnarchiveUser(string id)
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
-            if (userRole?.ToLower() != "staff")
-            {
-                return Json(new { success = false, message = "Only staff can reactivate users" });
-            }
-
             if (string.IsNullOrEmpty(id))
             {
                 return Json(new { success = false, message = "User ID is required" });
@@ -386,6 +401,15 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return boolValue;
             }
             return false;
+        }
+
+        private string GenerateStaffId()
+        {
+            lock (_random)
+            {
+                int randomNumber = _random.Next(1000, 10000); // Generates 1000-9999 (4 digits)
+                return $"S{randomNumber}";
+            }
         }
 
         private string GenerateUserId()

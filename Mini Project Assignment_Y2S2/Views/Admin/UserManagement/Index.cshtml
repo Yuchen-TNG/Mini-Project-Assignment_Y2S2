@@ -25,8 +25,8 @@
                 onchange="loadTable(1)"
                 style="padding:8px 12px; border-radius:8px; border:1px solid #e5e7eb;">
             <option value="All">All Roles</option>
-            <option value="staff">Staff</option>
-            <option value="student">Student</option>
+            <option value="Admin">Admin</option>
+            <option value="Student">Student</option>
         </select>
     </div>
 
@@ -82,6 +82,24 @@
         <span class="close-button" onclick="closeAddModal()">&times;</span>
         <h2>Add New User</h2>
         <form id="addUserForm">
+            <!-- Moved Role field to first position -->
+            <div class="form-group">
+                <label for="addRole">Role: <span style="color:red;">*</span></label>
+                <select id="addRole" name="Role" required onchange="toggleIdField()">
+                    <option value="Student">Student</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <!-- Added dynamic ID field that toggles based on role -->
+            <div class="form-group" id="userIdGroup">
+                <label for="addUserId">
+                    <span id="idLabel">User ID:</span>
+                </label>
+                <input type="text" id="addUserId" name="UserId" readonly style="background:#f9fafb;" placeholder="Auto-generated">
+                <small id="idHint" style="color:#6b7280; font-size:0.875rem;">7-digit number (auto-generated)</small>
+            </div>
+
             <div class="form-group">
                 <label for="addName">Name: <span style="color:red;">*</span></label>
                 <input type="text" id="addName" name="Name" required>
@@ -100,14 +118,6 @@
             <div class="form-group">
                 <label for="addPassword">Password: <span style="color:red;">*</span></label>
                 <input type="password" id="addPassword" name="Password" required>
-            </div>
-
-            <div class="form-group">
-                <label for="addRole">Role: <span style="color:red;">*</span></label>
-                <select id="addRole" name="Role" required>
-                    <option value="student">Student</option>
-                    <option value="staff">Staff</option>
-                </select>
             </div>
 
             <div class="modal-actions">
@@ -149,8 +159,8 @@
             <div class="form-group">
                 <label for="editRole">Role: <span style="color:red;">*</span></label>
                 <select id="editRole" name="Role" required>
-                    <option value="student">Student</option>
-                    <option value="staff">Staff</option>
+                    <option value="Student">Student</option>
+                    <option value="Admin">Admin</option>
                 </select>
             </div>
 
@@ -214,7 +224,7 @@
 
         tableBody.innerHTML = users.map(user => {
             const isArchived = user.isArchived;
-            const roleColor = isArchived ? '#fef2f2' : (user.role === 'staff' ? '#dbeafe' : '#d1fae5');
+            const roleColor = isArchived ? '#fef2f2' : (user.role === 'Admin' ? '#dbeafe' : '#d1fae5');
             const rowStyle = isArchived ? 'opacity:0.6; background:#fef2f2;' : '';
             const roleDisplay = isArchived ? 'Archived' : (user.role.charAt(0).toUpperCase() + user.role.slice(1));
 
@@ -326,51 +336,74 @@
 
     // Add User Modal Functions
     function openAddModal() {
-        document.getElementById('addUserForm').reset();
         document.getElementById('addUserModal').style.display = 'block';
+        document.getElementById('addUserForm').reset();
+        toggleIdField(); // Initialize the ID field based on default role
     }
 
     function closeAddModal() {
         document.getElementById('addUserModal').style.display = 'none';
     }
 
-    document.getElementById('addUserForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
+    function toggleIdField() {
+        const roleSelect = document.getElementById('addRole');
+        const idLabel = document.getElementById('idLabel');
+        const idInput = document.getElementById('addUserId');
+        const idHint = document.getElementById('idHint');
+        
+        if (roleSelect.value === 'Admin') {
+            idLabel.textContent = 'Staff ID:';
+            idInput.placeholder = 'Auto-generated (e.g., S3452)';
+            idHint.textContent = 'Format: S + 4 digits (auto-generated)';
+        } else {
+            idLabel.textContent = 'User ID:';
+            idInput.placeholder = 'Auto-generated';
+            idHint.textContent = '7-digit number (auto-generated)';
+        }
+    }
 
-        const submitButton = document.getElementById('addUserButton');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Adding...';
+    document.getElementById('addUserForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
 
         const formData = {
-            Name: document.getElementById('addName').value,
-            Email: document.getElementById('addEmail').value,
-            PhoneNumber: document.getElementById('addPhoneNumber').value,
+            Name: document.getElementById('addName').value.trim(),
+            Email: document.getElementById('addEmail').value.trim(),
+            PhoneNumber: document.getElementById('addPhoneNumber').value.trim(),
             Password: document.getElementById('addPassword').value,
             Role: document.getElementById('addRole').value
         };
 
+        console.log('[v0] Submitting add user form:', formData);
+
         try {
-            const response = await fetch('@Url.Action("AddUser", "UserManagement", new { Area = "Admin" })', {
+            const response = await fetch('/Admin/UserManagement/AddUser', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(formData)
             });
 
             const result = await response.json();
+            console.log('[v0] Add user response:', result);
 
             if (result.success) {
-                alert('User added successfully!');
-                closeAddModal();
-                loadTable(1);
+                alert('User created successfully!');
+                const generatedId = result.user.StaffID || result.user.UserID;
+                document.getElementById('addUserId').value = generatedId;
+                console.log('[v0] Generated ID:', generatedId);
+                
+                // Close modal after a brief delay so user can see the ID
+                setTimeout(() => {
+                    closeAddModal();
+                    loadTable(currentPage);
+                }, 1500);
             } else {
-                alert('Error: ' + (result.error || 'Unknown error'));
+                alert('Error: ' + (result.error || 'Failed to create user'));
             }
         } catch (error) {
-            console.error('Error adding user:', error);
-            alert('Failed to add user. Please try again.');
-        } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Add User';
+            console.error('[v0] Error adding user:', error);
+            alert('Error creating user. Please try again.');
         }
     });
 
@@ -396,7 +429,7 @@
             document.getElementById('editName').value = data.name;
             document.getElementById('editEmail').value = data.email;
             document.getElementById('editPhoneNumber').value = data.phoneNumber;
-            document.getElementById('editRole').value = data.role.toLowerCase();
+            document.getElementById('editRole').value = data.role;
 
             document.getElementById('editUserModal').style.display = 'block';
         } catch (error) {
