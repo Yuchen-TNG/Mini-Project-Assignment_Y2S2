@@ -1,4 +1,4 @@
-﻿@model List<Mini_Project_Assignment_Y2S2.Models.Item>
+﻿@model Mini_Project_Assignment_Y2S2.Models.LocationItemsViewModel
 @{
     ViewData["Title"] = "Home Page";
     string currentCategory = Context.Session.GetString("CurrentCategory") ?? "LOSTITEM";
@@ -19,7 +19,7 @@
         <div class="left-container">
             <div class="filter-container">
                 <h1>Filter</h1>
-                <p>Tips:you may click the orange color to do next action </p>
+                <p>Tips:you may click the white color to do next action </p>
             </div>
             
             <div class="line"></div>
@@ -27,18 +27,15 @@
             <div class="location">
                 <span>Location:  </span>
                 <select class="locationInput" id="location">
-                    <option value=""></option>
-                    @{
-                        var locations = Model
-                        .Where(i => !string.IsNullOrEmpty(i.LocationID))
-                        .Select(i => i.LocationID)
-                        .Distinct()
-                        .ToList() ?? new List<string>();
-                    }
-                    @foreach (var loc in locations)
+                    <option value="" selected disabled hidden>   -- Select Location --</option>
+                    @foreach (var loc in Model.Locations)
                     {
-                        <option value="@loc">@loc</option>
-                    }
+                        <option value="@loc.LocationID">
+                            @loc.LocationName
+                        </option>
+}
+
+
                 </select>
             </div>
 
@@ -52,11 +49,17 @@
             </div>
             <div class="line"></div>
 
+            <div class="left-button">
 
-            <div class="filter-button">
-                <button id="filter">Filter</button>
+                <div class="filter-button">
+                    <button id="filter">Filter</button>
+                </div>
+
+                <div class="reset-button">
+                    <button id="resetFilter">RESET</button>
+                </div>
+
             </div>
-
         </div>
 
 
@@ -84,16 +87,16 @@
 
             <div class="right-container-bottom">
                 <div class="cardparent">
-                   
+                    @await Html.PartialAsync("_ItemCard",(List<ItemCardViewModel>)ViewData["ItemCards"])
                 </div>
 
 
 
             </div>
                 <div class="paging">
-                    <button id="pagingBack">< Back</button>
+                    <button id="pagingBack" class="back">< Back</button>
                     <button id="currentPage" class="pagingNumber">1</button>
-                    <button id="pagingNext">Next ></button>
+                    <button id="pagingNext" class="next">Next ></button>
                 </div>
             
         </div>

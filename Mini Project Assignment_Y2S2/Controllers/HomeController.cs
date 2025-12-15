@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using Google.Api;
 using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Services;
-
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
     public class HomeController : Controller
@@ -17,153 +20,203 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             _firestore = firebaseDB.Firestore;
         }
 
+        private Item MapToItem(DocumentSnapshot doc)
+        {
+            return new Item
+            {
+                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
+                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
+                Idescription = doc.ContainsField("Description")
+                                ? doc.GetValue<string>("Description")
+                                : doc.ContainsField("Idescription")
+                                    ? doc.GetValue<string>("Idescription")
+                                    : null,
+                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
+            };
+        }
+
+
+        private Location MapToLocation(DocumentSnapshot doc)
+        {
+            return new Location
+            {
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationName = doc.ContainsField("LocationName") ? doc.GetValue<string>("LocationName") : null,
+                Items = new List<Item>() // 这里先空着，后续可以填充对应的 Items
+            };
+        }
+
+        public IActionResult totalItem()
+        {
+            var item = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
+            var totalCount=item.Count();
+            return Ok(new
+            {
+                totalCount = totalCount,
+            });
+        }
+
         public async Task<IActionResult> Index()
         {
-            HttpContext.Session.SetString("CurrentCategory", "LOSTITEM");
-            CollectionReference collection = _firestore.Collection("Items");
-            QuerySnapshot snapshot = await collection.GetSnapshotAsync();
+            var snapshot = await _firestore.Collection("Items")
+                                           .WhereEqualTo("Category", "LOSTITEM")
+                                           .GetSnapshotAsync();
 
-            var items = snapshot.Documents.Select(doc => new Item
-            {
-                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
-                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
-            }).ToList();
+            var items = snapshot.Documents
+                                .Select(MapToItem)
+                                .ToList();
 
+            HttpContext.Session.Remove("PageItems");
+            HttpContext.Session.Remove("Location");
+            HttpContext.Session.Remove("Page");
+            HttpContext.Session.SetObject("FilteredItems", items);
+            
 
-            var dates = items.Where(i => i.Date != DateTime.MinValue).Select(i => i.Date).ToList();
+            return RedirectToAction("UpdateCard");
+        }
+
+        public async Task<IActionResult> UpdateCard()
+        {
+        var itemsFromSession =HttpContext.Session.GetObject<List<Item>>("PageItems")?? HttpContext.Session.GetObject<List<Item>>("FilteredItems");
+
+            var data = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
+            // ===== 日期逻辑（原样保留）=====
+            var dates = data
+                .Where(i => i.Date != DateTime.MinValue)
+                .Select(i => i.Date)
+                .ToList();
+
             DateTime minDate = dates.Any() ? dates.Min() : DateTime.Today;
             DateTime maxDate = dates.Any() ? dates.Max() : DateTime.Today;
+
             ViewData["MinDate"] = minDate.ToString("yyyy-MM-dd");
             ViewData["MaxDate"] = maxDate.ToString("yyyy-MM-dd");
 
-            return View(items);
-        }
+            // ===== 读取 Location =====
+            var snapshot2 = await _firestore.Collection("Location").GetSnapshotAsync();
+            var locations = snapshot2.Documents.Select(MapToLocation).ToList();
 
-        public async Task<IActionResult> IndexBack(string category)
-        {
+            HttpContext.Session.SetObject("Location", locations);
 
-            CollectionReference collection = _firestore.Collection("Items");
-            Query query = collection.WhereEqualTo("Category", category);
-            QuerySnapshot snapshot = await query.GetSnapshotAsync();
-
-            var items = snapshot.Documents.Select(doc => new Item
+            // ===== ⭐ 关键：手动 Join Item + Location =====
+            var itemCards = itemsFromSession.Select(item =>
             {
-                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
-                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
+                var loc = (locations ?? new List<Location>()).FirstOrDefault(l => l.LocationID == item.LocationID);
+
+                return new ItemCardViewModel
+                {
+                    ItemID = item.ItemID,
+                    IType = item.IType,
+                    Date = item.Date,
+                    Images = item.Images,
+                    LocationName = loc?.LocationName ?? "Unknown"
+                };
             }).ToList();
 
-            var dates = items.Where(i => i.Date != DateTime.MinValue).Select(i => i.Date).ToList();
-            DateTime minDate = dates.Any() ? dates.Min() : DateTime.Today;
-            DateTime maxDate = dates.Any() ? dates.Max() : DateTime.Today;
-            ViewData["MinDate"] = minDate.ToString("yyyy-MM-dd");
-            ViewData["MaxDate"] = maxDate.ToString("yyyy-MM-dd");
-            return View("Index", items);
-        }
-
-        public async Task<IActionResult> updateCard(string category)
-        {
-            HttpContext.Session.SetString("CurrentCategory", category);
-
-            CollectionReference collection = _firestore.Collection("Items");
-            Query query = collection.WhereEqualTo("Category", category);
-            QuerySnapshot snapshot = await query.GetSnapshotAsync();
-
-            var items = snapshot.Documents.Select(doc => new Item
+            // ===== 返回给 Index 的 ViewModel =====
+            var vm = new LocationItemsViewModel
             {
-                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
-                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
+                Locations = locations,
+                Items = itemsFromSession   // 其他地方还可能用
+            };
+
+            // ⭐ 把 itemCards 另外丢进 ViewData / Session / 新字段
+            ViewData["ItemCards"] = itemCards;
+
+            return View("Index", vm);
+        }
+        public IActionResult UpdatePartialCard()
+        {
+            var items = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
+            var locations = HttpContext.Session.GetObject<List<Location>>("Location");
+
+            var itemCards = items.Select(item =>
+            {
+                var loc = (locations ?? new List<Location>()).FirstOrDefault(l => l.LocationID == item.LocationID);
+                return new ItemCardViewModel
+                {
+                    ItemID = item.ItemID,
+                    IType = item.IType,
+                    Date = item.Date,
+                    Images = item.Images,
+                    LocationName = loc?.LocationName ?? "Unknown"
+                };
             }).ToList();
 
-            return PartialView("_ItemCard", items);
+            return PartialView("_ItemCard", itemCards);
         }
 
         public async Task<IActionResult> filter(string category, string? startDate, string? endDate,string? locationID)
         {
             CollectionReference collection = _firestore.Collection("Items");
-            Query query = collection.WhereEqualTo("Category", category);
+            Google.Cloud.Firestore.Query query = collection.WhereEqualTo("Category", category);
 
-            if (startDate != null && DateTime.TryParse(startDate, out var start))
+            if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out var start)&&startDate != "null")
                 query = query.WhereGreaterThan("Date", start.ToUniversalTime());
 
-            if (endDate != null && DateTime.TryParse(endDate, out var end))
+            if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out var end) &&endDate != "null")
                 query = query.WhereLessThanOrEqualTo("Date", end.Date.AddDays(1).ToUniversalTime());
 
-            if (locationID != null)
+            if (!string.IsNullOrEmpty(locationID)&& locationID!="null")
                 query = query.WhereEqualTo("LocationID", locationID);
 
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
-            var items = snapshot.Documents.Select(doc => new Item
-            {
-                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
-                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
-            }).ToList();
+            var items = snapshot.Documents.Select(MapToItem).ToList();
 
-            return PartialView("_ItemCard", items);
+            HttpContext.Session.SetObject("FilteredItems", items);
+
+            return RedirectToAction("IndexPaging",1);
         }
 
-        public async Task<IActionResult> IndexPaging(int size,int page)
+        public IActionResult IndexPaging(int page, int? size)
         {
-            var skip = (page -1) *size;
-            CollectionReference collection = _firestore.Collection("Items");
-            QuerySnapshot snapshots = await collection.GetSnapshotAsync();
-
-            var items =snapshots.Documents.Select(doc=>new Item
+            var finalsize = 0;
+            if (size != null)
             {
-                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
-                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
-            }).ToList();
+                HttpContext.Session.SetObject("sizee", size);
+                finalsize = HttpContext.Session.GetObject<int>("sizee");
+            }
+            else
+            {
+                finalsize = HttpContext.Session.GetObject<int>("sizee");
+            }
+            var items = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
+            var locations = HttpContext.Session.GetObject<List<Location>>("Location");
 
-            var pageItems = items.Skip(skip).Take(size).ToList();
-            return PartialView("_ItemCard", pageItems);
+            var skip = (page - 1) * finalsize;
+            HttpContext.Session.SetObject("Page", page);
+
+            var itemCards = items
+                .Skip(skip)
+                .Take(finalsize)
+                .Select(item =>
+                {
+                    var loc = (locations ?? new List<Location>()).FirstOrDefault(l => l.LocationID == item.LocationID);
+                    return new ItemCardViewModel
+                    {
+                        ItemID = item.ItemID,
+                        IType = item.IType,
+                        Date = item.Date,
+                        Images = item.Images,
+                        LocationName = loc?.LocationName ?? "Unknown"
+                    };
+                }).ToList();
+            
+            return PartialView("_ItemCard", itemCards);
         }
+
+
         public async Task<IActionResult> CardDetails(int itemId)
         {
 
-            string userId = HttpContext.Session.GetString("UserId");
-            if (userId == null)
-            {
-               TempData["Error"] = "You haven't sign in yet";
-                return RedirectToAction("Index");
-            }
             User user = null;
             var collectionUser = _firestore.Collection("Users");
-            Query queryUser = collectionUser.WhereEqualTo("UserID", "8840882");
+            Google.Cloud.Firestore.Query queryUser = collectionUser.WhereEqualTo("UserID", "8840882");
             QuerySnapshot snapshotsUser = await queryUser.GetSnapshotAsync();
 
             if (snapshotsUser.Documents == null)
@@ -182,31 +235,25 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             };
 
             var collection = _firestore.Collection("Items");
-            Query query = collection.WhereEqualTo("ItemID", itemId);
+            Google.Cloud.Firestore.Query query = collection.WhereEqualTo("ItemID", itemId);
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
             if (snapshot.Documents.Count == 0)
                 return NotFound();
 
-            var doc = snapshot.Documents[0];
+            var item = MapToItem(snapshot.Documents[0]);
 
-            var item = new Item
-            {
-                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
-                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null
-            };
+            var locationCollection = _firestore.Collection("Location");
+            Google.Cloud.Firestore.Query locationQuery = locationCollection.WhereEqualTo("LocationID", item.LocationID);
+            QuerySnapshot locationSnapshot = await locationQuery.GetSnapshotAsync();
+
+            var location = MapToLocation(locationSnapshot.Documents[0]);
 
             var viewModel = new CardDetailsViewModel
             {
                 Item = item,
-                User = user
+                User = user,
+                Location=location
             };
             return View(viewModel);
         }

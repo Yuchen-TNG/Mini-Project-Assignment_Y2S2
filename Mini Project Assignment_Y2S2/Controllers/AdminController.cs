@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Mvc;
+using Mini_Project_Assignment_Y2S2.Models;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,8 +19,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 {
     public class AdminController : Controller
     {
-        // PROJECT ID  (Found in Firebase Project Settings)
-        private string projectId = "miniproject-d280e";
+        private readonly string projectId = "miniproject-d280e";
+        private readonly FirestoreDb firestoreDb;
 
         private FirestoreDb firestoreDb;
 
@@ -32,11 +36,26 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             firestoreDb = FirestoreDb.Create(projectId);
         }
 
-        [HttpGet]
-        public IActionResult Login()
+        // Safe mapping for Firestore Item document
+        private Item MapToItem(DocumentSnapshot doc)
         {
-            return View("Login/Login");
+            return new Item
+            {
+                ItemID = doc.ContainsField("ItemID") ? Convert.ToInt32(doc.GetValue<object>("ItemID")) : 0,
+                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
+                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") : null,
+                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>()
+            };
         }
+
+        #region Login & Password
+
+        [HttpGet]
+        public IActionResult Login() => View("~/Views/Admin/Login/Login.cshtml");
 
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
@@ -57,10 +76,11 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
             if (snapshot.Count == 0)
-            {
+                {
                 ViewBag.Error = error;
                 return View("Login/Login");
-            }
+                    }
+                }
 
             var user = snapshot.Documents[0].ConvertTo<User>();
 
@@ -97,7 +117,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             {
                 ViewBag.Error = "Email is required";
                 return View("Login/ForgotPassword");
-            }
+                }
 
             // 🔍 Find admin in Users table
             Query query = firestoreDb.Collection("Users")
@@ -108,10 +128,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
             if (snapshot.Count == 0)
-            {
+                {
                 ViewBag.Error = "Admin email not found";
                 return View("Login/ForgotPassword");
-            }
+                }
 
             // ✅ Generate OTP
             string otp = new Random().Next(100000, 999999).ToString();
@@ -128,23 +148,23 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             mail.Body = $"Your OTP is: {otp}";
 
             SmtpClient smtp = new SmtpClient("smtp.gmail.com")
-            {
+                {
                 Port = 587,
-                EnableSsl = true,
+                    EnableSsl = true,
                 Credentials = new NetworkCredential(
                     "example.notification123@gmail.com",
                     "rwbjrhmkrorbbrpe"
                 )
-            };
+                };
 
-            await smtp.SendMailAsync(mail);
+                await smtp.SendMailAsync(mail);
 
             return RedirectToAction("ConfirmOtp");
-        }
+            }
 
         [HttpGet]
         public IActionResult ConfirmOtp()
-        {
+            {
             return View("Login/ConfirmOtp");
         }
 
@@ -174,7 +194,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             string email = HttpContext.Session.GetString("AdminResetEmail");
 
             if (string.IsNullOrEmpty(email))
-            {
+        {
                 return RedirectToAction("ForgotPassword");
             }
 
@@ -239,14 +259,14 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             {
                 ViewBag.Error = "User not found";
                 return View("Login/ResetPassword", model);
-            }
+        }
 
             var docRef = snapshot.Documents[0].Reference;
             var user = snapshot.Documents[0].ConvertTo<User>();
 
             // ❌ Prevent resetting to current password
             if (PasswordHelper.VerifyPassword(user.PasswordHash, model.NewPassword?.Trim()))
-            {
+        {
                 ModelState.AddModelError("NewPassword", "New password cannot be the same as the current password");
                 return View("Login/ResetPassword", model);
             }

@@ -4,8 +4,24 @@ namespace Mini_Project_Assignment_Y2S2.Models
 {
     public class CardDetailsViewModel
     {
-        public Item Item { get; set; }   // Firestore 里的物品信息
-        public User User { get; set; }   // 当前登录用户信息
+        public Item? Item { get; set; }   // Firestore 里的物品信息
+        public User? User { get; set; }   // 当前登录用户信息
+        public Location? Location { get; set; }
+    }
+
+    public class LocationItemsViewModel
+    {
+        public List<Location>? Locations { get; set; }      // 所有 Location
+        public List<Item>? Items { get; set; }     // 经过过滤的 Item
+    }
+
+    public class ItemCardViewModel
+    {
+        public int ItemID { get; set; }
+        public string? IType { get; set; }
+        public DateTime Date { get; set; }
+        public List<string>? Images { get; set; }
+        public string? LocationName { get; set; }
     }
 
     public class RegisterViewModel

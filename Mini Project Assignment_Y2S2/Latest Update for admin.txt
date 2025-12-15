@@ -1,0 +1,73 @@
+Latest Update
+15 DEC 2025
+02:45am
+
+---MINI PROJECT---
+W6 thrusday present mini project
+W7 monday submit asg
+
+-get ready for test plan (REPORT)
+
+
+always go for clean solution and rebuild solution when the application fails to run
+
+*** not all redirect fix, some got problem
+1.admin
+
+a. Login (Xinyee & RueyEn) - done
+able to login as admin
+-redirect link needed to fix
+-now only accessible via manual type in url
+eg. https://localhost:7007/admin/Login
+using email and hardcoded password to login (can get from firebase - Admins)
+admin account profile not clickable, not viewable
+
+
+b. dashboard (Xinyee & RueyEn) - done
+-display the dashboard for admin
+-display fake data(only number) on the section itself
+https://localhost:7007/Admin/Dashboard
+
+c. user management (Xinyee) - done
+able to display user list, can filter by selecting the role (all/admin/student)
+archive/deactive(block) user -able function, cannot be drawback
+--pop-out panel for edit(update) user, deactive, and create user --
+权限需要再改
+
+
+d. item management (RueyEn) - done
+-lost item display successful
+-found item display successful
+-no action for item management
+-file need to be outside, since RueyEn set the redirect path without the folder
+-will change it later 
+-ItemManagement folder is now empty, 先不删，可能后面要改
+-changed redirect path in admin controller, testing whether will it show the page
+https://localhost:7007/Admin/LostItem
+
+
+e. post management (Xinyee) - Not yet 
+should be able to
+1. retrieve post from user posting
+2. verify post (given option: approved, rejected)
+
+
+f. history (RueyEn) - Not yet 
+able to view history of item
+
+
+--- ADDITIONAL ---
+css,js haven't completely separate
+--AJAX--
+some still working on it
+searching
+paging
+filtering
+
+
+added one field IsArchived bool to user (for user management purpose)
+created a Shared layout only for admin
+
+
+
+
