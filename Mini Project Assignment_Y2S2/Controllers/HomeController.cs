@@ -64,15 +64,16 @@
 
             public async Task<IActionResult> Index()
             {
-                var snapshot = await _firestore.Collection("Items")
-                                               .WhereEqualTo("Category", "LOSTITEM")
-                                               .GetSnapshotAsync();
+            var snapshot = await _firestore.Collection("Items")
+                                           .WhereEqualTo("Category", "LOSTITEM")
+                                           .OrderByDescending("Date") // 在GetSnapshotAsync之前调用
+                                           .GetSnapshotAsync();
 
-                var items = snapshot.Documents
-                                    .Select(MapToItem)
-                                    .ToList();
+            var items = snapshot.Documents
+                                .Select(MapToItem)
+                                .ToList();
 
-                HttpContext.Session.Remove("PageItems");
+            HttpContext.Session.Remove("PageItems");
                 HttpContext.Session.Remove("Location");
                 HttpContext.Session.Remove("Page");
                 HttpContext.Session.SetObject("FilteredItems", items);
