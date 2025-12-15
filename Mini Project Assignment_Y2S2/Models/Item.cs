@@ -34,5 +34,7 @@ namespace Mini_Project_Assignment_Y2S2.Models
 
         [NotMapped]
         public List<IFormFile>? ImageFiles { get; set; }
+
+        public string? UserID { get; set; }
     }
 }
