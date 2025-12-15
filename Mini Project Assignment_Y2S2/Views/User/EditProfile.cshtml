@@ -1,7 +1,7 @@
-﻿@model Mini_Project_Assignment_Y2S2.Models.User
+﻿@model Mini_Project_Assignment_Y2S2.Models.EditProfileViewModel
 
 @{
-    ViewData["Title"] = "Edit Profile";
+	ViewBag.Title = "Edit Profile";
 }
 <link rel="stylesheet" href="~/css/user.css" asp-append-version="true" />
 
@@ -12,10 +12,10 @@
         <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
 
             <div class="profile-pic-container">
-                @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                <input value=@Model.ProfileImageUrl asp-for="ProfileImageUrl" hidden>
+                @if (Model?.ProfileImageUrl != null && !string.IsNullOrEmpty(Model.ProfileImageUrl))
                 {
-                    <img id="profilePreview" src="@Model.ProfileImageUrl" alt="Profile" class="profile-pic" />
-
+                    <img "id="profilePreview" src="@Model.ProfileImageUrl" alt="Profile" class="profile-pic" />
                 }
                 else
                 {
@@ -27,14 +27,23 @@
                 <input type="file" name="ProfileImage" accept="image/*" id="profileInput" hidden />
             </div>
 
-            <label>Name</label>
-            <input type="text" asp-for="Name" required />
+            <div class="form-group">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
 
-            <label>Email</label>
-            <input type="email" asp-for="Email" required />
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
 
-            <label>Phone Number</label>
-            <input type="text" asp-for="PhoneNumber" required />
+            <div class="form-group">
+                <label asp-for="PhoneNumber"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
 
             <button type="button" onclick="location.href='@Url.Action("MyAccount")'" class="btn-cancel">Cancel</button>
             <button type="submit" class="btn-change">Save Changes</button>
@@ -42,6 +51,10 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
 
 <style>
     .profile-pic-container {

@@ -54,4 +54,18 @@ namespace Mini_Project_Assignment_Y2S2.Models
         [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; }
     }
+
+    public class EditProfileViewModel
+    {
+        [RegularExpression(@"^[A-Za-z\s\.\-_]+$", ErrorMessage = "Username can contain letters, spaces, and symbols .-_ only")]
+        public string? Name { get; set; }
+
+        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        public string? Email { get; set; }
+
+        [RegularExpression(@"^\d{1,10}$", ErrorMessage = "Phone number must be numeric and max 10 digits")]
+        public string? PhoneNumber { get; set; }
+
+        public string? ProfileImageUrl { get; set; }
+    }
 }

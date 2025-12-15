@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Net.Mail;
+using System.Threading.Tasks;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
 using Mini_Project_Assignment_Y2S2.Models;
@@ -76,9 +78,18 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return View(model); // Return view with validation errors
             }
 
+            Query emailQuery = _firestore.Collection("Users")
+                                 .WhereEqualTo("Email", model.Email)
+                                 .Limit(1);
+            QuerySnapshot emailSnapshot = await emailQuery.GetSnapshotAsync();
+            if (emailSnapshot.Count > 0)
+            {
+                ModelState.AddModelError("Email", "This email is already registered.");
+                return View(model);
+            }
+
             string userId = GenerateUserId();
             string passwordHash = PasswordHelper.HashPassword(model.Password);
-
 
             // Create a new user object
             var user = new Dictionary<string, object>
@@ -95,15 +106,43 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             CollectionReference usersRef = _firestore.Collection("Users");
             await usersRef.Document(userId).SetAsync(user);
 
-            TempData["RegisterSuccess"] = "You have successfully registered! We have sent your student ID via Email.";
+            // ----------------------------
+            // Send UserID to student's email
+            // ----------------------------
+            try
+            {
+                MailMessage mail = new MailMessage();
+                mail.From = new MailAddress("example.notification123@gmail.com", "Your School Name");
+                mail.To.Add(model.Email);
+                mail.Subject = "Your Student ID";
+                mail.Body = $"Hello {model.Name},\n\nYour student ID is: {userId}\nUse this ID to login to your account.";
 
+                SmtpClient smtp = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    EnableSsl = true,
+                    Credentials = new NetworkCredential(
+                        "example.notification123@gmail.com",
+                        "rwbjrhmkrorbbrpe" // Must be Gmail App Password, not normal password
+                    )
+                };
+
+                await smtp.SendMailAsync(mail);
+            }
+            catch (Exception ex)
+            {
+                TempData["EmailError"] = $"Failed to send email: {ex.Message}";
+            }
+
+            TempData["RegisterSuccess"] = "You have successfully registered! Your student ID has been sent to your email.";
 
             return RedirectToAction("Login");
-        }
+            }
 
-        // Helper method to generate 7-digit numeric string
-        private string GenerateUserId()
-        {
+
+            // Helper method to generate 7-digit numeric string
+            private string GenerateUserId()
+            {
             Random rnd = new Random();
             int number = rnd.Next(1000000, 10000000); // generates 7-digit number
             return number.ToString();
@@ -125,26 +164,44 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return View();
             }
 
-            // Query Firestore for matching email
+            // Find student by email
             Query query = _firestore.Collection("Users")
-                                    .WhereEqualTo("Email", email)
-                                    .Limit(1);
+                                     .WhereEqualTo("Email", email)
+                                     .WhereEqualTo("Role", "Student")
+                                     .Limit(1);
 
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
-
             if (snapshot.Count == 0)
             {
-                // Email not found
                 ModelState.AddModelError("Email", "Email not found");
                 return View();
             }
 
-            // Email exists → store email temporarily
-            TempData["ResetEmail"] = email;
+            // Generate OTP
+            string otp = new Random().Next(100000, 999999).ToString();
+
+            // Store in session
+            HttpContext.Session.SetString("ResetEmail", email);
+            HttpContext.Session.SetString("ResetOtp", otp);
+
+            // Send OTP via email
+            MailMessage mail = new MailMessage();
+            mail.From = new MailAddress("example.notification123@gmail.com");
+            mail.To.Add(email);
+            mail.Subject = "Student Password Reset OTP";
+            mail.Body = $"Your OTP is: {otp}";
+
+            SmtpClient smtp = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                EnableSsl = true,
+                Credentials = new NetworkCredential("example.notification123@gmail.com", "rwbjrhmkrorbbrpe")
+            };
+
+            await smtp.SendMailAsync(mail);
 
             return RedirectToAction("ConfirmOtp");
         }
-
 
 
         // ============================
@@ -159,9 +216,72 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [HttpPost]
         public IActionResult ConfirmOtp(string otp)
         {
-            // After OTP submit → go to change password page
+            string storedOtp = HttpContext.Session.GetString("ResetOtp");
+
+            if (string.IsNullOrEmpty(storedOtp))
+            {
+                ViewBag.Error = "OTP expired. Please request again.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            if (otp != storedOtp)
+            {
+                ViewBag.Error = "Invalid OTP";
+                return View();
+            }
+
+            // ✅ OTP correct → go to reset password
             return RedirectToAction("ChangePassword");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ResendOtp()
+        {
+            // Get student email from session
+            string email = HttpContext.Session.GetString("ResetEmail");
+
+            if (string.IsNullOrEmpty(email))
+            {
+                // If no email stored, redirect to forgot password
+                return RedirectToAction("ForgotPassword");
+            }
+
+            // 🔄 Generate new OTP
+            string newOtp = new Random().Next(100000, 999999).ToString();
+
+            // ✅ Update OTP in session
+            HttpContext.Session.SetString("ResetOtp", newOtp);
+
+            // 📧 Send OTP email
+            MailMessage mail = new MailMessage();
+            mail.From = new MailAddress("example.notification123@gmail.com");
+            mail.To.Add(email);
+            mail.Subject = "Student Password Reset OTP (Resent)";
+            mail.Body = $"Your new OTP is: {newOtp}";
+
+            SmtpClient smtp = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                EnableSsl = true,
+                Credentials = new NetworkCredential(
+                    "example.notification123@gmail.com",
+                    "your-app-password" // Use app password or real credentials
+                )
+            };
+
+            try
+            {
+                await smtp.SendMailAsync(mail);
+                ViewBag.Success = "A new OTP has been sent to your email.";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Failed to send OTP: " + ex.Message;
+            }
+
+            return View("ConfirmOtp");
+        }
+
 
         // ============================
         // CHANGE PASSWORD
@@ -173,16 +293,53 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public IActionResult ChangePassword(ChangePasswordViewModel model)
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // After changing password → return to login
+            string email = HttpContext.Session.GetString("ResetEmail");
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            // Find student
+            Query query = _firestore.Collection("Users")
+                                     .WhereEqualTo("Email", email)
+                                     .WhereEqualTo("Role", "Student")
+                                     .Limit(1);
+
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+            if (snapshot.Count == 0)
+            {
+                ViewBag.Error = "User not found";
+                return View(model);
+            }
+
+            var docRef = snapshot.Documents[0].Reference;
+            var user = snapshot.Documents[0].ConvertTo<User>();
+
+            // ❌ Check if new password is the same as old
+            if (PasswordHelper.VerifyPassword(user.PasswordHash, model.NewPassword))
+            {
+                ModelState.AddModelError("NewPassword", "New password cannot be the same as your current password.");
+                return View(model);
+            }
+
+            string hashedPassword = PasswordHelper.HashPassword(model.NewPassword);
+            await docRef.UpdateAsync("PasswordHash", hashedPassword);
+
+            // Clear session
+            HttpContext.Session.Remove("ResetEmail");
+            HttpContext.Session.Remove("ResetOtp");
+
+            TempData["Success"] = "Password reset successfully. Please login.";
             return RedirectToAction("Login");
         }
+
 
         // ============================
         // LOGOUT
@@ -250,6 +407,13 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return View(model);
             }
 
+            if (PasswordHelper.VerifyPassword(user.PasswordHash, model.NewPassword))
+            {
+                ModelState.AddModelError("NewPassword", "New password cannot be the same as the current password");
+                return View(model);
+            }
+
+
             string newHash = PasswordHelper.HashPassword(model.NewPassword);
             await docRef.UpdateAsync("PasswordHash", newHash);
 
@@ -270,37 +434,48 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var snapshot = await docRef.GetSnapshotAsync();
 
             if (!snapshot.Exists)
-            {
                 return RedirectToAction("Login");
-            }
 
             var data = snapshot.ToDictionary();
 
-            var user = new User
+            var model = new EditProfileViewModel
             {
-                UserID = snapshot.Id,
                 Name = data["Name"].ToString(),
                 Email = data["Email"].ToString(),
                 PhoneNumber = data["PhoneNumber"].ToString(),
                 ProfileImageUrl = data.ContainsKey("ProfileImageUrl") ? data["ProfileImageUrl"].ToString() : null
-
             };
 
-            return View(user);
+            return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditProfile(User model, IFormFile? ProfileImage)
+        public async Task<IActionResult> EditProfile(EditProfileViewModel model, IFormFile? ProfileImage)
         {
+
+
             string userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
-            {
                 return RedirectToAction("Login");
-            }
-
             var docRef = _firestore.Collection("Users").Document(userId);
 
-            string imageUrl = null;
+
+            // Check if email is already used by another user
+            Query emailQuery = _firestore.Collection("Users")
+                                          .WhereEqualTo("Email", model.Email)
+                                          .WhereNotEqualTo("UserID", userId)
+                                          .Limit(1);
+
+            var emailSnap = await emailQuery.GetSnapshotAsync();
+            if (emailSnap.Count > 0)
+            {
+                ModelState.AddModelError("Email", "This email is already used by another account.");
+                return View(model);
+            }
+
+
+
+            string imageUrl = model.ProfileImageUrl; // keep current image URL in case of validation errors
 
             // Handle profile image upload
             if (ProfileImage != null && ProfileImage.Length > 0)
@@ -319,15 +494,18 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 await docRef.UpdateAsync("ProfileImageUrl", imageUrl);
             }
 
-            // Update other fields
-            await docRef.UpdateAsync(new Dictionary<string, object>
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var updateData = new Dictionary<string, object>
     {
         { "Name", model.Name },
         { "Email", model.Email },
         { "PhoneNumber", model.PhoneNumber }
+    };
+            await docRef.UpdateAsync(updateData);
 
-    });
-
+            TempData["Success"] = "Profile updated successfully!";
             return RedirectToAction("MyAccount");
         }
 

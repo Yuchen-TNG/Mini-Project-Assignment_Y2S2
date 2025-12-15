@@ -1,0 +1,63 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="~/css/admin.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <h1>Lost And Found</h1>
+    </div>
+
+    <!-- Main Container -->
+    <div class="login-container">
+
+        <!-- Role Selection Buttons -->
+        <div class="role-selection">
+            <a href="/User/Login" class="user-login">
+                <i class="fas fa-user-graduate"></i> Student Login
+            </a>
+            <a href="/Admin/Login" class="admin-login">
+                <i class="fas fa-user-tie"></i> Staff Login
+            </a>
+        </div>
+
+        <!-- Admin Login Title -->
+        <h2 class="login-title">Admin Log in</h2>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i> @ViewBag.Error
+            </div>
+        }
+
+        <!-- Login Form -->
+        <form asp-action="Login" method="post" class="login-form">
+
+            <div class="input-group">
+                <label>Email</label>
+                <input type="text" name="Email" required placeholder="Enter your email">
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="Password" required placeholder="">
+            </div>
+
+            <a href="/Admin/ForgotPassword" class="forgot-password">Forgot Password?</a>
+
+            <button type="submit" class="login-button">Login</button>
+        </form>
+    </div>
+
+</body>
+</html>

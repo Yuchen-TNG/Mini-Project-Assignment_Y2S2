@@ -18,10 +18,9 @@
 
             <button type="submit" class="btn-login">Verify OTP</button>
 
-            <div class="register-text">
-                Didn’t receive the code?
-                <a href="/User/ForgotPassword">Resend OTP</a>
-            </div>
+            <form method="post" asp-action="ResendOtp" class="register-text">
+                <button type="submit" class="btn-link">Resend OTP</button>
+            </form>
         </form>
     </div>
 </div>

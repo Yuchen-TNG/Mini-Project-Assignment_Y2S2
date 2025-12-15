@@ -1,0 +1,50 @@
+﻿@{
+    ViewData["Title"] = "Confirm OTP";
+    Layout = null;
+}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
+
+        <h4 class="text-center mb-4">Confirm OTP</h4>
+
+        <!-- OTP Verification Form -->
+        <form asp-action="ConfirmOtp" method="post">
+            <div class="form-group mb-3">
+                <label for="otp">Enter OTP</label>
+                <input type="text"
+                       name="otp"
+                       id="otp"
+                       class="form-control"
+                       placeholder="6-digit OTP"
+                       required />
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="text-danger mb-3">
+                    @ViewBag.Error
+                </div>
+            }
+
+            @if (ViewBag.Success != null)
+            {
+                <div class="text-success mb-3">
+                    @ViewBag.Success
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary w-100">
+                Verify OTP
+            </button>
+        </form>
+
+        <!-- Resend OTP Form -->
+        <form asp-action="ResendOtp" method="post" class="text-center mt-3">
+            <button type="submit" class="btn btn-link text-decoration-none">
+                Resend OTP
+            </button>
+        </form>
+
+    </div>
+</div>

@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LostAndFoundAdmin</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons + Font -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar-link {
+            transition: background 0.25s, padding-left 0.2s;
+        }
+
+            .sidebar-link:hover {
+                background: #f7f7f7;
+                padding-left: 1.8rem;
+            }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex h-screen flex-col">
+        <!-- TOP NAVBAR -->
+        <header class="h-16 border-b flex items-center justify-between px-6 bg-white shadow-sm z-20">
+            <div class="text-2xl font-extrabold uppercase tracking-wider text-indigo-600">
+                LOST & FOUND ADMIN
+            </div>
+
+            <div class="flex items-center gap-6">
+                <form asp-action="Search" asp-controller="Home" method="get" class="relative">
+                    <input type="text" name="q" placeholder="Search"
+                           class="border rounded-full px-4 py-2 text-sm focus:outline-none w-64 shadow-sm" />
+                    <i class="fas fa-search absolute right-4 top-3 text-gray-400 text-xs"></i>
+                </form>
+
+                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 shadow-sm">
+                    <i class="far fa-user"></i>
+                </div>
+
+                <a asp-controller="Admin" asp-action="Login">
+                    <i class="fas fa-sign-out-alt text-xl text-gray-700 hover:text-red-500 transition"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- SIDEBAR -->
+            <aside class="w-64 border-r bg-white flex flex-col shadow-md">
+                <div class="p-5 border-b flex items-center justify-between font-bold text-sm tracking-wide bg-gray-50">
+                    <div class="flex items-center gap-2 text-indigo-600">
+                        <span>ADMIN MENU</span>
+                        <i class="far fa-user-circle"></i>
+                    </div>
+                </div>
+
+                <nav class="flex-1 overflow-y-auto">
+                    <a asp-controller="Home" asp-action="Index"
+                       class="sidebar-link block px-6 py-4 border-b @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                        <i class="fas fa-chart-line mr-2"></i> Dashboard
+                    </a>
+
+                    <a asp-controller="UserManagement" asp-action="Index"
+                       class="sidebar-link block px-6 py-4 border-b @(ViewContext.RouteData.Values["Controller"]?.ToString() == "User" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                        <i class="fas fa-users mr-2"></i> User Management
+                    </a>
+
+                    <!-- ITEM DROPDOWN -->
+                    <div class="border-b">
+                        <div onclick="this.nextElementSibling.classList.toggle('hidden')"
+                             class="px-6 py-4 hover:bg-gray-50 cursor-pointer flex justify-between items-center">
+                            <span class="flex items-center gap-2">
+                                <i class="fas fa-box-open"></i> Item Management
+                            </span>
+                            <i class="fas fa-caret-down text-xs"></i>
+                        </div>
+
+                        <div class="hidden bg-gray-50 text-sm">
+                            <a asp-controller="Item" asp-action="Lost" class="sidebar-link block pl-10 pr-6 py-3 border-t">
+                                Lost Items
+                            </a>
+                            <a asp-controller="Item" asp-action="Found" class="sidebar-link block pl-10 pr-6 py-3 border-t">
+                                Found Items
+                            </a>
+                        </div>
+                    </div>
+
+                    <a asp-controller="Post" asp-action="Index"
+                       class="sidebar-link block px-6 py-4 border-b">
+                        <i class="fas fa-edit mr-2"></i> Post Management
+                    </a>
+
+                    <a asp-controller="History" asp-action="Index"
+                       class="sidebar-link block px-6 py-4 border-b">
+                        <i class="fas fa-history mr-2"></i> History (Item)
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main class="flex-1 bg-gray-50 p-8 overflow-y-auto">
+                <div class="bg-white shadow-md rounded-xl p-6">
+                    @RenderBody()
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
