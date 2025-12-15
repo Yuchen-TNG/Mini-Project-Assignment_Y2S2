@@ -1,0 +1,51 @@
+﻿@{
+    ViewData["Title"] = "History";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@model List<Item>
+
+<h2 class="text-2xl font-bold mb-4">Admin Item Management</h2>
+
+<table class="table-auto w-full border">
+    <thead>
+        <tr class="bg-gray-200">
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Action</th>
+            <th>History</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr class="border">
+                <td>@item.ItemID</td>
+                <td>@item.IName</td>
+                <td>@item.Status</td>
+                <td>@item.Date.ToShortDateString()</td>
+
+                <td>
+                    @if (item.Status != "EXPIRED")
+                    {
+                        <form asp-action="ChangeStatus" method="post">
+                            <input type="hidden" name="itemId" value="@item.ItemID" />
+                            <select name="newStatus">
+                                <option value="ACTIVE">ACTIVE</option>
+                                <option value="CLAIMED">CLAIMED</option>
+                                <option value="EXPIRED">EXPIRED</option>
+                            </select>
+                            <button class="bg-blue-500 text-white px-2">Update</button>
+                        </form>
+                    }
+                </td>
+
+                <td>
+                    <a asp-action="ViewHistory" asp-route-itemId="@item.ItemID"
+                       class="text-blue-600 underline">View</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

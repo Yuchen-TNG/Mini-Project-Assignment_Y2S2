@@ -292,6 +292,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View("~/Views/Admin/UserManagement/Index.cshtml");
         }
 
+        #endregion
+
+        #region Lost & Found Item Management
         public async Task<IActionResult> LostItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 9)
         {
             var query = firestoreDb.Collection("Items").WhereEqualTo("Category", "LOSTITEM");
@@ -373,6 +376,122 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             var item = MapToItem(doc);
             return View(item);
+        }
+
+        #endregion
+
+        #region History & Status Management
+
+        public async Task<IActionResult> History()
+        {
+            // ⭐ Auto expire items first
+            await AutoExpireItems();
+
+            var snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+
+            var items = snapshot.Documents.Select(d => new Item
+            {
+                ItemID = d.ContainsField("ItemID") ? d.GetValue<int>("ItemID") : 0,
+                IName = d.ContainsField("IName") ? d.GetValue<string>("IName") : null,
+                IType = d.ContainsField("IType") ? d.GetValue<string>("IType") : null,
+                Status = d.ContainsField("Status") ? d.GetValue<string>("Status") : "ACTIVE",
+                Date = d.ContainsField("Date") ? d.GetValue<DateTime>("Date") : DateTime.MinValue
+            }).ToList();
+
+            return View("~/Views/Admin/History/History.cshtml", items);
+        }
+
+        private async Task AutoExpireItems()
+        {
+            var snapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("Status", "ACTIVE")
+                .GetSnapshotAsync();
+
+            var now = DateTime.UtcNow;
+
+            foreach (var doc in snapshot.Documents)
+            {
+                if (!doc.ContainsField("Date")) continue;
+
+                var itemDate = doc.GetValue<DateTime>("Date");
+
+                if ((now - itemDate).TotalDays >= 4)
+                {
+                    await ExpireItem(doc);
+                }
+            }
+        }
+
+        private async Task ExpireItem(DocumentSnapshot doc)
+        {
+            var oldStatus = doc.ContainsField("Status")
+                ? doc.GetValue<string>("Status")
+                : "ACTIVE";
+
+            // Update item status
+            await doc.Reference.UpdateAsync("Status", "EXPIRED");
+
+            // Add history
+            await firestoreDb.Collection("ItemHistory").AddAsync(new
+            {
+                ItemID = doc.GetValue<int>("ItemID"),
+                OldStatus = oldStatus,
+                NewStatus = "EXPIRED",
+                ChangedBy = "SYSTEM",
+                ChangedAt = Timestamp.GetCurrentTimestamp()
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeStatus(int itemId, string newStatus)
+        {
+            var snapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("ItemID", itemId)
+                .GetSnapshotAsync();
+
+            if (!snapshot.Documents.Any())
+                return NotFound();
+
+            var doc = snapshot.Documents.First();
+
+            var oldStatus = doc.ContainsField("Status")
+                ? doc.GetValue<string>("Status")
+                : "ACTIVE";
+
+            await doc.Reference.UpdateAsync("Status", newStatus);
+
+            await firestoreDb.Collection("ItemHistory").AddAsync(new
+            {
+                ItemID = itemId,
+                OldStatus = oldStatus,
+                NewStatus = newStatus,
+                ChangedBy = "ADMIN",
+                ChangedAt = Timestamp.GetCurrentTimestamp()
+            });
+
+            return RedirectToAction("History", new { itemId = itemId });
+        }
+
+
+        public async Task<IActionResult> ViewHistory(int itemId)
+        {
+            var snapshot = await firestoreDb.Collection("ItemHistory")
+                .WhereEqualTo("ItemID", itemId)
+                .GetSnapshotAsync();
+
+            var history = snapshot.Documents.Select(d => new ItemHistory
+            {
+                ItemID = d.GetValue<int>("ItemID"),
+                OldStatus = d.GetValue<string>("OldStatus"),
+                NewStatus = d.GetValue<string>("NewStatus"),
+                ChangedBy = d.GetValue<string>("ChangedBy"),
+                ChangedAt = d.GetValue<Timestamp>("ChangedAt").ToDateTime()
+            })
+            .OrderByDescending(h => h.ChangedAt)
+            .ToList();
+
+            ViewBag.ItemID = itemId;
+            return View("~/Views/Admin/History/ViewHistory.cshtml", history);
         }
 
         #endregion

@@ -89,10 +89,10 @@
                         </div>
 
                         <div class="hidden bg-gray-50 text-sm">
-                            <a asp-controller="Item" asp-action="Lost" class="sidebar-link block pl-10 pr-6 py-3 border-t">
+                            <a asp-controller="Admin" asp-action="LostItem" class="sidebar-link block pl-10 pr-6 py-3 border-t">
                                 Lost Items
                             </a>
-                            <a asp-controller="Item" asp-action="Found" class="sidebar-link block pl-10 pr-6 py-3 border-t">
+                            <a asp-controller="Admin" asp-action="FoundItem" class="sidebar-link block pl-10 pr-6 py-3 border-t">
                                 Found Items
                             </a>
                         </div>
@@ -103,7 +103,7 @@
                         <i class="fas fa-edit mr-2"></i> Post Management
                     </a>
 
-                    <a asp-controller="History" asp-action="Index"
+                    <a asp-controller="Admin" asp-action="History"
                        class="sidebar-link block px-6 py-4 border-b">
                         <i class="fas fa-history mr-2"></i> History (Item)
                     </a>

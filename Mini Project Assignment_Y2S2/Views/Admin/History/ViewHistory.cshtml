@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "History";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@model List<ItemHistory>
+
+<h2 class="text-xl font-bold mb-4">History for Item @ViewBag.ItemID</h2>
+
+<table class="table-fixed w-full border border-gray-300">
+    <thead>
+        <tr class="bg-gray-200 text-center">
+            <th class="w-1/4 border px-4 py-2">Old Status</th>
+            <th class="w-1/4 border px-4 py-2">New Status</th>
+            <th class="w-1/4 border px-4 py-2">Changed By</th>
+            <th class="w-1/4 border px-4 py-2">Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var h in Model)
+        {
+            <tr class="text-center">
+                <td class="border px-4 py-2">@h.OldStatus</td>
+                <td class="border px-4 py-2">@h.NewStatus</td>
+                <td class="border px-4 py-2">@h.ChangedBy</td>
+                <td class="border px-4 py-2">@h.ChangedAt.ToString("yyyy-MM-dd HH:mm")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<a asp-action="History" class="text-blue-600 underline">Back</a>
