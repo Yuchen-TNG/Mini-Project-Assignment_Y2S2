@@ -64,10 +64,12 @@
 
             public async Task<IActionResult> Index()
             {
-            var snapshot = await _firestore.Collection("Items")
-                                           .WhereEqualTo("Category", "LOSTITEM")
-                                           .OrderByDescending("Date") // 在GetSnapshotAsync之前调用
-                                           .GetSnapshotAsync();
+            var query = _firestore.Collection("Items")
+                                  .WhereEqualTo("Category", "LOSTITEM")
+                                  .WhereEqualTo("IStatus", "Approved")
+                                  .OrderByDescending("Date");
+
+            var snapshot = await query.GetSnapshotAsync();
 
             var items = snapshot.Documents
                                 .Select(MapToItem)
@@ -86,9 +88,20 @@
             {
             var itemsFromSession =HttpContext.Session.GetObject<List<Item>>("PageItems")?? HttpContext.Session.GetObject<List<Item>>("FilteredItems");
 
-                var data = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
-                // ===== 日期逻辑（原样保留）=====
-                var dates = data
+
+            var query = _firestore.Collection("Items")
+                      .WhereEqualTo("IStatus", "Approved")
+                      .OrderByDescending("Date");
+
+            var snapshot = await query.GetSnapshotAsync();
+
+            var items = snapshot.Documents
+                                .Select(MapToItem)
+                                .ToList();
+
+
+            // ===== 日期逻辑（原样保留）=====
+            var dates = items
                     .Where(i => i.Date != DateTime.MinValue)
                     .Select(i => i.Date)
                     .ToList();
@@ -116,7 +129,7 @@
                         IType = item.IType,
                         Date = item.Date,
                         Images = item.Images,
-                        LocationName = loc?.LocationName ?? "Unknown"
+                        LocationName = loc.LocationName
                     };
                 }).ToList();
 
@@ -155,6 +168,8 @@
 
             public async Task<IActionResult> filter(string category, string? startDate, string? endDate,string? locationID)
             {
+
+
                 CollectionReference collection = _firestore.Collection("Items");
                 Google.Cloud.Firestore.Query query = collection.WhereEqualTo("Category", category);
 
@@ -167,6 +182,7 @@
                 if (!string.IsNullOrEmpty(locationID)&& locationID!="null")
                     query = query.WhereEqualTo("LocationID", locationID);
 
+            query = query.WhereEqualTo("IStatus", "Approved");
             query = query.OrderByDescending("Date");
 
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
@@ -190,6 +206,7 @@
                 {
                     finalsize = HttpContext.Session.GetObject<int>("sizee");
                 }
+
                 var items = HttpContext.Session.GetObject<List<Item>>("FilteredItems");
                 var locations = HttpContext.Session.GetObject<List<Location>>("Location");
 
@@ -289,12 +306,47 @@
             }
 
             [HttpPost]
-            public async Task<IActionResult> CreatePost(Item item, string? OtherLocation)
-            {
-
+        [HttpPost]
+        public async Task<IActionResult> CreatePost(Item item, string? OtherLocation)
+        {
             var userId = HttpContext.Session.GetString("UserId");
 
+            // ⭐ 条件验证1：只有 FOUNDITEM 需要 LocationFound
+            if (item.Category == "FOUNDITEM" && string.IsNullOrWhiteSpace(item.LocationFound))
+            {
+                ModelState.AddModelError(nameof(item.LocationFound),
+                    "Where you found is required for found items");
+            }
 
+            // ⭐ 条件验证2：图片文件验证
+            if (item.ImageFiles == null || !item.ImageFiles.Any())
+            {
+                ModelState.AddModelError(nameof(item.ImageFiles), "At least one image is required");
+            }
+            else
+            {
+                // 验证每个图片的大小和类型
+                var maxSize = 5 * 1024 * 1024; // 5MB
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+
+                foreach (var file in item.ImageFiles)
+                {
+                    if (file.Length > maxSize)
+                    {
+                        ModelState.AddModelError(nameof(item.ImageFiles),
+                            $"File {file.FileName} exceeds 5MB limit");
+                        break;
+                    }
+
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        ModelState.AddModelError(nameof(item.ImageFiles),
+                            $"File {file.FileName} has invalid file type. Allowed: {string.Join(", ", allowedExtensions)}");
+                        break;
+                    }
+                }
+            }
 
             if (!ModelState.IsValid)
             {
@@ -305,83 +357,78 @@
                     LocationName = doc.ContainsField("LocationName") ? doc.GetValue<string>("LocationName") : null
                 }).ToList();
 
-                ViewBag.UserId = HttpContext.Session.GetString("UserId");
-
-                
+                ViewBag.UserId = userId;
+                ViewBag.Category = item.Category; // 重要！
 
                 return View(item);
             }
 
-
             // 如果用户选择 Other → 用输入框的值
             if (item.LocationID == "Other")
-                {
-                    item.LocationID = OtherLocation;
-                }
-
-                // 处理图片上传
-                var imageUrls = new List<string>();
-                var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
-                Directory.CreateDirectory(imagesPath);
-
-                if (item.ImageFiles != null)
-                {
-                    foreach (var file in item.ImageFiles)
-                    {
-                        if (file.Length > 0)
-                        {
-                            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                            var filePath = Path.Combine(imagesPath, fileName);
-                            using var stream = new FileStream(filePath, FileMode.Create);
-                            await file.CopyToAsync(stream);
-                            imageUrls.Add("/images/" + fileName);
-                        }
-                    }
-                }
-
-                // ItemID 自增
-                var itemsRef = _firestore.Collection("Items");
-                var counterRef = _firestore.Collection("Counters").Document("ItemCounter");
-                int newItemID = 0;
-
-                await _firestore.RunTransactionAsync(async transaction =>
-                {
-                    var snapshot = await transaction.GetSnapshotAsync(counterRef);
-                    newItemID = snapshot.ContainsField("NextItemID") ? snapshot.GetValue<int>("NextItemID") : 1;
-
-                    transaction.Set(counterRef, new Dictionary<string, object>
             {
-                { "NextItemID", newItemID + 1 }
-            }, SetOptions.MergeAll);
-                });
-
-
-
-                item.ItemID = newItemID;
-
-                // 保存到 Firestore
-                DocumentReference docRef = itemsRef.Document();
-                await docRef.SetAsync(new
-                {
-                    ItemID = item.ItemID,
-                    IName = item.IName,
-                    IType = item.IType,
-                    Description = item.Idescription,
-                    LocationID = item.LocationID,
-                    Images = imageUrls,
-                    Category = item.Category,
-                    Date = item.Date.ToUniversalTime(),
-                    UserID = userId,
-                    CreatedAt = Timestamp.GetCurrentTimestamp(),
-                    IStatus = "PENDING",
-                    LocationFound=item.LocationFound
-                });
-
-                return RedirectToAction("Index");
+                item.LocationID = OtherLocation;
             }
 
+            // 处理图片上传
+            var imageUrls = new List<string>();
+            var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+            Directory.CreateDirectory(imagesPath);
 
-            [HttpGet]
+            if (item.ImageFiles != null)
+            {
+                foreach (var file in item.ImageFiles)
+                {
+                    if (file.Length > 0)
+                    {
+                        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                        var filePath = Path.Combine(imagesPath, fileName);
+                        using var stream = new FileStream(filePath, FileMode.Create);
+                        await file.CopyToAsync(stream);
+                        imageUrls.Add("/images/" + fileName);
+                    }
+                }
+            }
+
+            // ItemID 自增
+            var itemsRef = _firestore.Collection("Items");
+            var counterRef = _firestore.Collection("Counters").Document("ItemCounter");
+            int newItemID = 0;
+
+            await _firestore.RunTransactionAsync(async transaction =>
+            {
+                var snapshot = await transaction.GetSnapshotAsync(counterRef);
+                newItemID = snapshot.ContainsField("NextItemID") ? snapshot.GetValue<int>("NextItemID") : 1;
+
+                transaction.Set(counterRef, new Dictionary<string, object>
+        {
+            { "NextItemID", newItemID + 1 }
+        }, SetOptions.MergeAll);
+            });
+
+            item.ItemID = newItemID;
+
+            // 保存到 Firestore
+            DocumentReference docRef = itemsRef.Document();
+            await docRef.SetAsync(new
+            {
+                ItemID = item.ItemID,
+                IName = item.IName,
+                IType = item.IType,
+                Description = item.Idescription,
+                LocationID = item.LocationID,
+                Images = imageUrls,
+                Category = item.Category,
+                Date = item.Date.ToUniversalTime(),
+                UserID = userId,
+                CreatedAt = Timestamp.GetCurrentTimestamp(),
+                IStatus = "PENDING",
+                LocationFound = item.LocationFound
+            });
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
             public async Task<IActionResult> CreateFoundPost(string Category)
             {
                 var item = new Item { Category = Category };

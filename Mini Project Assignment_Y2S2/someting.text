@@ -16,7 +16,11 @@ IStatus = claimed
 
 
 
-new:
-login 那边，按了staff什么都没改变。staff颜色也没有变深，然后按回user，好像什么都没动到
 
-from kz
+
+
+admin
+决定一下谁是status谁是istatus
+
+
+额....统一了status后再看，感觉很多只是model不统一才错罢了

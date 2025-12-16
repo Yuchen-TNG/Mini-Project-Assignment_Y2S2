@@ -223,12 +223,14 @@
                     <input type="text" name="OtherLocation" class="form-control" />
                 </div>
 
-                @if (ViewBag.Category == "LOSTITEM"){
-                <label>Found At (Location)</label>
+                @if (ViewBag.Category == "FOUNDITEM"){
+                <label asp-for="LocationFound">Found At (Location)</label>
                 <input type="text"
                        class="form-control"
                        asp-for="LocationFound" />
+                    <span asp-validation-for="LocationFound" class="text-danger"></span>
                 }
+
                 
                 <label>Posted By (User ID)</label>
                 <input type="text"
@@ -373,4 +375,4 @@
 
 
 
-}
+

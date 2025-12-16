@@ -18,28 +18,45 @@ namespace Mini_Project_Assignment_Y2S2.Models
         public string? IType { get; set; }
 
         [Required(ErrorMessage = "Item description is required")]
-        public string? Idescription { get; set; }
+        public string Idescription { get; set; }
 
         [Required(ErrorMessage = "Date is required")]
         [DataType(DataType.Date)]
-        [DateNotInFuture] // 👈 自定义日期验证
         public DateTime Date { get; set; } = DateTime.Today;
 
+        [Required(ErrorMessage = "Location is required")]
         public string? LocationID { get; set; }
 
-        public List<string>? Images { get; set; }
+        // ⭐ 修正：移除 Images 的 Required，因为它是保存后生成的
+        public List<string> Images { get; set; } = new List<string>();
 
-        [Required]
+        [Required(ErrorMessage = "Category is required")]
         public string Category { get; set; }
 
-        [NotMapped]
+        // ⭐ 修正：移除 ImageFiles 的 Required，在控制器中验证
+        [DataType(DataType.Upload)]
         public List<IFormFile>? ImageFiles { get; set; }
 
         public string? UserID { get; set; }
 
-        public string? IStatus { get; set; } // ACTIVE | CLAIMED | EXPIRED
+        public string? IStatus { get; set; } // "Pending Approval", "Approved", "Rejected"
 
-        [Required(ErrorMessage = "Where you found is required")]
         public string? LocationFound { get; set; }
+    }
+
+    // ⭐ 添加自定义日期验证
+    public class DateNotInFutureAttribute : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (value is DateTime date)
+            {
+                if (date > DateTime.Today)
+                {
+                    return new ValidationResult("Date cannot be in the future");
+                }
+            }
+            return ValidationResult.Success;
+        }
     }
 }
