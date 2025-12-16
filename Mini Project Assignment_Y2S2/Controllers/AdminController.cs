@@ -399,7 +399,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 ItemID = d.ContainsField("ItemID") ? d.GetValue<int>("ItemID") : 0,
                 IName = d.ContainsField("IName") ? d.GetValue<string>("IName") : null,
                 IType = d.ContainsField("IType") ? d.GetValue<string>("IType") : null,
-                Status = d.ContainsField("Status") ? d.GetValue<string>("Status") : "ACTIVE",
+                IStatus = d.ContainsField("Status") ? d.GetValue<string>("Status") : "ACTIVE",
                 Date = d.ContainsField("Date") ? d.GetValue<DateTime>("Date") : DateTime.MinValue
             }).ToList();
 

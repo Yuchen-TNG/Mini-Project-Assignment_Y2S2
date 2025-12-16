@@ -510,5 +510,67 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return RedirectToAction("MyAccount");
         }
 
+        public async Task<IActionResult> MyPost(string? category, string? status)
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login");
+
+            // 🔹 Base query: user's items
+            Query itemQuery = _firestore.Collection("Items")
+                                        .WhereEqualTo("UserID", userId);
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                itemQuery = itemQuery.WhereEqualTo("Category", category);
+            }
+
+            List<DocumentSnapshot> itemDocs;
+
+            // 🔥 CLAIMED comes from ItemHistory
+            if (status == "CLAIMED")
+            {
+                // 1️⃣ Get claimed ItemIDs from history
+                var historySnap = await _firestore.Collection("ItemHistory")
+                                                  .WhereEqualTo("NewStatus", "CLAIMED")
+                                                  .GetSnapshotAsync();
+
+                var claimedItemIds = historySnap.Documents
+                                                .Select(d => d.GetValue<long>("ItemID"))
+                                                .Distinct()
+                                                .ToList();
+
+                if (!claimedItemIds.Any())
+                {
+                    return View(new List<DocumentSnapshot>());
+                }
+
+                // 2️⃣ Firestore where-in limit = 10
+                var result = new List<DocumentSnapshot>();
+
+                foreach (var chunk in claimedItemIds.Chunk(10))
+                {
+                    var snap = await itemQuery
+                        .WhereIn("ItemID", chunk.Cast<object>().ToList())
+                        .GetSnapshotAsync();
+
+                    result.AddRange(snap.Documents);
+                }
+
+                itemDocs = result;
+            }
+            else
+            {
+                var snap = await itemQuery.GetSnapshotAsync();
+                itemDocs = snap.Documents.ToList();
+            }
+
+            ViewBag.Category = category;
+            ViewBag.Status = status;
+
+            return View(itemDocs);
+        }
+
+
     }
 }
