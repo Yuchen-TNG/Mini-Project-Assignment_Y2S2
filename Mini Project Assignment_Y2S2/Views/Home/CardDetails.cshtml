@@ -1,4 +1,5 @@
-﻿@model Mini_Project_Assignment_Y2S2.Models.CardDetailsViewModel
+﻿
+@model Mini_Project_Assignment_Y2S2.Models.CardDetailsViewModel
 
 @{
     ViewData["Title"] = "CardDetails";
@@ -46,7 +47,7 @@
                 <p class="text">@Model.User.Email</p>
 
                 <p class="label">Item Keep At</p>
-                <p class="text">Home</p>
+                <p class="text">@Model.Location.LocationName</p>
             </div>
 
         </div>
@@ -62,7 +63,7 @@
                 </div>
                 <div class="bottomDetails-right2">
                     <p class="label">Found At</p>
-                    <p class="text">@Model.Location.LocationName</p>
+                    <p class="text">@Model.Item.LocationFound</p>
                 </div>
             </div>
             <div class="bottomDetails-right">

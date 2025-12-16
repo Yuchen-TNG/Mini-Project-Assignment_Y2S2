@@ -36,7 +36,8 @@
                                         : null,
                     Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                     Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                     UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null // ⭐ 加这行
+                    LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
+                    UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null // ⭐ 加这行
                 };
             }
 
@@ -63,15 +64,16 @@
 
             public async Task<IActionResult> Index()
             {
-                var snapshot = await _firestore.Collection("Items")
-                                               .WhereEqualTo("Category", "LOSTITEM")
-                                               .GetSnapshotAsync();
+            var snapshot = await _firestore.Collection("Items")
+                                           .WhereEqualTo("Category", "LOSTITEM")
+                                           .OrderByDescending("Date") // 在GetSnapshotAsync之前调用
+                                           .GetSnapshotAsync();
 
-                var items = snapshot.Documents
-                                    .Select(MapToItem)
-                                    .ToList();
+            var items = snapshot.Documents
+                                .Select(MapToItem)
+                                .ToList();
 
-                HttpContext.Session.Remove("PageItems");
+            HttpContext.Session.Remove("PageItems");
                 HttpContext.Session.Remove("Location");
                 HttpContext.Session.Remove("Page");
                 HttpContext.Session.SetObject("FilteredItems", items);
@@ -165,7 +167,9 @@
                 if (!string.IsNullOrEmpty(locationID)&& locationID!="null")
                     query = query.WhereEqualTo("LocationID", locationID);
 
-                QuerySnapshot snapshot = await query.GetSnapshotAsync();
+            query = query.OrderByDescending("Date");
+
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
                 var items = snapshot.Documents.Select(MapToItem).ToList();
 
@@ -374,6 +378,8 @@
                     UserID = userId,
                     CreatedAt = Timestamp.GetCurrentTimestamp(),
                     IStatus = "PENDING"
+                    CreatedAt = Timestamp.GetCurrentTimestamp(),
+                    LocationFound=item.LocationFound
                 });
 
                 return RedirectToAction("Index");
