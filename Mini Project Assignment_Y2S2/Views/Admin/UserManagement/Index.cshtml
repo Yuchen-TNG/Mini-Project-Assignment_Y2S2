@@ -275,11 +275,15 @@
 
         let buttons = '';
 
-        if (current > 1) {
-            buttons += `<button onclick="loadTable(${current - 1})" style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px; background:white; cursor:pointer;">Previous</button>`;
-        }
+        // Previous button
+        const prevDisabled = current === 1 ? 'opacity:0.5; cursor:not-allowed;' : '';
+        buttons += `<button onclick="loadTable(${current - 1})" style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px; background:white; ${prevDisabled}">Previous</button>`;
 
-        for (let i = 1; i <= total; i++) {
+        // Page buttons (show max 5 pages at a time)
+        let start = Math.max(1, current - 2);
+        let end = Math.min(total, current + 2);
+
+        for (let i = start; i <= end; i++) {
             const isActive = i === current;
             const style = isActive
                 ? 'padding:8px 12px; border:1px solid #4f46e5; border-radius:4px; background:#4f46e5; color:white; cursor:pointer;'
@@ -287,12 +291,15 @@
             buttons += `<button onclick="loadTable(${i})" style="${style}">${i}</button>`;
         }
 
-        if (current < total) {
-            buttons += `<button onclick="loadTable(${current + 1})" style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px; background:white; cursor:pointer;">Next</button>`;
-        }
+        // Next button
+        const nextDisabled = current === total ? 'opacity:0.5; cursor:not-allowed;' : '';
+        buttons += `<button onclick="loadTable(${current + 1})" style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px; background:white; ${nextDisabled}">Next</button>`;
 
         pagination.innerHTML = buttons;
     }
+
+
+
 
     // Archive Modal Functions
     function openArchiveModal(userId, userName) {

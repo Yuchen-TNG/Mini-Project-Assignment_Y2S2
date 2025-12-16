@@ -49,3 +49,33 @@
         </div>
     }
 </div>
+
+<!-- Pagination -->
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="mt-6 flex justify-center gap-2 flex-wrap">
+        <!-- Previous Button -->
+        @if (ViewBag.CurrentPage > 1)
+        {
+            <a href="@Url.Action(null, new { locationID = ViewBag.LocationID, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate, page = ViewBag.CurrentPage - 1 })"
+               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
+        }
+
+        <!-- Page Numbers -->
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <a href="@Url.Action(null, new { locationID = ViewBag.LocationID, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate, page = i })"
+               class="px-3 py-1 rounded @(i == ViewBag.CurrentPage ? "bg-indigo-600 text-white" : "bg-gray-200 hover:bg-gray-300")">
+                @i
+            </a>
+        }
+
+        <!-- Next Button -->
+        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+        {
+            <a href="@Url.Action(null, new { locationID = ViewBag.LocationID, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate, page = ViewBag.CurrentPage + 1 })"
+               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+        }
+    </div>
+}
+
