@@ -1,0 +1,399 @@
+﻿@model Mini_Project_Assignment_Y2S2.Models.Item
+
+<div class="post-container">
+    <div class="post-title">EDIT POST</div>
+
+    <form asp-action="EditPost"
+          asp-controller="User"
+          method="post"
+          enctype="multipart/form-data"
+          id="editForm">
+
+        <input type="hidden" asp-for="ItemID" />
+        <input type="hidden" asp-for="Category" />
+
+        <!-- 隐藏字段存储要保留的图片 -->
+        <div id="existingImagesContainer">
+            @if (Model.Images != null)
+            {
+                @foreach (var img in Model.Images)
+                {
+                    <input type="hidden" name="ExistingImages" value="@img" class="existing-image-input" />
+                }
+            }
+        </div>
+
+        <div class="form-grid">
+            <!-- LEFT -->
+            <div class="form-group">
+                <label asp-for="IName">Item Name</label>
+                <input asp-for="IName" class="form-control" />
+                <span asp-validation-for="IName" class="text-danger"></span>
+
+                <label asp-for="IType">Item Type</label>
+                <input asp-for="IType" class="form-control" />
+                <span asp-validation-for="IType" class="text-danger"></span>
+
+                <label asp-for="Idescription">Item Description</label>
+                <textarea asp-for="Idescription" class="form-control" style="height:120px;"></textarea>
+                <span asp-validation-for="Idescription" class="text-danger"></span>
+
+                <label asp-for="Date">Lost Date</label>
+                <input asp-for="Date" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="Date" class="text-danger"></span>
+
+                <label>Location</label>
+                <select asp-for="LocationID" class="form-control" id="locationSelect">
+                    <option value="">Select</option>
+                    @if (ViewBag.Locations != null)
+                    {
+                        @foreach (var loc in ViewBag.Locations)
+                        {
+                            if (Model.LocationID == loc.LocationID)
+                            {
+                                <option value="@loc.LocationID" selected="selected">@loc.LocationName</option>
+                            }
+                            else
+                            {
+                                <option value="@loc.LocationID">@loc.LocationName</option>
+                            }
+                        }
+                    }
+                </select>
+                <span asp-validation-for="LocationID" class="text-danger"></span>
+
+                <div id="otherLocationBox" style="display:none; margin-top:10px;">
+                    <label>Enter Other Location</label>
+                    <input type="text" name="OtherLocation" class="form-control" value="" />
+                </div>
+
+                <label>Found At (Location)</label>
+                <input asp-for="LocationFound" class="form-control" />
+
+                <label>Category</label>
+                <input asp-for="Category" class="form-control" readonly />
+
+                <button type="submit" id="submitBtn">Update</button>
+                <button type="button" id="clearBtn">Clear</button>
+            </div>
+
+            <!-- RIGHT -->
+            <div>
+                <label>Item Images</label>
+
+                <div class="image-box" id="dropArea">
+                    <div id="previewContainer">
+                        <!-- 显示现有图片 -->
+                        @if (Model.Images != null)
+                        {
+                            @foreach (var img in Model.Images)
+                            {
+                                <div class="image-item" style="position:relative; display:inline-block; margin:5px;">
+                                    <img src="@img" style="width:80px; height:80px; object-fit:cover; border-radius:6px;" />
+                                    <button type="button" class="remove-btn remove-existing" data-img="@img">×</button>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="file-input-wrapper">
+                    <button type="button">Choose Images</button>
+                    <input asp-for="ImageFiles" id="imgInput" type="file" accept="image/*" multiple />
+                </div>
+
+                <span asp-validation-for="ImageFiles" class="text-danger"></span>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // 初始化已删除图片数组
+            var deletedImages = [];
+
+            // 处理删除现有图片
+            $(document).on('click', '.remove-existing', function() {
+                var imgUrl = $(this).data('img');
+                var imgContainer = $(this).closest('.image-item');
+
+                // 从DOM中移除图片元素
+                imgContainer.remove();
+
+                // 从隐藏字段中移除对应的图片
+                $('.existing-image-input').each(function() {
+                    if ($(this).val() === imgUrl) {
+                        $(this).remove();
+                    }
+                });
+
+                // 添加到已删除列表（如果需要记录）
+                deletedImages.push(imgUrl);
+            });
+
+            // 处理新上传图片的预览
+            $('#imgInput').on('change', function(e) {
+                var files = e.target.files;
+                var previewContainer = $('#previewContainer');
+
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    var reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        var imgHtml = `
+                            <div class="image-item" style="position:relative; display:inline-block; margin:5px;">
+                                <img src="${e.target.result}" style="width:80px; height:80px; object-fit:cover; border-radius:6px;" />
+                                <button type="button" class="remove-btn remove-new">×</button>
+                            </div>
+                        `;
+                        previewContainer.append(imgHtml);
+                    }
+
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 处理删除新上传的图片预览
+            $(document).on('click', '.remove-new', function() {
+                // 从DOM中移除图片元素
+                $(this).closest('.image-item').remove();
+
+                // 注意：这里只移除了预览，实际的File input中的数据仍然存在
+                // 如果需要完全移除文件，需要重置input或使用更复杂的方法
+            });
+
+            // 拖放功能
+            var dropArea = $('#dropArea')[0];
+
+            dropArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                $(this).classList.add('dragover');
+            });
+
+            dropArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                $(this).classList.remove('dragover');
+            });
+
+            dropArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                $(this).classList.remove('dragover');
+
+                var files = e.dataTransfer.files;
+                document.getElementById('imgInput').files = files;
+
+                // 触发change事件以显示预览
+                $('#imgInput').trigger('change');
+            });
+
+            // 清空按钮功能
+            $('#clearBtn').click(function() {
+                if (confirm('Are you sure you want to clear all fields?')) {
+                    // 重置表单
+                    document.getElementById('editForm').reset();
+                    // 清空预览
+                    $('#previewContainer').html('');
+                    // 恢复现有图片
+                    resetExistingImages();
+                }
+            });
+
+            // 重置现有图片的函数
+            function resetExistingImages() {
+                var originalImages = @Html.Raw(Json.Serialize(Model.Images ?? new List<string>()));
+                $('#existingImagesContainer').empty();
+                $('#previewContainer').empty();
+
+                originalImages.forEach(function(img) {
+                    // 添加隐藏字段
+                    $('#existingImagesContainer').append(
+                        `<input type="hidden" name="ExistingImages" value="${img}" class="existing-image-input" />`
+                    );
+                    // 添加预览
+                    $('#previewContainer').append(`
+                        <div class="image-item" style="position:relative; display:inline-block; margin:5px;">
+                            <img src="${img}" style="width:80px; height:80px; object-fit:cover; border-radius:6px;" />
+                            <button type="button" class="remove-btn remove-existing" data-img="${img}">×</button>
+                        </div>
+                    `);
+                });
+            }
+
+            // Other location handling
+            $('#locationSelect').change(function() {
+                var selected = $(this).val();
+                if (selected === 'other') {
+                    $('#otherLocationBox').show();
+                } else {
+                    $('#otherLocationBox').hide();
+                }
+            });
+
+            // 初始化显示其他位置框
+            if ($('#locationSelect').val() === 'other') {
+                $('#otherLocationBox').show();
+            }
+        });
+    </script>
+
+    <style>
+        /* 保持你原来的样式不变 */
+        body {
+            background: #f5eaf5;
+            font-family: Arial, sans-serif;
+        }
+
+        .post-container {
+            width: 80%;
+            margin: 40px auto;
+            background: #f7d596;
+            padding: 40px;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+
+        .post-title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 65% 35%;
+            grid-gap: 30px;
+            align-items: start;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 3px;
+            box-sizing: border-box;
+        }
+
+        .text-danger {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* ===== Drag & Drop Image Box ===== */
+        .image-box {
+            width: 100%;
+            height: 300px;
+            border: 2px dashed #333;
+            border-radius: 12px;
+            padding: 10px;
+            background: white;
+            overflow-y: auto;
+            box-sizing: border-box;
+            transition: background 0.2s, border-color 0.2s;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            align-content: flex-start;
+        }
+
+            .image-box.dragover {
+                background: #fff3cd;
+                border-color: #ff9800;
+            }
+
+        #previewContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+        }
+
+            #previewContainer img {
+                width: 80px;
+                height: 80px;
+                object-fit: cover;
+                border-radius: 6px;
+                border: 1px solid #ccc;
+            }
+
+        /* ===== Custom Choose File Button ===== */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+            .file-input-wrapper button {
+                border: none;
+                color: white;
+                background-color: #333;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+
+            .file-input-wrapper input[type=file] {
+                font-size: 100px;
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: 0;
+                cursor: pointer;
+            }
+
+        .remove-btn {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            font-size: 14px;
+            line-height: 22px;
+            text-align: center;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+            .remove-btn:hover {
+                background: rgba(0,0,0,0.85);
+            }
+
+        button[type="submit"], #clearBtn {
+            margin-top: 20px;
+            padding: 10px 25px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        button[type="submit"] {
+            background: #333;
+            color: white;
+        }
+
+        #clearBtn {
+            background: #555;
+            color: white;
+        }
+    </style>
+}

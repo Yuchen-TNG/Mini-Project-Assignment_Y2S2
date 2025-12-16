@@ -587,7 +587,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                                     : null,
                 Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null // ⭐ 加这行
+                UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null, // ⭐ 加这行
+                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null
             };
         }
 
@@ -645,6 +646,104 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             };
             return View(viewModel);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> EditPost(int itemId)
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login");
+
+            // Get the item
+            var collection = _firestore.Collection("Items");
+            var query = collection.WhereEqualTo("ItemID", itemId)
+                                  .WhereEqualTo("UserID", userId);
+            var snapshot = await query.GetSnapshotAsync();
+
+            if (snapshot.Documents.Count == 0)
+                return NotFound();
+
+            var doc = snapshot.Documents[0];
+            var item = MapToItem(doc);
+
+            // Load all locations for dropdown
+            var locationSnapshot = await _firestore.Collection("Location").GetSnapshotAsync();
+            ViewBag.Locations = locationSnapshot.Documents.Select(d => MapToLocation(d)).ToList();
+
+            return View(item); // pass item as model
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditPost(Item model, IFormFile[] ImageFiles, string? OtherLocation, List<string>? ExistingImages)
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login");
+
+            var collection = _firestore.Collection("Items");
+            var query = collection.WhereEqualTo("ItemID", model.ItemID)
+                                  .WhereEqualTo("UserID", userId);
+            var snapshot = await query.GetSnapshotAsync();
+
+            if (snapshot.Documents.Count == 0)
+                return NotFound();
+
+            var docRef = snapshot.Documents[0].Reference;
+
+            // Handle OtherLocation
+            if (!string.IsNullOrEmpty(OtherLocation))
+                model.LocationID = OtherLocation;
+
+            // ✅ 处理现有图片：使用 ExistingImages 参数
+            var imageUrls = new List<string>();
+
+            // 1. 保留用户选择的现有图片
+            if (ExistingImages != null && ExistingImages.Count > 0)
+            {
+                imageUrls.AddRange(ExistingImages);
+            }
+
+            // 2. 处理新上传的图片
+            if (ImageFiles != null && ImageFiles.Length > 0)
+            {
+                var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/itemimages");
+                Directory.CreateDirectory(imagesPath);
+
+                foreach (var file in ImageFiles)
+                {
+                    if (file.Length > 0)
+                    {
+                        string fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                        string filePath = Path.Combine(imagesPath, fileName);
+
+                        using var stream = new FileStream(filePath, FileMode.Create);
+                        await file.CopyToAsync(stream);
+
+                        imageUrls.Add("/itemimages/" + fileName);
+                    }
+                }
+            }
+
+            // ✅ 关键修复：将DateTime转换为UTC
+            var dateTimeUtc = model.Date.ToUniversalTime();
+
+            var updateData = new Dictionary<string, object>
+    {
+        { "IName", model.IName },
+        { "IType", model.IType },
+        { "Idescription", model.Idescription },
+        { "Date", dateTimeUtc }, // 使用UTC时间
+        { "LocationID", model.LocationID },
+        { "LocationFound", model.LocationFound },
+        { "Images", imageUrls } // ✅ 只保存最终的图片列表
+    };
+
+            await docRef.UpdateAsync(updateData);
+
+            TempData["Success"] = "Post updated successfully!";
+            return RedirectToAction("MyPost");
+        }
+
 
     }
 }
