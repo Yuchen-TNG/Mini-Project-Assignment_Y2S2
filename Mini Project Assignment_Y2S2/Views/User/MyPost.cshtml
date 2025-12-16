@@ -69,7 +69,10 @@
 
             <div class="cardparent">
 
-                @await Html.PartialAsync("_ItemCard", (List<ItemCardViewModel>)ViewData["ItemCards"])
+                @foreach (@Model.Item)
+                {
+                    
+                }
             </div>
 
         </div>
@@ -77,4 +80,4 @@
     </div>
 
 </div>
-<script src="~/js/index.js" asp-append-version="true"> </script>
+<script src="~/js/mypost.js" asp-append-version="true"> </script>
