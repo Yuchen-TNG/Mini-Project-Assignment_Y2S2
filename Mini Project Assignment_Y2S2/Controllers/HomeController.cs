@@ -269,7 +269,9 @@
             {
                 var item = new Item { Category = Category };
 
-                var locationSnap = await _firestore.Collection("Location").GetSnapshotAsync();
+            ViewBag.Category = Category;
+
+            var locationSnap = await _firestore.Collection("Location").GetSnapshotAsync();
 
                 var userId = HttpContext.Session.GetString("UserId");
                 ViewBag.UserId = userId; // ⭐ 加这行

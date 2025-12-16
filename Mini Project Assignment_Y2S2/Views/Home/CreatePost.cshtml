@@ -223,11 +223,13 @@
                     <input type="text" name="OtherLocation" class="form-control" />
                 </div>
 
+                @if (ViewBag.Category == "LOSTITEM"){
                 <label>Found At (Location)</label>
                 <input type="text"
                        class="form-control"
                        asp-for="LocationFound" />
-
+                }
+                
                 <label>Posted By (User ID)</label>
                 <input type="text"
                        class="form-control"
