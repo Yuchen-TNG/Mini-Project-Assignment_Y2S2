@@ -40,7 +40,7 @@
             </div>
 
             <div class="flex items-center gap-6">
-                <form asp-action="Search" asp-controller="Home" method="get" class="relative">
+                <form asp-action="Search" asp-controller="Admin" method="get" class="relative">
                     <input type="text" name="q" placeholder="Search"
                            class="border rounded-full px-4 py-2 text-sm focus:outline-none w-64 shadow-sm" />
                     <i class="fas fa-search absolute right-4 top-3 text-gray-400 text-xs"></i>
@@ -62,7 +62,7 @@
             <aside class="w-64 border-r bg-white flex flex-col shadow-md">
                 <div class="p-5 border-b flex items-center justify-between font-bold text-sm tracking-wide bg-gray-50">
                     <div class="flex items-center gap-2 text-indigo-600">
-                        <span>ADMIN MENU</span>
+                        <span>ADMIN SIDEBAR</span>
                         <i class="far fa-user-circle"></i>
                     </div>
                 </div>
@@ -74,7 +74,7 @@
                     </a>
 
                     <a asp-controller="Admin" asp-action="UserManagement"
-                       class="sidebar-link block px-6 py-4 border-b @(ViewContext.RouteData.Values["Controller"]?.ToString() == "User" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                       class="sidebar-link block px-6 py-4 border-b @(ViewContext.RouteData.Values["Controller"]?.ToString() == "UserManagement" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
                         <i class="fas fa-users mr-2"></i> User Management
                     </a>
 
@@ -98,7 +98,7 @@
                         </div>
                     </div>
 
-                    <a asp-controller="Post" asp-action="Index"
+                    <a asp-controller="Admin" asp-action="PostManagement"
                        class="sidebar-link block px-6 py-4 border-b">
                         <i class="fas fa-edit mr-2"></i> Post Management
                     </a>
