@@ -69,37 +69,7 @@
 
             <div class="cardparent">
 
-                @if (!Model.Any())
-                {
-                    <p class="not_available">No items found.</p>
-                }
-                else
-                {
-                    foreach (var doc in Model)
-                    {
-                        var data = doc.ToDictionary();
-
-                        string image = data.ContainsKey("Images")
-                        ? ((List<object>)data["Images"]).FirstOrDefault()?.ToString()
-                        : "/images/no-image.png";
-
-                        <div class="card">
-                            <img src="@image" class="card-img" />
-
-                            <div class="card-details">
-                                <p class="category">@data["Category"]</p>
-                                <p><b>@data["IName"]</b></p>
-                                <p>@data["Description"]</p>
-
-                                @if (currentStatus == "CLAIMED")
-                                {
-                                    <span class="claimed-badge">CLAIMED</span>
-                                }
-                            </div>
-                        </div>
-                    }
-                }
-
+                @await Html.PartialAsync("_ItemCard", (List<ItemCardViewModel>)ViewData["ItemCards"])
             </div>
 
         </div>
@@ -107,3 +77,4 @@
     </div>
 
 </div>
+<script src="~/js/index.js" asp-append-version="true"> </script>

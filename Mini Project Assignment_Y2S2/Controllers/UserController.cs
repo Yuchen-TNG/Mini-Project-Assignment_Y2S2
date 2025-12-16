@@ -571,6 +571,82 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View(itemDocs);
         }
 
+        private Item MapToItem(DocumentSnapshot doc)
+        {
+            return new Item
+            {
+                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
+                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
+                Idescription = doc.ContainsField("Description")
+                                ? doc.GetValue<string>("Description")
+                                : doc.ContainsField("Idescription")
+                                    ? doc.GetValue<string>("Idescription")
+                                    : null,
+                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
+                UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null // ⭐ 加这行
+            };
+        }
+
+        private Location MapToLocation(DocumentSnapshot doc)
+        {
+            return new Location
+            {
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationName = doc.ContainsField("LocationName") ? doc.GetValue<string>("LocationName") : null,
+                Items = new List<Item>() // 这里先空着，后续可以填充对应的 Items
+            };
+        }
+
+        public async Task<IActionResult> MyPostDetails(int itemId)
+        {
+
+            User user = null;
+            var collectionUser = _firestore.Collection("Users");
+            Google.Cloud.Firestore.Query queryUser = collectionUser.WhereEqualTo("UserID", "8840882");
+            QuerySnapshot snapshotsUser = await queryUser.GetSnapshotAsync();
+
+            if (snapshotsUser.Documents == null)
+            {
+                TempData["Error"] = "Can't find your UserID, please register again";
+                return RedirectToAction("Index");
+            }
+
+            var userDoc = snapshotsUser.Documents[0];
+            user = new User
+            {
+                Name = userDoc.GetValue<string>("Name"),
+                PhoneNumber = userDoc.GetValue<string>("PhoneNumber"),
+                Email = userDoc.GetValue<string>("Email"),
+                UserID = userDoc.GetValue<string>("UserID")
+            };
+
+            var collection = _firestore.Collection("Items");
+            Google.Cloud.Firestore.Query query = collection.WhereEqualTo("ItemID", itemId);
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+            if (snapshot.Documents.Count == 0)
+                return NotFound();
+
+            var item = MapToItem(snapshot.Documents[0]);
+
+            var locationCollection = _firestore.Collection("Location");
+            Google.Cloud.Firestore.Query locationQuery = locationCollection.WhereEqualTo("LocationID", item.LocationID);
+            QuerySnapshot locationSnapshot = await locationQuery.GetSnapshotAsync();
+
+            var location = MapToLocation(locationSnapshot.Documents[0]);
+
+            var viewModel = new CardDetailsViewModel
+            {
+                Item = item,
+                User = user,
+                Location = location
+            };
+            return View(viewModel);
+        }
 
     }
 }

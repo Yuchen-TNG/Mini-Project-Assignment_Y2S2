@@ -1,0 +1,31 @@
+﻿@model List<ItemCardViewModel>
+
+@if (Model != null && Model.Any())
+{
+    @foreach (var item in Model.Take(10))
+    {
+        <a class="card" asp-action="CardDetails" asp-controller="Home" asp-route-itemId="@item.ItemID">
+            <div class="card-img-container">
+                <img class="card-img"
+                     src="@(item.Images != null && item.Images.Count > 0 ? item.Images[0] : "/images/default.png")"
+                     alt="img"
+                     onerror="this.onerror=null; this.src='/images/default.png';"
+                     style="width:100%; height:150px; object-fit:cover; border-radius:4px;" />
+            </div>
+            <div class="card-details">
+                <div class="category">
+                    <p>@item.IType</p>
+                </div>
+                <div class="details">
+                    <p>@item.LocationName</p>
+                    <p>@item.Date.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+        </a>
+    }
+}
+else
+{
+    <p class="not_available">not available search, try more</p>
+}
+
