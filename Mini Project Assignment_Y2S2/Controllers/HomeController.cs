@@ -215,16 +215,21 @@
             public async Task<IActionResult> CardDetails(int itemId)
             {
 
-                User user = null;
-                var collectionUser = _firestore.Collection("Users");
-                Google.Cloud.Firestore.Query queryUser = collectionUser.WhereEqualTo("UserID", "8840882");
-                QuerySnapshot snapshotsUser = await queryUser.GetSnapshotAsync();
+            var collection = _firestore.Collection("Items");
+            Google.Cloud.Firestore.Query query = collection.WhereEqualTo("ItemID", itemId);
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
-                if (snapshotsUser.Documents == null)
-                {
-                    TempData["Error"] = "Can't find your UserID, please register again";
-                    return RedirectToAction("Index");
-                }
+            if (snapshot.Documents.Count == 0)
+                return NotFound();
+
+            var item = MapToItem(snapshot.Documents[0]);
+
+
+            User user = null;
+          
+                var collectionUser = _firestore.Collection("Users");
+                Google.Cloud.Firestore.Query queryUser = collectionUser.WhereEqualTo("UserID", item.UserID);
+                QuerySnapshot snapshotsUser = await queryUser.GetSnapshotAsync();
 
                 var userDoc = snapshotsUser.Documents[0];
                 user = new User
@@ -235,14 +240,7 @@
                     UserID = userDoc.GetValue<string>("UserID")
                 };
 
-                var collection = _firestore.Collection("Items");
-                Google.Cloud.Firestore.Query query = collection.WhereEqualTo("ItemID", itemId);
-                QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
-                if (snapshot.Documents.Count == 0)
-                    return NotFound();
-
-                var item = MapToItem(snapshot.Documents[0]);
 
                 var locationCollection = _firestore.Collection("Location");
                 Google.Cloud.Firestore.Query locationQuery = locationCollection.WhereEqualTo("LocationID", item.LocationID);
@@ -368,7 +366,8 @@
                     Category = item.Category,
                     Date = item.Date.ToUniversalTime(),
                     UserID = userId,
-                    CreatedAt = Timestamp.GetCurrentTimestamp()
+                    CreatedAt = Timestamp.GetCurrentTimestamp(),
+                    IStatus = "PENDING"
                 });
 
                 return RedirectToAction("Index");
