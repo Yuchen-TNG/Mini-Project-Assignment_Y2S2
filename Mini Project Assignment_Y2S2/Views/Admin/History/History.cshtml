@@ -33,12 +33,12 @@
         @foreach (var item in Model)
         {
             <tr class="border hover:bg-gray-100">
-                <td class="px-2 py-1 border">@item.ItemID</td>
-                <td class="px-2 py-2 border">@item.IName</td>
-                <td class="px-2 py-2 border">@item.IStatus</td>
-                <td class="px-2 py-2 border">@item.Date.ToShortDateString()</td>
+                <td class="px-3 py-1 border">@item.ItemID</td>
+                <td class="px-15 py-2 border">@item.IName</td>
+                <td class="px-10 py-2 border">@item.IStatus</td>
+                <td class="px-10 py-2 border">@item.Date.ToShortDateString()</td>
 
-                <td class="px-2 py-1 border">
+                <td class="px-10 py-2 border">
                     @if (item.IStatus != "EXPIRED")
                     {
                         <form asp-action="ChangeStatus" method="post" class="flex items-center gap-2">
@@ -53,7 +53,7 @@
                     }
                 </td>
 
-                <td class="px-2 py-1 border">
+                <td class="px-10 py-2 border">
                     <a asp-action="ViewHistory" asp-route-itemId="@item.ItemID"
                        class="text-blue-600 underline">View</a>
                 </td>

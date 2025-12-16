@@ -326,7 +326,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         #region Lost & Found Item Management
         public async Task<IActionResult> LostItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 8)
         {
-            var query = firestoreDb.Collection("Items").WhereEqualTo("Category", "LOSTITEM");
+            // 🔍 Base query
+            var query = firestoreDb.Collection("Items")
+                .WhereEqualTo("Category", "LOSTITEM")
+                .OrderByDescending("Date"); // requires composite index for combined filters + order
 
             // Filter by location
             if (!string.IsNullOrEmpty(locationID))
@@ -365,11 +368,16 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         public async Task<IActionResult> FoundItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 8)
         {
-            var query = firestoreDb.Collection("Items").WhereEqualTo("Category", "FOUNDITEM");
+            // 🔍 Base query
+            var query = firestoreDb.Collection("Items")
+                .WhereEqualTo("Category", "FOUNDITEM")
+                .OrderByDescending("Date"); // requires composite index for combined filters + order
 
+            // Filter by location
             if (!string.IsNullOrEmpty(locationID))
                 query = query.WhereEqualTo("LocationID", locationID);
 
+            // Filter by date
             if (startDate.HasValue)
                 query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
 
@@ -574,5 +582,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         #endregion
     }
 }
+
+
 
 
