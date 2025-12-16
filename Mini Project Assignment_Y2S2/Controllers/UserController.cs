@@ -603,6 +603,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         public async Task<IActionResult> MyPostDetails(int itemId)
         {
+
             var collection = _firestore.Collection("Items");
             Google.Cloud.Firestore.Query query = collection.WhereEqualTo("ItemID", itemId);
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
@@ -613,17 +614,11 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var item = MapToItem(snapshot.Documents[0]);
 
 
-
             User user = null;
-            var collectionUser = _firestore.Collection("Users");
-            Google.Cloud.Firestore.Query queryUser = collectionUser.WhereEqualTo("UserID", "8840882");
-            QuerySnapshot snapshotsUser = await queryUser.GetSnapshotAsync();
 
-            if (snapshotsUser.Documents == null)
-            {
-                TempData["Error"] = "Can't find your UserID, please register again";
-                return RedirectToAction("Index");
-            }
+            var collectionUser = _firestore.Collection("Users");
+            Google.Cloud.Firestore.Query queryUser = collectionUser.WhereEqualTo("UserID", item.UserID);
+            QuerySnapshot snapshotsUser = await queryUser.GetSnapshotAsync();
 
             var userDoc = snapshotsUser.Documents[0];
             user = new User
@@ -634,7 +629,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 UserID = userDoc.GetValue<string>("UserID")
             };
 
-           
+
 
             var locationCollection = _firestore.Collection("Location");
             Google.Cloud.Firestore.Query locationQuery = locationCollection.WhereEqualTo("LocationID", item.LocationID);

@@ -371,7 +371,7 @@
                     Date = item.Date.ToUniversalTime(),
                     UserID = userId,
                     CreatedAt = Timestamp.GetCurrentTimestamp(),
-                    IStatus = "PENDING"
+                    IStatus = "PENDING",
                     LocationFound=item.LocationFound
                 });
 
