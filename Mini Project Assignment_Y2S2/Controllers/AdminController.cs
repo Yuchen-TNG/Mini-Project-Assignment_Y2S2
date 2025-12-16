@@ -279,14 +279,38 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
 
-        public IActionResult Dashboard()
+
+        public async Task<IActionResult> Dashboard()
         {
-            // 🔒 Protect route
             if (HttpContext.Session.GetString("Role") != "Admin")
                 return RedirectToAction("Login");
 
+            var usersSnapshot = await firestoreDb.Collection("Users").GetSnapshotAsync();
+            int totalUsers = usersSnapshot.Count;
+
+            var lostSnapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("Category", "LOSTITEM")
+                .GetSnapshotAsync();
+            int totalLostItems = lostSnapshot.Count;
+
+            var foundSnapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("Category", "FOUNDITEM")
+                .GetSnapshotAsync();
+            int totalFoundItems = foundSnapshot.Count;
+
+            var pendingPostSnapshot = await firestoreDb.Collection("Posts")
+                .WhereEqualTo("Status", "Pending Approval")
+                .GetSnapshotAsync();
+            int totalPendingPosts = pendingPostSnapshot.Count;
+
+            ViewBag.TotalUsers = totalUsers;
+            ViewBag.TotalLostItems = totalLostItems;
+            ViewBag.TotalFoundItems = totalFoundItems;
+            ViewBag.TotalPendingPosts = totalPendingPosts;
+
             return View("Dashboard/Dashboard");
         }
+
         public IActionResult UserManagement()
         {
             return View("UserManagement/Index.cshtml");
@@ -300,7 +324,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         #endregion
 
         #region Lost & Found Item Management
-        public async Task<IActionResult> LostItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 9)
+        public async Task<IActionResult> LostItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 8)
         {
             var query = firestoreDb.Collection("Items").WhereEqualTo("Category", "LOSTITEM");
 
@@ -308,7 +332,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             if (!string.IsNullOrEmpty(locationID))
                 query = query.WhereEqualTo("LocationID", locationID);
 
-            // Firestore requires exact types for date comparison
+            // Filter by date
             if (startDate.HasValue)
                 query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
 
@@ -318,9 +342,18 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var snapshot = await query.GetSnapshotAsync();
             var items = snapshot.Documents.Select(MapToItem).OrderByDescending(x => x.Date).ToList();
 
+            var totalCount = items.Count;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
             var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
             ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling(items.Count / (double)pageSize);
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.PageSize = pageSize;
+            ViewBag.LocationID = locationID;
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
             // For filter dropdown
             var locationSnapshot = await firestoreDb.Collection("Location").GetSnapshotAsync();
@@ -329,7 +362,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View(pagedItems);
         }
 
-        public async Task<IActionResult> FoundItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 9)
+
+        public async Task<IActionResult> FoundItem(string? locationID, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 8)
         {
             var query = firestoreDb.Collection("Items").WhereEqualTo("Category", "FOUNDITEM");
 
@@ -345,15 +379,25 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var snapshot = await query.GetSnapshotAsync();
             var items = snapshot.Documents.Select(MapToItem).OrderByDescending(x => x.Date).ToList();
 
+            var totalCount = items.Count;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
             var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
             ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling(items.Count / (double)pageSize);
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.PageSize = pageSize;
+            ViewBag.LocationID = locationID;
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
             var locationSnapshot = await firestoreDb.Collection("Location").GetSnapshotAsync();
             ViewBag.Locations = locationSnapshot.Documents.Select(d => d.GetValue<string>("LocationID")).ToList();
 
             return View(pagedItems);
         }
+
 
 
         public async Task<IActionResult> LostItemDetail(int itemId)
@@ -387,7 +431,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         #region History & Status Management
 
-        public async Task<IActionResult> History()
+        public async Task<IActionResult> History(string search = "", int page = 1, int pageSize = 8)
         {
             // ⭐ Auto expire items first
             await AutoExpireItems();
@@ -401,10 +445,38 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 IType = d.ContainsField("IType") ? d.GetValue<string>("IType") : null,
                 IStatus = d.ContainsField("Status") ? d.GetValue<string>("Status") : "ACTIVE",
                 Date = d.ContainsField("Date") ? d.GetValue<DateTime>("Date") : DateTime.MinValue
-            }).ToList();
+            });
 
-            return View("~/Views/Admin/History/History.cshtml", items);
+            // Apply search filter if not empty
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.ToLower();
+                items = items.Where(i =>
+                    i.ItemID.ToString().Contains(search) ||
+                    (!string.IsNullOrEmpty(i.IName) && i.IName.ToLower().Contains(search)) ||
+                    (!string.IsNullOrEmpty(i.IType) && i.IType.ToLower().Contains(search)) ||
+                    (!string.IsNullOrEmpty(i.IStatus) && i.IStatus.ToLower().Contains(search))
+                );
+            }
+
+            var totalCount = items.Count();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            // Apply paging
+            var pagedItems = items
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.TotalCount = totalCount;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.Search = search;
+            ViewBag.PageSize = pageSize;
+
+            return View("~/Views/Admin/History/History.cshtml", pagedItems);
         }
+
 
         private async Task AutoExpireItems()
         {

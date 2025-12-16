@@ -8,10 +8,11 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Icons + Font -->
+    <!-- Font Awesome + Google Fonts -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/admin-function-style.css" />
 
     <style>
@@ -19,6 +20,7 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* Sidebar */
         .sidebar-link {
             transition: background 0.25s, padding-left 0.2s;
         }
@@ -27,12 +29,51 @@
                 background: #f7f7f7;
                 padding-left: 1.8rem;
             }
+
+        .sidebar-dropdown {
+            display: none;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
+        }
+
+            .sidebar-dropdown.show {
+                display: block;
+                max-height: 500px;
+            }
+
+        /* Collapsed Sidebar */
+        .sidebar-collapsed {
+            width: 4rem !important;
+        }
+
+            .sidebar-collapsed .sidebar-text {
+                display: none;
+            }
+
+            .sidebar-collapsed .sidebar-dropdown {
+                display: none !important;
+            }
+
+        .sidebar-toggle-btn {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-collapsed .sidebar-toggle-btn i {
+            transform: rotate(180deg);
+        }
+
+        .rotate-180 {
+            transform: rotate(180deg);
+            transition: transform 0.3s;
+        }
     </style>
 </head>
-
 <body class="bg-gray-100 text-gray-800">
 
     <div class="flex h-screen flex-col">
+
         <!-- TOP NAVBAR -->
         <header class="h-16 border-b flex items-center justify-between px-6 bg-white shadow-sm z-20">
             <div class="text-2xl font-extrabold uppercase tracking-wider text-indigo-600">
@@ -40,17 +81,12 @@
             </div>
 
             <div class="flex items-center gap-6">
-                <form asp-action="Search" asp-controller="Admin" method="get" class="relative">
-                    <input type="text" name="q" placeholder="Search"
-                           class="border rounded-full px-4 py-2 text-sm focus:outline-none w-64 shadow-sm" />
-                    <i class="fas fa-search absolute right-4 top-3 text-gray-400 text-xs"></i>
-                </form>
 
                 <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 shadow-sm">
                     <i class="far fa-user"></i>
                 </div>
 
-                <a asp-controller="Admin" asp-action="Login">
+                <a href="/Admin/Login"
                     <i class="fas fa-sign-out-alt text-xl text-gray-700 hover:text-red-500 transition"></i>
                 </a>
             </div>
@@ -59,54 +95,73 @@
         <div class="flex flex-1 overflow-hidden">
 
             <!-- SIDEBAR -->
-            <aside class="w-64 border-r bg-white flex flex-col shadow-md">
+            <aside id="sidebar" class="w-64 border-r bg-white flex flex-col shadow-md relative transition-all duration-300 ease-in-out">
+
+                <!-- Collapse Button -->
+                <div class="absolute top-4 right-[-16px] w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center sidebar-toggle-btn"
+                     onclick="toggleSidebar()">
+                    <i class="fas fa-angle-left"></i>
+                </div>
+
                 <div class="p-5 border-b flex items-center justify-between font-bold text-sm tracking-wide bg-gray-50">
                     <div class="flex items-center gap-2 text-indigo-600">
-                        <span>ADMIN SIDEBAR</span>
+                        <span class="sidebar-text transition-opacity duration-300">ADMIN SIDEBAR</span>
                         <i class="far fa-user-circle"></i>
                     </div>
                 </div>
 
                 <nav class="flex-1 overflow-y-auto">
-                    <a asp-controller="Admin" asp-action="Dashboard"
-                       class="sidebar-link block px-6 py-4 border-b @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
-                        <i class="fas fa-chart-line mr-2"></i> Dashboard
+
+                    <!-- Dashboard -->
+                    <a href="/Admin/Dashboard"
+                       class="sidebar-link block px-6 py-4 border-b flex items-center gap-2 @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="sidebar-text">Dashboard</span>
                     </a>
 
-                    <a asp-controller="Admin" asp-action="UserManagement"
-                       class="sidebar-link block px-6 py-4 border-b @(ViewContext.RouteData.Values["Controller"]?.ToString() == "UserManagement" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
-                        <i class="fas fa-users mr-2"></i> User Management
+                    <!-- User Management -->
+                    <a href="/Admin/UserManagement"
+                       class="sidebar-link block px-6 py-4 border-b flex items-center gap-2 @(ViewContext.RouteData.Values["Action"]?.ToString() == "UserManagement" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                        <i class="fas fa-users"></i>
+                        <span class="sidebar-text">User Management</span>
                     </a>
 
-                    <!-- ITEM DROPDOWN -->
+                    <!-- Item Management Dropdown -->
                     <div class="border-b">
-                        <div onclick="this.nextElementSibling.classList.toggle('hidden')"
+                        <div onclick="toggleDropdown(this)"
                              class="px-6 py-4 hover:bg-gray-50 cursor-pointer flex justify-between items-center">
                             <span class="flex items-center gap-2">
-                                <i class="fas fa-box-open"></i> Item Management
+                                <i class="fas fa-box-open"></i> <span class="sidebar-text">Item Management</span>
                             </span>
                             <i class="fas fa-caret-down text-xs"></i>
                         </div>
 
-                        <div class="hidden bg-gray-50 text-sm">
-                            <a asp-controller="Admin" asp-action="LostItem" class="sidebar-link block pl-10 pr-6 py-3 border-t">
-                                Lost Items
+                        <div class="sidebar-dropdown bg-gray-50 text-sm">
+                            <a href="/Admin/LostItem"
+                               class="sidebar-link block pl-10 pr-6 py-3 border-t @(ViewContext.RouteData.Values["Action"]?.ToString() == "LostItem" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                                <span class="sidebar-text">Lost Items</span>
                             </a>
-                            <a asp-controller="Admin" asp-action="FoundItem" class="sidebar-link block pl-10 pr-6 py-3 border-t">
-                                Found Items
+                            <a href="/Admin/FoundItem"
+                               class="sidebar-link block pl-10 pr-6 py-3 border-t @(ViewContext.RouteData.Values["Action"]?.ToString() == "FoundItem" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                                <span class="sidebar-text">Found Items</span>
                             </a>
                         </div>
                     </div>
 
-                    <a asp-controller="Admin" asp-action="PostManagement"
-                       class="sidebar-link block px-6 py-4 border-b">
-                        <i class="fas fa-edit mr-2"></i> Post Management
+                    <!-- Post Management -->
+                    <a href="/Admin/PostManagement"
+                       class="sidebar-link block px-6 py-4 border-b flex items-center gap-2 @(ViewContext.RouteData.Values["Action"]?.ToString() == "PostManagement" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                        <i class="fas fa-edit"></i>
+                        <span class="sidebar-text">Post Management</span>
                     </a>
 
-                    <a asp-controller="Admin" asp-action="History"
-                       class="sidebar-link block px-6 py-4 border-b">
-                        <i class="fas fa-history mr-2"></i> History (Item)
+                    <!-- History -->
+                    <a href="/Admin/History"
+                       class="sidebar-link block px-6 py-4 border-b flex items-center gap-2 @(ViewContext.RouteData.Values["Action"]?.ToString() == "History" ? "bg-gray-100 font-semibold text-indigo-600" : "")">
+                        <i class="fas fa-history"></i>
+                        <span class="sidebar-text">History (Item)</span>
                     </a>
+
                 </nav>
             </aside>
 
@@ -120,6 +175,32 @@
         </div>
     </div>
 
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-collapsed');
+
+            // Rotate toggle icon
+            const icon = sidebar.querySelector('.sidebar-toggle-btn i');
+            icon.classList.toggle('rotate-180');
+        }
+
+        function toggleDropdown(element) {
+            const dropdown = element.nextElementSibling;
+            dropdown.classList.toggle('show');
+
+            if(dropdown.classList.contains('show')){
+                dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+            } else {
+                dropdown.style.maxHeight = "0";
+            }
+
+            const caret = element.querySelector('.fa-caret-down');
+            caret.classList.toggle('rotate-180');
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>
