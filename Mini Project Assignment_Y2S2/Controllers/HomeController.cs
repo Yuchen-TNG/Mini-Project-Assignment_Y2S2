@@ -235,12 +235,6 @@
                 Google.Cloud.Firestore.Query queryUser = collectionUser.WhereEqualTo("UserID", item.UserID);
                 QuerySnapshot snapshotsUser = await queryUser.GetSnapshotAsync();
 
-                if (snapshotsUser.Documents == null)
-                {
-                    TempData["Error"] = "Can't find your UserID, please register again";
-                    return RedirectToAction("Index");
-                }
-
                 var userDoc = snapshotsUser.Documents[0];
                 user = new User
                 {
@@ -378,7 +372,6 @@
                     UserID = userId,
                     CreatedAt = Timestamp.GetCurrentTimestamp(),
                     IStatus = "PENDING"
-                    CreatedAt = Timestamp.GetCurrentTimestamp(),
                     LocationFound=item.LocationFound
                 });
 

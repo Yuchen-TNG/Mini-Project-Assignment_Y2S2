@@ -289,7 +289,12 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
         public IActionResult UserManagement()
         {
-            return View("~/Views/Admin/UserManagement/Index.cshtml");
+            return View("UserManagement/Index.cshtml");
+        }
+
+        public IActionResult PostManagement()
+        {
+            return View("~/Views/Admin/PostManagement/Index.cshtml");
         }
 
         #endregion

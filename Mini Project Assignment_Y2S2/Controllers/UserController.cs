@@ -603,6 +603,16 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         public async Task<IActionResult> MyPostDetails(int itemId)
         {
+            var collection = _firestore.Collection("Items");
+            Google.Cloud.Firestore.Query query = collection.WhereEqualTo("ItemID", itemId);
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+            if (snapshot.Documents.Count == 0)
+                return NotFound();
+
+            var item = MapToItem(snapshot.Documents[0]);
+
+
 
             User user = null;
             var collectionUser = _firestore.Collection("Users");
@@ -624,14 +634,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 UserID = userDoc.GetValue<string>("UserID")
             };
 
-            var collection = _firestore.Collection("Items");
-            Google.Cloud.Firestore.Query query = collection.WhereEqualTo("ItemID", itemId);
-            QuerySnapshot snapshot = await query.GetSnapshotAsync();
-
-            if (snapshot.Documents.Count == 0)
-                return NotFound();
-
-            var item = MapToItem(snapshot.Documents[0]);
+           
 
             var locationCollection = _firestore.Collection("Location");
             Google.Cloud.Firestore.Query locationQuery = locationCollection.WhereEqualTo("LocationID", item.LocationID);
