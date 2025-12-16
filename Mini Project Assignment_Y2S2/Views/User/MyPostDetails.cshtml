@@ -1,81 +1,130 @@
 ﻿@model Mini_Project_Assignment_Y2S2.Models.CardDetailsViewModel
 
 @{
-    ViewData["Title"] = "MyPostDetails";
+    ViewData["Title"] = "My Post Details";
 }
 
 <link rel="stylesheet" href="~/css/cardDetails.css" asp-append-version="true" />
-
 <div class="parent">
-    <a class="back" href="@Url.Action("Index", "Home")">Back</a>
+
+    <div class="top-actions" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <!-- Back button -->
+        <a class="back" href="@Url.Action("MyPost", "User")">Back</a>
+
+        <!-- Owner Actions (Edit / Mark Claimed) -->
+        <div class="owner-actions" style="display:flex; gap:10px; align-items:center;">
+            <a class="btn-edit"
+               asp-action="EditPost"
+               asp-controller="User"
+               asp-route-itemId="@Model.Item.ItemID">
+                ✏ Edit
+            </a>
+
+            @if (!Model.IsClaimed)
+            {
+                <form asp-action="MarkClaimed"
+                      asp-controller="User"
+                      method="post"
+                      onsubmit="return confirm('Mark this item as CLAIMED?');"
+                      style="margin:0;">
+                    <input type="hidden" name="itemId" value="@Model.Item.ItemID" />
+                    <button type="submit" class="btn-claimed">
+                        ✔ Claimed
+                    </button>
+                </form>
+            }
+            else
+            {
+                <span class="claimed-badge">🏁 CLAIMED</span>
+            }
+        </div>
+    </div>
 
     <div class="CardDetails">
 
+        <!-- ================= TOP SECTION ================= -->
         <div class="topDetails">
-            <!-- 图片轮播 -->
+
+            <!-- 🖼 IMAGE CAROUSEL -->
             <div class="image">
                 <div class="carousel-container">
 
-                    @if (Model.Item.Images != null && Model.Item.Images.Count > 0)
+                    @if (Model.Item.Images != null && Model.Item.Images.Any())
                     {
-                        <img id="carouselImage" src="@Model.Item.Images[0]" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />
+                        <img id="carouselImage"
+                             src="@Model.Item.Images[0]"
+                             style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />
+
                         @if (Model.Item.Images.Count > 1)
                         {
-                            <button id="prevBtn" style="position:absolute; top:50%; left:0; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; padding:5px;">&#10094;</button>
-                            <button id="nextBtn" style="position:absolute; top:50%; right:0; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; padding:5px;">&#10095;</button>
+                            <button id="prevBtn" class="carousel-btn prev">&#10094;</button>
+                            <button id="nextBtn" class="carousel-btn next">&#10095;</button>
                         }
                     }
                     else
                     {
-                        <img src="/images/default.png" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />
+                        <img src="/images/default.png"
+                             style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />
                     }
                 </div>
             </div>
 
-            <!-- 用户详情，这里改成动态绑定，如果有对应字段的话 -->
+            <!-- 👤 USER DETAILS -->
             <div class="userDetails">
                 <p class="UserDetails">User Details</p>
 
                 <p class="label">Name</p>
-                <p class="text">Tan Kai Zhen</p>
+                <p class="text">@Model.User.Name</p>
 
                 <p class="label">Contact Number</p>
-                <p class="text">011-999 9999</p>
+                <p class="text">@Model.User.PhoneNumber</p>
 
                 <p class="label">Email</p>
-                <p class="text">people@gmail.com</p>
+                <p class="text">@Model.User.Email</p>
 
                 <p class="label">Item Keep At</p>
-                <p class="text">Home</p>
+                <p class="text">@Model.Location.LocationName</p>
             </div>
 
         </div>
 
-        <!-- 物品详情 -->
+       
+
+        <!-- ================= BOTTOM DETAILS ================= -->
         <div class="bottomDetails">
+
             <div class="bottomDetails-left">
+
                 <div class="bottomDetails-left2">
-                    <p class="label">Found Date</p>
+                    <p class="label">Date</p>
                     <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+
                     <p class="label">Type</p>
                     <p class="text">@Model.Item.IType</p>
+
+                    <p class="label">Category</p>
+                    <p class="text">@Model.Item.Category</p>
                 </div>
+
                 <div class="bottomDetails-right2">
-                    <p class="label">Found At</p>
-                    <p class="text">@Model.Location.LocationName</p>
+                    <p class="label">Location</p>
+                    <p class="text">@Model.Item.LocationFound</p>
                 </div>
+
             </div>
+
             <div class="bottomDetails-right">
                 <p class="label">Description</p>
                 <p class="text">@Model.Item.Idescription</p>
             </div>
+
         </div>
 
     </div>
 </div>
 
+<!-- ================= IMAGE CAROUSEL SCRIPT ================= -->
 <script>
-    // 图片轮播
     let images = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Item.Images ?? new List<string>()));
     let currentIndex = 0;
 

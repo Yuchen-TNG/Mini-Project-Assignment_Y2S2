@@ -48,7 +48,6 @@
 
     </div>
 
-    <!-- MIDDLE LINE -->
     <div class="middle-line"></div>
 
     <!-- 🔹 RIGHT CONTENT -->
@@ -69,10 +68,41 @@
 
             <div class="cardparent">
 
-                @foreach (@Model.Item)
+                @if (!Model.Any())
                 {
-                    
+                    <p class="not_available">No items found.</p>
                 }
+                else
+                {
+                    foreach (var doc in Model)
+                    {
+                        var name = doc.GetValue<string>("IName");
+                        var category = doc.GetValue<string>("Category");
+                        var date = doc.GetValue<DateTime>("Date").ToString("dd MMM yyyy");
+                        var images = doc.ContainsField("Images")
+                        ? doc.GetValue<List<string>>("Images")
+                        : new List<string>();
+
+                        var imageUrl = images.Any()
+                        ? images[0]
+                        : Url.Content("~/images/no-image.png");
+
+                        var itemId = doc.GetValue<long>("ItemID");
+
+                        <a href="@Url.Action("MyPostDetails", "User", new { itemId = itemId })">
+                            <div class="card">
+                                <img src="@imageUrl" class="card-img" />
+
+                                <div class="card-details">
+                                    <p class="category">@category</p>
+                                    <p><strong>@name</strong></p>
+                                    <p>@date</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
             </div>
 
         </div>
@@ -80,4 +110,4 @@
     </div>
 
 </div>
-<script src="~/js/mypost.js" asp-append-version="true"> </script>
+<script src="~/js/index.js" asp-append-version="true"> </script>
