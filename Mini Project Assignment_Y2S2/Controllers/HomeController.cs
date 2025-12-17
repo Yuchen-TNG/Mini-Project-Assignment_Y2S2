@@ -327,7 +327,7 @@
             {
                 // 验证每个图片的大小和类型
                 var maxSize = 5 * 1024 * 1024; // 5MB
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"};
 
                 foreach (var file in item.ImageFiles)
                 {
