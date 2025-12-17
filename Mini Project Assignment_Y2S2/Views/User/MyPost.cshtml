@@ -304,8 +304,8 @@
             {
                 foreach (var doc in Model)
                 {
-                    var name = doc.GetValue<string>("IName");
                     var category = doc.GetValue<string>("Category");
+                    var type = doc.GetValue<string>("IType");
                     var date = doc.GetValue<DateTime>("Date").ToString("dd MMM yyyy");
                     var images = doc.ContainsField("Images")
                     ? doc.GetValue<List<string>>("Images")
@@ -363,7 +363,7 @@
 
                                 <div class="card-details">
                                     <p class="category">@category</p>
-                                    <p class="item-name"><strong>@name</strong></p>
+                                    <p class="item-type">@type</p>
                                     <p class="item-date">@date</p>
                                      <form asp-action="DeletePost" asp-controller="User" method="post"
                       onsubmit="return confirm('Delete this post?');"
