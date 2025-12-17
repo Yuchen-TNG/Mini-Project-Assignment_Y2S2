@@ -126,12 +126,13 @@ html, body {
 
 .bottomDetails-left2 {
     width: 45%;
-    border-right: 3px solid black;
+    padding-right:15px;
 }
 
 .bottomDetails-right2 {
     width: 55%;
     padding-left: 20px;
+    border-left: 3px solid black;
 }
 
 /* 底部右侧：描述 */

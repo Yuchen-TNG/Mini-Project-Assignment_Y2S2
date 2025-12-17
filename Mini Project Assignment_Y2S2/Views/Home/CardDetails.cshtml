@@ -47,7 +47,13 @@
                 <p class="text">@Model.User.Email</p>
 
                 <p class="label">Item Keep At</p>
-                <p class="text">@Model.Location.LocationName</p>
+                @if (@Model.Location.LocationName=="Other"){
+                    <p class="text">@Model.Item.LocationOther</p>
+                }
+                else
+                {
+                    <p class="text">@Model.Location.LocationName</p>
+                }
             </div>
 
         </div>
@@ -56,15 +62,28 @@
         <div class="bottomDetails">
             <div class="bottomDetails-left">
                 <div class="bottomDetails-left2">
-                    <p class="label">Found Date</p>
+
+                    @if (Model.Item.Category == "LOSTITEM"){
+                    <p class="label">Lost Date</p>
                     <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+                    }
+                    @if (Model.Item.Category == "FOUNDITEM")
+                    {
+                        <p class="label">Found Date</p>
+                        <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+                    }
+
                     <p class="label">Type</p>
                     <p class="text">@Model.Item.IType</p>
                 </div>
-                <div class="bottomDetails-right2">
-                    <p class="label">Found At</p>
+                @if (Model.Item.Category == "FOUNDITEM")
+                {
+                    <div class="bottomDetails-right2">
+                        <p class="label">Found At</p>
                     <p class="text">@Model.Item.LocationFound</p>
                 </div>
+                }
+
             </div>
             <div class="bottomDetails-right">
                 <p class="label">Description</p>

@@ -26,6 +26,7 @@
                 {
                     ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
                     LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                    LocationOther=doc.ContainsField("LocationOther")? doc.GetValue<string>("LocationOther"):null,
                     Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
                     IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
                     IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
