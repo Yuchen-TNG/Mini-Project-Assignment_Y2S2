@@ -79,12 +79,14 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 if (!string.IsNullOrEmpty(search))
                 {
-                    search = search.ToLower();
+                    search = search.Trim().ToLower();
+
                     users = users.Where(u =>
-                        u.Name.ToLower().Contains(search) ||
-                        u.Email.ToLower().Contains(search) ||
-                        u.UserID.Contains(search));
+                        (!string.IsNullOrEmpty(u.Name) && u.Name.ToLower().Contains(search)) ||
+                        (!string.IsNullOrEmpty(u.Email) && u.Email.ToLower().Contains(search)) 
+                    );
                 }
+
 
                 int totalCount = users.Count();
                 var pagedUsers = users
