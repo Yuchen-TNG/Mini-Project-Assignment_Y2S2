@@ -1,11 +1,9 @@
 ﻿using Google.Api.Gax.ResourceNames;
 using Google.Cloud.Firestore;
-using Google.Cloud.Firestore;
 using Google.Cloud.Firestore.V1;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
-using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Services;
 using System;
@@ -107,9 +105,14 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 ViewBag.Error = error;
                 return View("Login/Login");
             }
-        
 
-        var user = snapshot.Documents[0].ConvertTo<User>();
+            var user = snapshot.Documents[0].ConvertTo<User>();
+
+            if (user.IsArchived)
+            {
+                ViewBag.Error = "Your account has been archived. Please contact the administrator for assistance.";
+                return View("Login/Login");
+            }
 
             // ❌ Not admin
             if (user.Role != "Admin")
@@ -144,7 +147,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             {
                 ViewBag.Error = "Email is required";
                 return View("Login/ForgotPassword");
-                }
+            }
 
             // 🔍 Find admin in Users table
             Query query = firestoreDb.Collection("Users")
@@ -155,17 +158,16 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
 
             if (snapshot.Count == 0)
-                {
+            {
                 ViewBag.Error = "Admin email not found";
                 return View("Login/ForgotPassword");
-                }
+            }
 
             // ✅ Generate OTP
             string otp = new Random().Next(100000, 999999).ToString();
 
             HttpContext.Session.SetString("AdminResetEmail", email);
             HttpContext.Session.SetString("AdminResetOtp", otp);
-
 
             // 📧 Send OTP email
             MailMessage mail = new MailMessage();
@@ -175,23 +177,23 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             mail.Body = $"Your OTP is: {otp}";
 
             SmtpClient smtp = new SmtpClient("smtp.gmail.com")
-                {
+            {
                 Port = 587,
-                    EnableSsl = true,
+                EnableSsl = true,
                 Credentials = new NetworkCredential(
                     "example.notification123@gmail.com",
                     "rwbjrhmkrorbbrpe"
                 )
-                };
+            };
 
-                await smtp.SendMailAsync(mail);
+            await smtp.SendMailAsync(mail);
 
             return RedirectToAction("ConfirmOtp");
-            }
+        }
 
         [HttpGet]
         public IActionResult ConfirmOtp()
-            {
+        {
             return View("Login/ConfirmOtp");
         }
 
@@ -221,7 +223,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             string email = HttpContext.Session.GetString("AdminResetEmail");
 
             if (string.IsNullOrEmpty(email))
-        {
+            {
                 return RedirectToAction("ForgotPassword");
             }
 
@@ -255,7 +257,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View("Login/ConfirmOtp");
         }
 
-
         [HttpGet]
         public IActionResult ResetPassword()
         {
@@ -286,14 +287,14 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             {
                 ViewBag.Error = "User not found";
                 return View("Login/ResetPassword", model);
-        }
+            }
 
             var docRef = snapshot.Documents[0].Reference;
             var user = snapshot.Documents[0].ConvertTo<User>();
 
             // ❌ Prevent resetting to current password
             if (PasswordHelper.VerifyPassword(user.PasswordHash, model.NewPassword?.Trim()))
-        {
+            {
                 ModelState.AddModelError("NewPassword", "New password cannot be the same as the current password");
                 return View("Login/ResetPassword", model);
             }
@@ -307,8 +308,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             TempData["Success"] = "Password reset successfully. Please login.";
             return RedirectToAction("Login");
         }
-
-
 
         public async Task<IActionResult> Dashboard()
         {
@@ -430,8 +429,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return View(pagedItems);
         }
 
-
-
         public async Task<IActionResult> FoundItem(string? locationName, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 8)
         {
             var baseQuery = firestoreDb.Collection("Items")
@@ -506,8 +503,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             return View(pagedItems);
         }
-
-
 
         // Details
         public async Task<IActionResult> LostItemDetails(int itemId)
@@ -650,8 +645,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return RedirectToAction("FoundItem");
         }
 
-
-
         #endregion
 
         #region History & Status Management
@@ -708,6 +701,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             return View("~/Views/Admin/History/History.cshtml", pagedItems);
         }
+
 
 
         private async Task AutoExpireItems()
@@ -777,7 +771,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return RedirectToAction("History", new { itemId = itemId });
         }
 
-
         public async Task<IActionResult> ViewHistory(int itemId)
         {
             var snapshot = await firestoreDb.Collection("ItemHistory")
@@ -802,4 +795,3 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         #endregion
     }
 }
-
