@@ -46,7 +46,13 @@
                 <img src="@item.Images[0]" class="w-full h-32 object-cover rounded mt-2" />
             }
 
-            <a asp-action="LostItemDetail" asp-route-itemId="@item.ItemID" class="text-indigo-600 hover:underline mt-2 block">View Details</a>
+            <a asp-action="LostItemDetails" asp-route-itemId="@item.ItemID" class="text-indigo-600 hover:underline mt-2 block">View Details</a>
+
+            <!-- Delete button -->
+            <form asp-action="DeleteLostItem" method="post" class="mt-2" onsubmit="return confirm('Are you sure to delete this item?');">
+                <input type="hidden" name="itemId" value="@item.ItemID" />
+                <button type="submit" class="text-red-600 hover:underline">Delete</button>
+            </form>
         </div>
     }
 </div>

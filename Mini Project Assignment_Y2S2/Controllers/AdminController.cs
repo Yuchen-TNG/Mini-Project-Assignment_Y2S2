@@ -45,7 +45,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                 LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>()
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
+                IStatus = doc.ContainsField("IStatus")? doc.GetValue<string>("IStatus"): "Approved"
             };
         }
 
@@ -329,7 +330,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             // 🔍 Base query
             var query = firestoreDb.Collection("Items")
                 .WhereEqualTo("Category", "LOSTITEM")
-                .OrderByDescending("Date"); // requires composite index for combined filters + order
+                .WhereEqualTo("IStatus", "Approved")   // ✅ USE IStatus
+                .OrderByDescending("Date");
 
             // Filter by location
             if (!string.IsNullOrEmpty(locationID))
@@ -371,6 +373,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             // 🔍 Base query
             var query = firestoreDb.Collection("Items")
                 .WhereEqualTo("Category", "FOUNDITEM")
+                .WhereEqualTo("IStatus", "Approved")   // ✅ USE IStatus
                 .OrderByDescending("Date"); // requires composite index for combined filters + order
 
             // Filter by location
@@ -408,32 +411,123 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
 
 
-        public async Task<IActionResult> LostItemDetail(int itemId)
+        public async Task<IActionResult> LostItemDetails(int itemId)
         {
-            var snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+            var snapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("ItemID", itemId)
+                .Limit(1)
+                .GetSnapshotAsync();
 
-            var doc = snapshot.Documents.FirstOrDefault(d =>
-                d.ContainsField("ItemID") && d.GetValue<int>("ItemID") == itemId);
+            if (!snapshot.Documents.Any())
+                return NotFound();
 
-            if (doc == null) return NotFound();
+            var item = MapToItem(snapshot.Documents.First());
 
-            var item = MapToItem(doc);
-            return View(item);
+            return View("~/Views/Admin/LostItemDetails.cshtml", item);
         }
 
 
-        public async Task<IActionResult> FoundItemDetail(int itemId)
+
+        public async Task<IActionResult> FoundItemDetails(int itemId)
         {
-            var snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+            var snapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("ItemID", itemId)
+                .Limit(1)
+                .GetSnapshotAsync();
 
-            var doc = snapshot.Documents.FirstOrDefault(d =>
-                d.ContainsField("ItemID") && d.GetValue<int>("ItemID") == itemId);
+            if (!snapshot.Documents.Any())
+                return NotFound();
 
-            if (doc == null) return NotFound();
+            var item = MapToItem(snapshot.Documents.First());
 
-            var item = MapToItem(doc);
-            return View(item);
+            return View("~/Views/Admin/FoundItemDetails.cshtml", item);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteLostItem(int itemId)
+        {
+            try
+            {
+                var snapshot = await firestoreDb.Collection("Items")
+                    .WhereEqualTo("ItemID", itemId)
+                    .WhereEqualTo("Category", "LOSTITEM")
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (!snapshot.Documents.Any())
+                {
+                    TempData["Error"] = "Lost item not found.";
+                    return RedirectToAction("LostItem");
+                }
+
+                var doc = snapshot.Documents.First();
+
+                // Add to history
+                await firestoreDb.Collection("ItemHistory").AddAsync(new
+                {
+                    ItemID = itemId,
+                    OldStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "UNKNOWN",
+                    NewStatus = "DELETED",
+                    ChangedBy = "ADMIN",
+                    ChangedAt = Timestamp.GetCurrentTimestamp()
+                });
+
+                // Delete
+                await doc.Reference.DeleteAsync();
+
+                TempData["Success"] = "Lost item deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Failed to delete lost item: {ex.Message}";
+            }
+
+            return RedirectToAction("LostItem");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteFoundItem(int itemId)
+        {
+            try
+            {
+                var snapshot = await firestoreDb.Collection("Items")
+                    .WhereEqualTo("ItemID", itemId)
+                    .WhereEqualTo("Category", "FOUNDITEM")
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (!snapshot.Documents.Any())
+                {
+                    TempData["Error"] = "Found item not found.";
+                    return RedirectToAction("FoundItem");
+                }
+
+                var doc = snapshot.Documents.First();
+
+                // Add to history
+                await firestoreDb.Collection("ItemHistory").AddAsync(new
+                {
+                    ItemID = itemId,
+                    OldStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "UNKNOWN",
+                    NewStatus = "DELETED",
+                    ChangedBy = "ADMIN",
+                    ChangedAt = Timestamp.GetCurrentTimestamp()
+                });
+
+                // Delete
+                await doc.Reference.DeleteAsync();
+
+                TempData["Success"] = "Found item deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Failed to delete found item: {ex.Message}";
+            }
+
+            return RedirectToAction("FoundItem");
+        }
+
+
 
         #endregion
 
