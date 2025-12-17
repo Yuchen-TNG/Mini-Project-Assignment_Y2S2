@@ -32,6 +32,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         {
             string errorMessage = "Invalid User ID or Password";
 
+
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(password))
             {
                 ViewBag.Error = errorMessage;
@@ -48,7 +49,16 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return View();
             }
 
-            var user = snapshot.ConvertTo<User>();
+            var user = new User
+            {
+                UserID = snapshot.GetValue<string>("UserID"),
+                Name = snapshot.GetValue<string>("Name"),
+                Email = snapshot.GetValue<string>("Email"),
+                PhoneNumber = snapshot.GetValue<string>("PhoneNumber"),
+                PasswordHash = snapshot.GetValue<string>("PasswordHash"),
+                Role = snapshot.GetValue<string>("Role"),
+                IsArchived = snapshot.GetValue<bool>("IsArchived") // 明确指定类型
+            };
 
             if (!PasswordHelper.VerifyPassword(user.PasswordHash, password))
             {
@@ -60,7 +70,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             if (user.IsArchived)
             {
                 ViewBag.Error =
-                    "Your account has been archived. Please contact the administrator for assistance.";
+                    "Your account has been archived. Please contact example.notification123@gmail.com for assistance.";
                 return View();
             }
 
