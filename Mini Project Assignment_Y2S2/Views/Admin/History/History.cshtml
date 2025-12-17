@@ -4,44 +4,61 @@
 }
 @model List<Item>
 
-<h2 class="text-2xl font-bold mb-4">Admin Item Management</h2>
+<h2 class="text-2xl font-bold mb-4">History Management</h2>
 
+<!-- Search Form -->
+<form method="get" asp-action="History" class="mb-4 flex items-center gap-2">
+    <input type="text" name="search" placeholder="Search by ID, Name, Status"
+           value="@ViewBag.Search"
+           class="border rounded px-2 py-1 w-64" />
+    <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded">Search</button>
+    <!-- Reset button -->
+    <a href="@Url.Action("History")"
+       class="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500">Reset</a>
+</form>
+
+<!-- Total Count -->
+<p class="mb-2 font-medium">Total Items: <span class="text-blue-600">@ViewBag.TotalCount</span></p>
+
+<!-- Item Table -->
 <table class="table-auto w-full border">
     <thead>
         <tr class="bg-gray-200">
-            <th>ID</th>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th>Action</th>
-            <th>History</th>
+            <th class="px-2 py-1 border">ID</th>
+            <th class="px-2 py-1 border">Name</th>
+            <th class="px-2 py-1 border">Status</th>
+            <th class="px-2 py-1 border">Date</th>
+            <th class="px-2 py-1 border">Action</th>
+            <th class="px-2 py-1 border">History</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
-            <tr class="border">
-                <td>@item.ItemID</td>
-                <td>@item.IName</td>
-                <td>@item.IStatus</td>
-                <td>@item.Date.ToShortDateString()</td>
+            <tr class="border hover:bg-gray-100">
+                <td class="px-3 py-1 border">@item.ItemID</td>
+                <td class="px-15 py-2 border">@item.IName</td>
+                <td class="px-10 py-2 border">@item.IStatus</td>
+                <td class="px-10 py-2 border">@item.Date.ToShortDateString()</td>
 
-                <td>
+                <td class="px-10 py-2 border">
                     @if (item.IStatus != "EXPIRED")
                     {
-                        <form asp-action="ChangeStatus" method="post">
+                        <form asp-action="ChangeStatus" method="post" class="flex items-center gap-2">
                             <input type="hidden" name="itemId" value="@item.ItemID" />
-                            <select name="newStatus">
-                                <option value="ACTIVE">ACTIVE</option>
+                            <select name="newStatus" class="border rounded px-1 py-0.5">
+                                <option value="PENDING">PENDING</option>
+                                <option value="APPROVED">APPROVED</option>
+                                <option value="REJECTED">REJECTED</option>
                                 <option value="CLAIMED">CLAIMED</option>
                                 <option value="EXPIRED">EXPIRED</option>
                             </select>
-                            <button class="bg-blue-500 text-white px-2">Update</button>
+                            <button class="bg-blue-500 text-white px-2 py-1 rounded">Update</button>
                         </form>
                     }
                 </td>
 
-                <td>
+                <td class="px-10 py-2 border">
                     <a asp-action="ViewHistory" asp-route-itemId="@item.ItemID"
                        class="text-blue-600 underline">View</a>
                 </td>
@@ -49,3 +66,29 @@
         }
     </tbody>
 </table>
+
+<!-- Pagination -->
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="mt-4 flex gap-2">
+        @if (ViewBag.CurrentPage > 1)
+        {
+            <a href="@Url.Action("History", new { search = ViewBag.Search, page = ViewBag.CurrentPage - 1 })"
+               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
+        }
+
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <a href="@Url.Action("History", new { search = ViewBag.Search, page = i })"
+               class="px-3 py-1 rounded @(i == ViewBag.CurrentPage ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300")">
+                @i
+            </a>
+        }
+
+        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+        {
+            <a href="@Url.Action("History", new { search = ViewBag.Search, page = ViewBag.CurrentPage + 1 })"
+               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+        }
+    </div>
+}

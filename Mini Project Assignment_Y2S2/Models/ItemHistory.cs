@@ -5,4 +5,5 @@
     public string NewStatus { get; set; }
     public string ChangedBy { get; set; }
     public DateTime ChangedAt { get; set; }
+
 }

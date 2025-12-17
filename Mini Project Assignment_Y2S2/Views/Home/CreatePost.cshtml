@@ -166,9 +166,23 @@
         margin-left: 10px;
     }
 
+    .back {
+        height: 40px;
+        width: 70px;
+        font-size: 20px;
+        background-color: #FF9500;
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 10px;
+        color: black;
+    }
+
 </style>
 
 <div class="post-container">
+    <a class="back" href="@Url.Action("Index", "Home")">Back</a>
     <div class="post-title">POST FOR LOST ITEM</div>
 
     <form asp-action="CreatePost"
@@ -223,11 +237,15 @@
                     <input type="text" name="OtherLocation" class="form-control" />
                 </div>
 
-                <label>Found At (Location)</label>
+                @if (ViewBag.Category == "FOUNDITEM"){
+                <label asp-for="LocationFound">Found At (Location)</label>
                 <input type="text"
                        class="form-control"
                        asp-for="LocationFound" />
+                    <span asp-validation-for="LocationFound" class="text-danger"></span>
+                }
 
+                
                 <label>Posted By (User ID)</label>
                 <input type="text"
                        class="form-control"
@@ -371,4 +389,4 @@
 
 
 
-}
+

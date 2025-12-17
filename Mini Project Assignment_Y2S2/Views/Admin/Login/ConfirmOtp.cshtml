@@ -1,50 +1,47 @@
 ﻿@{
     ViewData["Title"] = "Confirm OTP";
-    Layout = null;
+    Layout = "~/Views/Shared/_AdminForgotLayout.cshtml";
 }
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
+<div class="bg-white p-8 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold mb-6 text-indigo-600 text-center">Confirm OTP</h2>
 
-        <h4 class="text-center mb-4">Confirm OTP</h4>
+    <!-- OTP Verification Form -->
+    <form asp-action="ConfirmOtp" method="post" class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium mb-1" for="otp">Enter OTP</label>
+            <input type="text"
+                   name="otp"
+                   id="otp"
+                   placeholder="6-digit OTP"
+                   required
+                   class="w-full border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
 
-        <!-- OTP Verification Form -->
-        <form asp-action="ConfirmOtp" method="post">
-            <div class="form-group mb-3">
-                <label for="otp">Enter OTP</label>
-                <input type="text"
-                       name="otp"
-                       id="otp"
-                       class="form-control"
-                       placeholder="6-digit OTP"
-                       required />
-            </div>
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+            <p class="text-red-500 text-sm">@ViewBag.Error</p>
+        }
 
-            @if (ViewBag.Error != null)
-            {
-                <div class="text-danger mb-3">
-                    @ViewBag.Error
-                </div>
-            }
+        @if (!string.IsNullOrEmpty(ViewBag.Success))
+        {
+            <p class="text-green-500 text-sm">@ViewBag.Success</p>
+        }
 
-            @if (ViewBag.Success != null)
-            {
-                <div class="text-success mb-3">
-                    @ViewBag.Success
-                </div>
-            }
+        <button type="submit"
+                class="w-full bg-indigo-600 text-white font-semibold py-2 rounded-md hover:bg-indigo-700 transition">
+            Verify OTP
+        </button>
+    </form>
 
-            <button type="submit" class="btn btn-primary w-100">
-                Verify OTP
-            </button>
-        </form>
+    <!-- Resend OTP Form -->
+    <form asp-action="ResendOtp" method="post" class="text-center mt-3">
+        <button type="submit" class="text-indigo-600 hover:underline">
+            Resend OTP
+        </button>
+    </form>
 
-        <!-- Resend OTP Form -->
-        <form asp-action="ResendOtp" method="post" class="text-center mt-3">
-            <button type="submit" class="btn btn-link text-decoration-none">
-                Resend OTP
-            </button>
-        </form>
-
+    <div class="text-center mt-4">
+        <a href="/Admin/Login" class="text-indigo-600 hover:underline">Back to Login</a>
     </div>
 </div>

@@ -56,6 +56,14 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return View();
             }
 
+            // for archived account
+            if (user.IsArchived)
+            {
+                ViewBag.Error =
+                    "Your account has been archived. Please contact the administrator for assistance.";
+                return View();
+            }
+
             HttpContext.Session.SetString("CurrentCategory", "LOSTITEM");
             // Store session
             HttpContext.Session.SetString("UserId", userId);

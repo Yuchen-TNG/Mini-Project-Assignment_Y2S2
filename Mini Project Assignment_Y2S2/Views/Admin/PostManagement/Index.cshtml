@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Mini_Project_Assignment_Y2S2.Models.Post>
+﻿@model IEnumerable<Mini_Project_Assignment_Y2S2.Models.Item>
 
 @{
     ViewData["Title"] = "Post Management";
@@ -7,7 +7,7 @@
 
 <div class="mb-6">
     <h2 class="text-xl font-bold">Post Management</h2>
-    <p class="text-gray-400 text-sm">Verify Posts - Pending Approval</p>
+    <p class="text-gray-400 text-sm">Verify Post - Pending Approval</p>
 </div>
 
 @if (TempData["Success"] != null)
@@ -24,74 +24,250 @@
     </div>
 }
 
-<div class="space-y-6">
-    @if (Model != null && Model.Any())
-    {
-        @foreach (var item in Model)
-        {
-            <div class="bg-gray-200 rounded-lg p-4 flex gap-6 shadow-sm">
-
-                <div class="w-40 h-40 bg-gray-300 rounded flex items-center justify-center shrink-0 overflow-hidden">
-                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                    {
-                        <img src="@item.ImageUrl" alt="Post Image" class="w-full h-full object-cover" />
-                    }
-                    else
-                    {
-                        <i class="far fa-image text-4xl text-gray-400"></i>
-                    }
-                </div>
-
-                <div class="flex-1 py-2 flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-lg">@item.Title</h3>
-                            <div class="flex gap-2 items-center">
-                                <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-white text-gray-600">
-                                    @item.PostType
-                                </span>
-                                @* Display status with black color for pending *@
-                                <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-gray-100 text-black">
-                                    @item.Status
-                                </span>
-                            </div>
-                        </div>
-
-                        <p class="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-3">
-                            @item.Description
-                        </p>
-
-                        <p class="text-xs text-gray-400 mb-2">
-                            Posted by: <span class="font-medium">@item.UserName</span>
-                        </p>
-
-                        <p class="text-xs text-gray-400 mb-4">
-                            Posted on: @item.DatePosted.ToString("dd MMM yyyy, hh:mm tt")
-                        </p>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <form asp-controller="PostManagement" asp-action="Approve" asp-route-id="@item.Id" method="post">
-                            <button type="submit" class="bg-[#b9f6ca] text-green-900 px-6 py-1.5 rounded shadow-sm hover:bg-green-300 font-medium transition">
-                                Approve
-                            </button>
-                        </form>
-
-                        <form asp-controller="PostManagement" asp-action="Reject" asp-route-id="@item.Id" method="post">
-                            <button type="submit" class="bg-[#f8bbd0] text-pink-900 px-6 py-1.5 rounded shadow-sm hover:bg-pink-200 font-medium transition">
-                                Reject
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        }
-    }
-    else
-    {
-        <div class="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-            <i class="fas fa-check-circle text-4xl text-gray-300 mb-3"></i>
-            <p class="text-gray-500">No pending posts to verify.</p>
+@* Added search and filter controls *@
+<div class="bg-white rounded-lg p-4 mb-6 shadow-sm">
+    <div class="flex gap-4 items-center">
+        <div class="flex-1">
+            <input type="text"
+                   id="searchInput"
+                   placeholder="Search by name, type, description, or location..."
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
-    }
+        <div>
+            <select id="categoryFilter"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Categories</option>
+                <option value="LOSTITEM">Lost Items</option>
+                <option value="FOUNDITEM">Found Items</option>
+            </select>
+        </div>
+    </div>
 </div>
+
+@* Added loading indicator *@
+<div id="loadingIndicator" class="text-center py-8 hidden">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    <p class="mt-2 text-gray-600">Loading items...</p>
+</div>
+
+@* Container for dynamically loaded items *@
+<div id="itemsContainer" class="space-y-6">
+    <div class="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+        <i class="fas fa-hourglass-half text-4xl text-gray-300 mb-3"></i>
+        <p class="text-gray-500">Loading items...</p>
+    </div>
+</div>
+
+@* Pagination controls *@
+<div id="paginationContainer" class="mt-6 flex justify-center items-center gap-2">
+    <!-- Pagination will be dynamically generated here -->
+</div>
+
+@* Added Ajax functionality for search, filter, and pagination *@
+@section Scripts {
+    <script>
+        let currentPage = 1;
+        let currentSearch = '';
+        let currentCategory = '';
+
+        // Debounce function for search
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Load items from server
+        async function loadItems(page = 1, search = '', category = '') {
+            try {
+                document.getElementById('loadingIndicator').classList.remove('hidden');
+                document.getElementById('itemsContainer').classList.add('hidden');
+
+                console.log('[v0] Loading items:', { page, search, category });
+
+                const response = await fetch(`/PostManagement/GetItems?page=${page}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}&pageSize=10`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                console.log('[v0] Received data:', data);
+
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('itemsContainer').classList.remove('hidden');
+
+                if (data.success) {
+                    renderItems(data.items);
+                    renderPagination(data.currentPage, data.totalPages, data.totalCount);
+                } else {
+                    showError('Failed to load items: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('[v0] Error loading items:', error);
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('itemsContainer').classList.remove('hidden');
+                showError('Error loading items: ' + error.message);
+            }
+        }
+
+        // Render items to the page
+        function renderItems(items) {
+            const container = document.getElementById('itemsContainer');
+
+            if (!items || items.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <i class="fas fa-check-circle text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">No pending items to verify.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+                <div class="bg-gray-200 rounded-lg p-4 flex gap-6 shadow-sm">
+                    <div class="w-40 h-40 bg-gray-300 rounded flex items-center justify-center shrink-0 overflow-hidden">
+                        ${item.images && item.images.length > 0
+                            ? `<img src="${item.images[0]}" alt="Item Image" class="w-full h-full object-cover" />`
+                            : `<i class="far fa-image text-4xl text-gray-400"></i>`
+                        }
+                    </div>
+                    <div class="flex-1 py-2 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-lg">${item.iName || 'Unknown Item'}</h3>
+                                <div class="flex gap-2 items-center">
+                                    <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-white text-gray-600">
+                                        ${item.category || 'N/A'}
+                                    </span>
+                                    <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-gray-100 text-black">
+                                        ${item.iStatus || 'Pending'}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-3">
+                                ${item.idescription || 'No description available'}
+                            </p>
+                            <p class="text-xs text-gray-400 mb-2">
+                                Location: <span class="font-medium">${item.locationFound || 'N/A'}</span>
+                            </p>
+                            <p class="text-xs text-gray-400 mb-4">
+                                Posted on: ${new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </p>
+                        </div>
+                        <div class="flex gap-4">
+                            <form action="/PostManagement/Approve/${item.itemID}" method="post">
+                                <button type="submit" class="bg-[#b9f6ca] text-green-900 px-6 py-1.5 rounded shadow-sm hover:bg-green-300 font-medium transition">
+                                    Approve
+                                </button>
+                            </form>
+                            <form action="/PostManagement/Reject/${item.itemID}" method="post">
+                                <button type="submit" class="bg-[#f8bbd0] text-pink-900 px-6 py-1.5 rounded shadow-sm hover:bg-pink-200 font-medium transition">
+                                    Reject
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render pagination controls
+        function renderPagination(currentPage, totalPages, totalCount) {
+            const container = document.getElementById('paginationContainer');
+
+            if (totalPages <= 1) {
+                container.innerHTML = `<p class="text-sm text-gray-500">Showing ${totalCount} item(s)</p>`;
+                return;
+            }
+
+            let paginationHTML = `<p class="text-sm text-gray-500 mr-4">Page ${currentPage} of ${totalPages} (${totalCount} items)</p>`;
+
+            // Previous button
+            paginationHTML += `
+                <button onclick="changePage(${currentPage - 1})"
+                        ${currentPage === 1 ? 'disabled' : ''}
+                        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Previous
+                </button>
+            `;
+
+            // Page numbers
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <button onclick="changePage(${i})"
+                            class="px-4 py-2 rounded ${i === currentPage ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            // Next button
+            paginationHTML += `
+                <button onclick="changePage(${currentPage + 1})"
+                        ${currentPage === totalPages ? 'disabled' : ''}
+                        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Next
+                </button>
+            `;
+
+            container.innerHTML = paginationHTML;
+        }
+
+        // Change page
+        function changePage(page) {
+            currentPage = page;
+            loadItems(currentPage, currentSearch, currentCategory);
+        }
+
+        // Show error message
+        function showError(message) {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = `
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[v0] Page loaded, initializing...');
+
+            loadItems(1, '', '');
+
+            const searchInput = document.getElementById('searchInput');
+            const categoryFilter = document.getElementById('categoryFilter');
+
+            // Search with debounce
+            searchInput.addEventListener('input', debounce(function(e) {
+                currentSearch = e.target.value;
+                currentPage = 1;
+                loadItems(currentPage, currentSearch, currentCategory);
+            }, 500));
+
+            // Category filter
+            categoryFilter.addEventListener('change', function(e) {
+                currentCategory = e.target.value;
+                currentPage = 1;
+                loadItems(currentPage, currentSearch, currentCategory);
+            });
+        });
+    </script>
+}
