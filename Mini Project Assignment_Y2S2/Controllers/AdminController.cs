@@ -665,6 +665,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var items = snapshot.Documents.Select(d => new Item
             {
                 ItemID = d.ContainsField("ItemID") ? d.GetValue<int>("ItemID") : 0,
+                Category = d.ContainsField("Category") ? d.GetValue<string>("Category") : null,
                 IType = d.ContainsField("IType") ? d.GetValue<string>("IType") : null,
                 IStatus = d.ContainsField("IStatus") ? d.GetValue<string>("IStatus") : null,
                 Date = d.ContainsField("Date") ? d.GetValue<DateTime>("Date") : DateTime.MinValue,
