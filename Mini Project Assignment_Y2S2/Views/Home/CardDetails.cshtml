@@ -61,21 +61,31 @@
         <!-- 物品详情 -->
         <div class="bottomDetails">
             <div class="bottomDetails-left">
-                <div class="bottomDetails-left2">
+
 
                     @if (Model.Item.Category == "LOSTITEM"){
-                    <p class="label">Lost Date</p>
-                    <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+
+                        <div class="bottomDetails-left2-lost">
+                        <p class="label">Lost Date</p>
+                        <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+
+                        <p class="label">Type</p>
+                        <p class="text">@Model.Item.IType</p>
+                        </div>
                     }
                     @if (Model.Item.Category == "FOUNDITEM")
                     {
+                        <div class="bottomDetails-left2-found">
                         <p class="label">Found Date</p>
                         <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+
+                        <p class="label">Type</p>
+                        <p class="text">@Model.Item.IType</p>
+                        </div>
                     }
 
-                    <p class="label">Type</p>
-                    <p class="text">@Model.Item.IType</p>
-                </div>
+
+
                 @if (Model.Item.Category == "FOUNDITEM")
                 {
                     <div class="bottomDetails-right2">
