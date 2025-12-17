@@ -4,13 +4,13 @@
 }
 @model List<Mini_Project_Assignment_Y2S2.Models.Item>
 
-<h2 class="text-2xl font-bold text-indigo-700 mb-4">Lost Items</h2>
+<h2 class="text-2xl font-bold text-green-700 mb-4">Found Items</h2>
 
 <!-- Filter Form -->
 <form method="get" class="mb-6 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-sm font-medium">Location</label>
-        <select name="LocationName" class="border rounded px-3 py-2">
+        <select name="locationName" class="border rounded px-3 py-2">
             <option value="">All</option>
             @foreach (var loc in ViewBag.Locations as List<string>)
             {
@@ -29,7 +29,7 @@
         <input type="date" name="endDate" value="@ViewBag.EndDate" class="border rounded px-3 py-2">
     </div>
 
-    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Filter</button>
+    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Filter</button>
     <a href="@Url.Action("FoundItem")" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Reset</a>
 </form>
 
@@ -47,7 +47,7 @@
                 <img src="@item.Images[0]" class="w-full h-32 object-cover rounded mt-2" />
             }
 
-            <a asp-action="FoundItemDetails" asp-route-itemId="@item.ItemID" class="text-indigo-600 hover:underline mt-2 block">View Details</a>
+            <a asp-action="FoundItemDetails" asp-route-itemId="@item.ItemID" class="text-green-600 hover:underline mt-2 block">View Details</a>
 
             <!-- Delete button -->
             <form asp-action="DeleteFoundItem" method="post" class="mt-2" onsubmit="return confirm('Are you sure to delete this item?');">
@@ -75,13 +75,13 @@
 
         @for (int i = 1; i <= ViewBag.TotalPages; i++)
         {
-            <a href="@Url.Action("Foundtem", new {
+            <a href="@Url.Action("FoundItem", new {
                     locationName = ViewBag.LocationName,
                     startDate = ViewBag.StartDate,
                     endDate = ViewBag.EndDate,
                     page = i
                 })"
-               class="px-3 py-1 rounded @(i == ViewBag.CurrentPage ? "bg-indigo-600 text-white" : "bg-gray-200 hover:bg-gray-300")">
+               class="px-3 py-1 rounded @(i == ViewBag.CurrentPage ? "bg-green-600 text-white" : "bg-gray-200 hover:bg-gray-300")">
                 @i
             </a>
         }

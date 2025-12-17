@@ -358,41 +358,67 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         public async Task<IActionResult> LostItem(string? locationName, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 8)
         {
-            var query = firestoreDb.Collection("Items")
+            var baseQuery = firestoreDb.Collection("Items")
                 .WhereEqualTo("Category", "LOSTITEM")
-                .WhereEqualTo("IStatus", "Approved")
-                .OrderByDescending("Date");
+                .WhereEqualTo("IStatus", "Approved");
 
-            if (!string.IsNullOrEmpty(locationName))
-                query = query.WhereEqualTo("LocationID", locationName); // still filter by LocationID in Firestore
+            var snapshot = await baseQuery.GetSnapshotAsync();
 
-            if (startDate.HasValue)
-                query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
-
-            if (endDate.HasValue)
-                query = query.WhereLessThanOrEqualTo("Date", endDate.Value.ToUniversalTime());
-
-            var snapshot = await query.GetSnapshotAsync();
             var items = new List<Item>();
             foreach (var doc in snapshot.Documents)
             {
-                var item = await MapToItemWithLocationName(doc); // returns item with LocationName property
+                var item = new Item
+                {
+                    ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
+                    IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
+                    IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                    Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                    LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                    Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
+                    IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "Approved"
+                };
+
+                // 🔹 Fetch LocationName correctly
+                if (!string.IsNullOrEmpty(item.LocationID))
+                {
+                    var locQuery = await firestoreDb.Collection("Location")
+                                                    .WhereEqualTo("LocationID", item.LocationID)
+                                                    .Limit(1)
+                                                    .GetSnapshotAsync();
+
+                    if (locQuery.Documents.Count > 0)
+                    {
+                        item.LocationName = locQuery.Documents[0].GetValue<string>("LocationName");
+                    }
+                    else
+                    {
+                        item.LocationName = item.LocationID; // fallback
+                    }
+                }
+
                 items.Add(item);
             }
-            items = items.OrderByDescending(x => x.Date).ToList();
 
-            // Get all locations
-            var locationSnapshot = await firestoreDb.Collection("Location").GetSnapshotAsync();
-            var locations = locationSnapshot.Documents.Select(d => new Location
-            {
-                LocationID = d.ContainsField("LocationID") ? d.GetValue<string>("LocationID") : null,
-                LocationName = d.ContainsField("LocationName") ? d.GetValue<string>("LocationName") : null
-            }).ToList();
+            // 🔹 Client-side filter
+            if (!string.IsNullOrEmpty(locationName))
+                items = items.Where(i => i.LocationName == locationName).ToList();
 
-            // Pagination
+            if (startDate.HasValue)
+                items = items.Where(i => i.Date >= startDate.Value.ToUniversalTime()).ToList();
+
+            if (endDate.HasValue)
+                items = items.Where(i => i.Date <= endDate.Value.ToUniversalTime()).ToList();
+
+            items = items.OrderByDescending(i => i.Date).ToList();
+
+            // 🔹 Pagination
             var totalCount = items.Count;
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // 🔹 Locations for dropdown
+            var locationSnapshot = await firestoreDb.Collection("Location").GetSnapshotAsync();
+            var locations = locationSnapshot.Documents.Select(d => d.ContainsField("LocationName") ? d.GetValue<string>("LocationName") : null).Where(x => x != null).ToList();
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
@@ -401,47 +427,76 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             ViewBag.LocationName = locationName;
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.Locations = locations.Select(l => l.LocationName).ToList();
+            ViewBag.Locations = locations;
 
             return View(pagedItems);
         }
+
+
 
         public async Task<IActionResult> FoundItem(string? locationName, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 8)
         {
-            var query = firestoreDb.Collection("Items")
+            var baseQuery = firestoreDb.Collection("Items")
                 .WhereEqualTo("Category", "FOUNDITEM")
-                .WhereEqualTo("IStatus", "Approved")
-                .OrderByDescending("Date");
+                .WhereEqualTo("IStatus", "Approved");
 
-            if (!string.IsNullOrEmpty(locationName))
-                query = query.WhereEqualTo("LocationID", locationName);
+            var snapshot = await baseQuery.GetSnapshotAsync();
 
-            if (startDate.HasValue)
-                query = query.WhereGreaterThanOrEqualTo("Date", startDate.Value.ToUniversalTime());
-
-            if (endDate.HasValue)
-                query = query.WhereLessThanOrEqualTo("Date", endDate.Value.ToUniversalTime());
-
-            var snapshot = await query.GetSnapshotAsync();
             var items = new List<Item>();
             foreach (var doc in snapshot.Documents)
             {
-                var item = await MapToItemWithLocationName(doc); // returns item with LocationName
+                var item = new Item
+                {
+                    ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
+                    IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
+                    IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                    Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                    LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                    Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
+                    IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "Approved"
+                };
+
+                // 🔹 Fetch LocationName correctly
+                if (!string.IsNullOrEmpty(item.LocationID))
+                {
+                    var locQuery = await firestoreDb.Collection("Location")
+                                                    .WhereEqualTo("LocationID", item.LocationID)
+                                                    .Limit(1)
+                                                    .GetSnapshotAsync();
+
+                    if (locQuery.Documents.Count > 0)
+                    {
+                        item.LocationName = locQuery.Documents[0].GetValue<string>("LocationName");
+                    }
+                    else
+                    {
+                        item.LocationName = item.LocationID; // fallback
+                    }
+                }
+
                 items.Add(item);
             }
-            items = items.OrderByDescending(x => x.Date).ToList();
 
-            // Get all locations
-            var locationSnapshot = await firestoreDb.Collection("Location").GetSnapshotAsync();
-            var locations = locationSnapshot.Documents.Select(d => new Location
-            {
-                LocationID = d.ContainsField("LocationID") ? d.GetValue<string>("LocationID") : null,
-                LocationName = d.ContainsField("LocationName") ? d.GetValue<string>("LocationName") : null
-            }).ToList();
+            // 🔹 Client-side filter
+            if (!string.IsNullOrEmpty(locationName))
+                items = items.Where(i => i.LocationName == locationName).ToList();
 
+            if (startDate.HasValue)
+                items = items.Where(i => i.Date >= startDate.Value.ToUniversalTime()).ToList();
+
+            if (endDate.HasValue)
+                items = items.Where(i => i.Date <= endDate.Value.ToUniversalTime()).ToList();
+
+            items = items.OrderByDescending(i => i.Date).ToList();
+
+            // 🔹 Pagination
             var totalCount = items.Count;
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // 🔹 Locations for dropdown
+            var locationSnapshot = await firestoreDb.Collection("Location").GetSnapshotAsync();
+            var locations = locationSnapshot.Documents.Select(d => d.ContainsField("LocationName") ? d.GetValue<string>("LocationName") : null).Where(x => x != null).ToList();
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
@@ -450,10 +505,12 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             ViewBag.LocationName = locationName;
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.Locations = locations.Select(l => l.LocationName).ToList();
+            ViewBag.Locations = locations;
 
             return View(pagedItems);
         }
+
+
 
         // Details
         public async Task<IActionResult> LostItemDetails(int itemId)
@@ -466,7 +523,20 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             if (!snapshot.Documents.Any())
                 return NotFound();
 
-            var item = await MapToItemWithLocationName(snapshot.Documents.First()); // make sure LocationName is populated
+            var item = await MapToItemWithLocationName(snapshot.Documents.First());
+
+            if (!string.IsNullOrEmpty(item.LocationID))
+            {
+                var locationSnapshot = await firestoreDb.Collection("Location")
+                    .WhereEqualTo("LocationID", item.LocationID)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (locationSnapshot.Documents.Any())
+                {
+                    item.LocationName = locationSnapshot.Documents.First().GetValue<string>("LocationName");
+                }
+            }
 
             return View("~/Views/Admin/LostItemDetails.cshtml", item);
         }
@@ -482,6 +552,19 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return NotFound();
 
             var item = await MapToItemWithLocationName(snapshot.Documents.First());
+
+            if (!string.IsNullOrEmpty(item.LocationID))
+            {
+                var locationSnapshot = await firestoreDb.Collection("Location")
+                    .WhereEqualTo("LocationID", item.LocationID)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (locationSnapshot.Documents.Any())
+                {
+                    item.LocationName = locationSnapshot.Documents.First().GetValue<string>("LocationName");
+                }
+            }
 
             return View("~/Views/Admin/FoundItemDetails.cshtml", item);
         }
@@ -724,20 +807,4 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         #endregion
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
