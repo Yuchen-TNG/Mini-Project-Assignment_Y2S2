@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "CardDetails";
     bool isApproved = string.Equals(Model.Item.IStatus, "Approved", StringComparison.OrdinalIgnoreCase);
+    bool isPending = string.Equals(Model.Item.IStatus, "Pending", StringComparison.OrdinalIgnoreCase);
+
 }
 
 <link rel="stylesheet" href="~/css/cardDetails.css" asp-append-version="true" />
@@ -33,13 +35,15 @@
 
         <!-- Owner Actions (Edit / Mark Claimed) -->
         <div class="owner-actions" style="display:flex; gap:10px; align-items:center;">
-            <a class="btn-edit"
+            @if (isApproved || isPending)
+            {<a class="btn-edit"
                asp-action="EditPost"
                asp-controller="User"
                asp-route-itemId="@Model.Item.ItemID">
                 ✏ Edit
             </a>
 
+            }
             <form asp-action="DeletePost"
                   asp-controller="User"
                   method="post"
