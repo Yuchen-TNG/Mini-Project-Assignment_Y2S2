@@ -541,11 +541,11 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 }
                 else if (status == "APPROVED")
                 {
-                    itemQuery = itemQuery.WhereEqualTo("IStatus", "APPROVED");
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "Approved");
                 }
                 else if (status == "REJECTED")
                 {
-                    itemQuery = itemQuery.WhereEqualTo("IStatus", "REJECTED");
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "Rejected");
                 }
                 else if (status == "EXPIRED")
                 {
