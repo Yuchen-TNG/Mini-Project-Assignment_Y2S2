@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Found";
+    ViewData["Title"] = "Found Items";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 @model List<Mini_Project_Assignment_Y2S2.Models.Item>
@@ -10,11 +10,11 @@
 <form method="get" class="mb-6 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-sm font-medium">Location</label>
-        <select name="locationID" class="border rounded px-3 py-2">
+        <select name="locationName" class="border rounded px-3 py-2">
             <option value="">All</option>
             @foreach (var loc in ViewBag.Locations as List<string>)
             {
-                <option value="@loc" selected="@(ViewBag.LocationID == loc ? "selected" : null)">@loc</option>
+                <option value="@loc" selected="@(ViewBag.LocationName == loc ? "selected" : null)">@loc</option>
             }
         </select>
     </div>
@@ -30,9 +30,9 @@
     </div>
 
     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Filter</button>
+    <a href="@Url.Action("FoundItem")" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Reset</a>
 </form>
 
-<!-- Items Grid -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     @foreach (var item in Model)
     {
@@ -40,7 +40,7 @@
             <h3 class="font-semibold">@item.IName</h3>
             <p class="text-sm text-gray-500">@item.IType</p>
             <p class="text-sm text-gray-500">@item.Date.ToString("yyyy-MM-dd")</p>
-            <p class="text-sm text-gray-500">@item.LocationID</p>
+            <p class="text-sm text-gray-500">@item.LocationName</p>
 
             @if (item.Images != null && item.Images.Any())
             {
@@ -48,6 +48,7 @@
             }
 
             <a asp-action="FoundItemDetails" asp-route-itemId="@item.ItemID" class="text-green-600 hover:underline mt-2 block">View Details</a>
+
             <!-- Delete button -->
             <form asp-action="DeleteFoundItem" method="post" class="mt-2" onsubmit="return confirm('Are you sure to delete this item?');">
                 <input type="hidden" name="itemId" value="@item.ItemID" />
@@ -60,27 +61,39 @@
 <!-- Pagination -->
 @if (ViewBag.TotalPages > 1)
 {
-    <div class="mt-6 flex justify-center gap-2 flex-wrap">
-        <!-- Previous Button -->
+    <div class="mt-4 flex gap-2 justify-center">
         @if (ViewBag.CurrentPage > 1)
         {
-            <a href="@Url.Action("FoundItem", new { locationID = ViewBag.LocationID, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate, page = ViewBag.CurrentPage - 1 })"
+            <a href="@Url.Action("FoundItem", new {
+                    locationName = ViewBag.LocationName,
+                    startDate = ViewBag.StartDate,
+                    endDate = ViewBag.EndDate,
+                    page = ViewBag.CurrentPage - 1
+                })"
                class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
         }
 
-        <!-- Page Numbers -->
         @for (int i = 1; i <= ViewBag.TotalPages; i++)
         {
-            <a href="@Url.Action("FoundItem", new { locationID = ViewBag.LocationID, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate, page = i })"
+            <a href="@Url.Action("FoundItem", new {
+                    locationName = ViewBag.LocationName,
+                    startDate = ViewBag.StartDate,
+                    endDate = ViewBag.EndDate,
+                    page = i
+                })"
                class="px-3 py-1 rounded @(i == ViewBag.CurrentPage ? "bg-green-600 text-white" : "bg-gray-200 hover:bg-gray-300")">
                 @i
             </a>
         }
 
-        <!-- Next Button -->
         @if (ViewBag.CurrentPage < ViewBag.TotalPages)
         {
-            <a href="@Url.Action("FoundItem", new { locationID = ViewBag.LocationID, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate, page = ViewBag.CurrentPage + 1 })"
+            <a href="@Url.Action("FoundItem", new {
+                    locationName = ViewBag.LocationName,
+                    startDate = ViewBag.StartDate,
+                    endDate = ViewBag.EndDate,
+                    page = ViewBag.CurrentPage + 1
+                })"
                class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</a>
         }
     </div>

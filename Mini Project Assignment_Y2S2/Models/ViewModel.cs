@@ -37,7 +37,7 @@ namespace Mini_Project_Assignment_Y2S2.Models
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Phone number is required")]
-        [RegularExpression(@"^\d{1,10}$", ErrorMessage = "Phone number must be numeric and max 10 digits")]
+        [RegularExpression(@"^\d{1,11}$", ErrorMessage = "Phone number must be numeric and max 11 digits")]
         public string PhoneNumber { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
@@ -81,7 +81,7 @@ namespace Mini_Project_Assignment_Y2S2.Models
         [EmailAddress(ErrorMessage = "Enter a valid email address")]
         public string? Email { get; set; }
 
-        [RegularExpression(@"^\d{1,10}$", ErrorMessage = "Phone number must be numeric and max 10 digits")]
+        [RegularExpression(@"^\d{1,11}$", ErrorMessage = "Phone number must be numeric and max 11 digits")]
         public string? PhoneNumber { get; set; }
 
         public string? ProfileImageUrl { get; set; }

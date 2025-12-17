@@ -10,11 +10,11 @@
 <form method="get" class="mb-6 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-sm font-medium">Location</label>
-        <select name="locationID" class="border rounded px-3 py-2">
+        <select name="locationName" class="border rounded px-3 py-2">
             <option value="">All</option>
             @foreach (var loc in ViewBag.Locations as List<string>)
             {
-                <option value="@loc" selected="@(ViewBag.LocationID == loc ? "selected" : null)">@loc</option>
+                <option value="@loc" selected="@(ViewBag.LocationName == loc ? "selected" : null)">@loc</option>
             }
         </select>
     </div>
@@ -30,6 +30,7 @@
     </div>
 
     <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Filter</button>
+    <a href="@Url.Action("LostItem")" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Reset</a>
 </form>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -39,7 +40,7 @@
             <h3 class="font-semibold">@item.IName</h3>
             <p class="text-sm text-gray-500">@item.IType</p>
             <p class="text-sm text-gray-500">@item.Date.ToString("yyyy-MM-dd")</p>
-            <p class="text-sm text-gray-500">@item.LocationID</p>
+            <p class="text-sm text-gray-500">@item.LocationName</p>
 
             @if (item.Images != null && item.Images.Any())
             {
@@ -64,7 +65,7 @@
         @if (ViewBag.CurrentPage > 1)
         {
             <a href="@Url.Action("LostItem", new {
-                    locationID = ViewBag.LocationID,
+                    locationName = ViewBag.LocationName,
                     startDate = ViewBag.StartDate,
                     endDate = ViewBag.EndDate,
                     page = ViewBag.CurrentPage - 1
@@ -75,7 +76,7 @@
         @for (int i = 1; i <= ViewBag.TotalPages; i++)
         {
             <a href="@Url.Action("LostItem", new {
-                    locationID = ViewBag.LocationID,
+                    locationName = ViewBag.LocationName,
                     startDate = ViewBag.StartDate,
                     endDate = ViewBag.EndDate,
                     page = i
@@ -88,7 +89,7 @@
         @if (ViewBag.CurrentPage < ViewBag.TotalPages)
         {
             <a href="@Url.Action("LostItem", new {
-                    locationID = ViewBag.LocationID,
+                    locationName = ViewBag.LocationName,
                     startDate = ViewBag.StartDate,
                     endDate = ViewBag.EndDate,
                     page = ViewBag.CurrentPage + 1

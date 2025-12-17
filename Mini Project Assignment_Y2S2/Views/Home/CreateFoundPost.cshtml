@@ -162,9 +162,23 @@
         display: none;
         margin-top: 10px;
     }
+
+    .back {
+        height: 40px;
+        width: 70px;
+        font-size: 20px;
+        background-color: #FF9500;
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 10px;
+        color: black;
+    }
 </style>
 
 <div class="post-container">
+    <a class="back" href="@Url.Action("Index", "Home")">Back</a>
     <div class="post-title">POST FOR FOUND ITEM</div>
 
     <form asp-action="CreatePost" asp-controller="Home" method="post" enctype="multipart/form-data">

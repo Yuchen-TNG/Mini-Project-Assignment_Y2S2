@@ -1,9 +1,13 @@
-﻿/* =========================
-   GLOBAL
-========================= */
+﻿/* ===========================================
+   GLOBAL STYLES
+   =========================================== */
 
 body {
     height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f5eaf5;
 }
 
 html {
@@ -11,17 +15,23 @@ html {
 }
 
 a {
-    color: black;
+    color: #333;
     text-decoration: none;
+    transition: color 0.3s ease;
 }
+
+    a:hover {
+        color: #61b255;
+    }
 
 * {
     caret-color: transparent;
+    box-sizing: border-box;
 }
 
-/* =========================
-   MAIN LAYOUT (same as index)
-========================= */
+/* ===========================================
+   MAIN LAYOUT
+   =========================================== */
 
 .parent {
     position: relative;
@@ -34,79 +44,116 @@ a {
     max-height: 849px;
 }
 
-/* =========================
+/* ===========================================
    LEFT FILTER PANEL
-========================= */
+   =========================================== */
 
 .left-container {
     display: flex;
     flex-direction: column;
     padding: 20px;
-    max-width: 330px;
+    width: 280px;
     background-color: rgb(169, 164, 148);
     border-bottom-left-radius: 17px;
     border-top-left-radius: 17px;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.filter-container h1,
-.filter-container p {
+.filter-container h1 {
     margin: 0;
+    font-size: 24px;
+    color: #333;
+    text-align: left;
+    font-weight: 700;
 }
 
 .filter-container p {
     margin-top: 5px;
     font-size: 14px;
+    color: #555;
+    text-align: left;
+    line-height: 1.5;
 }
 
 .left-container .line {
-    margin-block: 20px;
+    margin: 20px 0;
     width: 100%;
     background-color: white;
     height: 2px;
+    border: none;
 }
 
-/* =========================
+/* ===========================================
+   FILTER SECTION TITLE
+   =========================================== */
+
+.filter-section-title {
+    margin-top: 25px;
+    margin-bottom: 12px;
+    padding-left: 12px;
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 16px;
+    border-left: 4px solid #61b255;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===========================================
    FILTER BUTTONS
-========================= */
+   =========================================== */
 
 .filter-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 .filter-item {
-    padding: 14px;
-    border-radius: 14px;
+    padding: 12px 18px;
+    border-radius: 12px;
     background-color: white;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    transition: 0.3s ease;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    display: block;
+    color: #333;
+    cursor: pointer;
 }
 
     .filter-item:hover {
-        transform: scale(1.04);
+        transform: translateX(8px);
+        background-color: #f0f0f0;
+        border-color: #61b255;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .filter-item.active {
         background-color: #61b255;
         color: white;
+        border-color: #4a9c41;
+        transform: translateX(8px);
+        box-shadow: 0 4px 8px rgba(97, 178, 85, 0.3);
     }
 
-/* =========================
+/* ===========================================
    MIDDLE DIVIDER
-========================= */
+   =========================================== */
 
 .middle-line {
     height: 100%;
-    width: 20px;
-    background-color: white;
+    width: 2px;
+    background-color: #ddd;
+    border: none;
 }
 
-/* =========================
-   RIGHT CONTENT
-========================= */
+/* ===========================================
+   RIGHT CONTENT AREA
+   =========================================== */
 
 .right-container {
     flex: 1;
@@ -115,105 +162,323 @@ a {
     border-bottom-right-radius: 17px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
 }
 
 .right-container-top {
-    margin-inline: 30px;
+    height:84px;
+    margin: 0 30px;
+    padding-top: 25px;
+    padding-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-top-right-radius: 17px;
 }
 
     .right-container-top h2 {
-        margin-top: 20px;
+        margin-top: 0;
+        margin-bottom: 10px;
         font-size: 28px;
-        font-weight: bold;
+        font-weight: 700;
+        color: #333;
+        text-align: left;
     }
 
     .right-container-top hr {
-        margin-top: 10px;
+        margin: 15px 0 10px 0;
+        border: none;
+        height: 2px;
+        background-color: #ccc;
         width: 100%;
     }
 
-/* =========================
-   CARD GRID
-========================= */
+/* ===========================================
+   PAGE INFO (Pagination Information)
+   =========================================== */
+
+.page-info {
+    text-align: center;
+    margin: 10px 0 15px 0;
+    color: #666;
+    font-size: 14px;
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    display: inline-block;
+    font-weight: 500;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+    .page-info strong {
+        color: #333;
+        font-weight: 700;
+    }
+
+/* ===========================================
+   CARD CONTAINER
+   =========================================== */
 
 .right-container-bottom {
     display: flex;
-    width: 100%;
+    flex-direction: column;
+    flex: 1;
+    padding: 20px 30px;
+    overflow-y: auto;
 }
 
 .cardparent {
     display: flex;
     flex-wrap: wrap;
+    gap: 25px;
+    padding: 10px;
+    justify-content: flex-start;
+    min-height: 300px;
+    overflow: visible;
+    height: auto;
+    flex: 1;
 }
 
-/* =========================
-   CARD DESIGN (same as index)
-========================= */
+/* ===========================================
+   CARD WRAPPER (Optional, if used in HTML)
+   =========================================== */
+
+.card-wrapper {
+    width: calc(20% - 20px); /* 5个卡片，每个占20%宽度减去间距 */
+    min-width: 230px; /* 最小宽度 */
+    max-width: 250px; /* 最大宽度 */
+    height: 320px;
+    margin-bottom: 20px;
+}
+/* ===========================================
+   CARD DESIGN
+   =========================================== */
 
 .card {
-    width: 250px;
+    width: 100%;
     height: 320px;
     background-color: #ffeab7;
     border-radius: 15px;
-    font-family: Arial, sans-serif;
-    box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
-    margin-left: 40px;
-    margin-top: 30px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
     .card:hover {
-        transform: translateX(3px) scale(1.02);
+        transform: translateY(-8px);
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
     }
+
+/* ===========================================
+   CARD IMAGE CONTAINER
+   =========================================== */
+
+.card-img-container {
+    position: relative;
+    height: 200px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
 
 .card-img {
     width: 100%;
-    height: 200px;
+    height: 100%;
+    object-fit: cover;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
-    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
 }
 
+.card:hover .card-img {
+    transform: scale(1.05);
+}
+
+/* ===========================================
+   STATUS BADGES
+   =========================================== */
+
+.status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 14px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    z-index: 10;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.status-pending {
+    background-color: #ffa726;
+}
+
+.status-approved {
+    background-color: #4caf50;
+}
+
+.status-rejected {
+    background-color: #f44336;
+}
+
+.status-claimed {
+    background-color: #2196f3;
+}
+
+.status-expired {
+    background-color: #9e9e9e;
+}
+
+/* ===========================================
+   CARD DETAILS
+   =========================================== */
+
 .card-details {
-    padding: 10px;
-    font-size: 15px;
+    padding: 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
     .card-details p {
         margin: 4px 0;
+        line-height: 1.5;
     }
 
-.card .category {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-/* =========================
-   CLAIMED BADGE
-========================= */
-
-.claimed-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #e74c3c;
-    color: white;
+.category {
     font-size: 12px;
-    font-weight: bold;
-    padding: 5px 10px;
-    border-radius: 12px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
 }
 
-/* =========================
+.item-name {
+    font-size: 16px;
+    color: #333;
+    font-weight: 700;
+    margin: 8px 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.item-date {
+    color: #666;
+    font-size: 13px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+}
+
+/* ===========================================
+   PAGINATION STYLES
+   =========================================== */
+
+.paging {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px 0 20px 0;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 16px;
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+    .page-btn:hover {
+        background-color: #61b255;
+        border-color: #61b255;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(97, 178, 85, 0.2);
+    }
+
+    .page-btn.active {
+        background-color: #61b255;
+        border-color: #61b255;
+        color: white;
+        cursor: default;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .page-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+        .page-btn.disabled:hover {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            color: #495057;
+            transform: none;
+            box-shadow: none;
+        }
+
+/* ===========================================
+   PAGINATION ELLIPSIS
+   =========================================== */
+
+.pagination-container span:not(.page-btn) {
+    color: #6c757d;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 0 8px;
+}
+
+/* ===========================================
    EMPTY STATE
-========================= */
+   =========================================== */
 
 .not_available {
-    margin-left: 40px;
-    margin-top: 30px;
-    font-size: 20px;
-    font-weight: bold;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: #6c757d;
+    padding: 60px 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
 }
+
+、

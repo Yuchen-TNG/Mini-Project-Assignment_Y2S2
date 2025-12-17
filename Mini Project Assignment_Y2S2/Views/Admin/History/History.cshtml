@@ -12,6 +12,9 @@
            value="@ViewBag.Search"
            class="border rounded px-2 py-1 w-64" />
     <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded">Search</button>
+    <!-- Reset button -->
+    <a href="@Url.Action("History")"
+       class="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500">Reset</a>
 </form>
 
 <!-- Total Count -->
@@ -44,7 +47,9 @@
                         <form asp-action="ChangeStatus" method="post" class="flex items-center gap-2">
                             <input type="hidden" name="itemId" value="@item.ItemID" />
                             <select name="newStatus" class="border rounded px-1 py-0.5">
-                                <option value="ACTIVE">ACTIVE</option>
+                                <option value="PENDING">PENDING</option>
+                                <option value="APPROVED">APPROVED</option>
+                                <option value="REJECTED">REJECTED</option>
                                 <option value="CLAIMED">CLAIMED</option>
                                 <option value="EXPIRED">EXPIRED</option>
                             </select>
