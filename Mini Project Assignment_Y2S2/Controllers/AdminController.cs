@@ -589,7 +589,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 await firestoreDb.Collection("ItemHistory").AddAsync(new
                 {
                     ItemID = itemId,
-                    OldStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "UNKNOWN",
+                    OldStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : null,
                     NewStatus = "DELETED",
                     ChangedBy = "ADMIN",
                     ChangedAt = Timestamp.GetCurrentTimestamp()
@@ -707,7 +707,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             return View("~/Views/Admin/History/History.cshtml", pagedItems);
         }
-
 
 
         private async Task AutoExpireItems()
