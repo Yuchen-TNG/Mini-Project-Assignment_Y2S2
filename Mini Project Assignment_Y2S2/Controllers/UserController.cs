@@ -510,7 +510,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return RedirectToAction("MyAccount");
         }
 
-        public async Task<IActionResult> MyPost(string? category, string? status)
+        public async Task<IActionResult> MyPost(string? category, string? status, int page = 1, int pageSize = 5)
         {
             string userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
@@ -520,53 +520,65 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             Query itemQuery = _firestore.Collection("Items")
                                         .WhereEqualTo("UserID", userId);
 
+            // 添加状态过滤
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status == "CLAIMED")
+                {
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "CLAIMED");
+                }
+                else if (status == "PENDING")
+                {
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "PENDING");
+                }
+                else if (status == "APPROVED")
+                {
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "APPROVED");
+                }
+                else if (status == "REJECTED")
+                {
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "REJECTED");
+                }
+                else if (status == "EXPIRED")
+                {
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "EXPIRED");
+                }
+            }
+
+            // 添加类别过滤
             if (!string.IsNullOrEmpty(category))
             {
                 itemQuery = itemQuery.WhereEqualTo("Category", category);
             }
 
-            List<DocumentSnapshot> itemDocs;
+            // 按日期降序排序
+            itemQuery = itemQuery.OrderByDescending("Date");
 
-            // 🔥 CLAIMED comes from ItemHistory
-            if (status == "CLAIMED")
-            {
-                // 1️⃣ Get claimed ItemIDs from history
-                var historySnap = await _firestore.Collection("ItemHistory")
-                                                  .WhereEqualTo("NewStatus", "CLAIMED")
-                                                  .GetSnapshotAsync();
+            // 获取总数量
+            var totalQuery = itemQuery;
+            var totalSnapshot = await totalQuery.GetSnapshotAsync();
+            int totalItems = totalSnapshot.Count;
 
-                var claimedItemIds = historySnap.Documents
-                                                .Select(d => d.GetValue<long>("ItemID"))
-                                                .Distinct()
-                                                .ToList();
+            // 计算分页
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-                if (!claimedItemIds.Any())
-                {
-                    return View(new List<DocumentSnapshot>());
-                }
+            // 确保页码有效
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
 
-                // 2️⃣ Firestore where-in limit = 10
-                var result = new List<DocumentSnapshot>();
+            // 应用分页
+            itemQuery = itemQuery.Offset((page - 1) * pageSize).Limit(pageSize);
 
-                foreach (var chunk in claimedItemIds.Chunk(10))
-                {
-                    var snap = await itemQuery
-                        .WhereIn("ItemID", chunk.Cast<object>().ToList())
-                        .GetSnapshotAsync();
-
-                    result.AddRange(snap.Documents);
-                }
-
-                itemDocs = result;
-            }
-            else
-            {
-                var snap = await itemQuery.GetSnapshotAsync();
-                itemDocs = snap.Documents.ToList();
-            }
+            // 获取数据
+            var snap = await itemQuery.GetSnapshotAsync();
+            var itemDocs = snap.Documents.ToList();
 
             ViewBag.Category = category;
             ViewBag.Status = status;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
 
             return View(itemDocs);
         }

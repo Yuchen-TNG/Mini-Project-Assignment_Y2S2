@@ -2,13 +2,182 @@
 
 @{
     ViewData["Title"] = "My Posts";
-
     string currentCategory = ViewBag.Category as string;
     string currentStatus = ViewBag.Status as string;
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    int totalItems = ViewBag.TotalItems;
+    int pageSize = ViewBag.PageSize;
+    
+    // 计算显示的项目范围
+    int startItem = ((currentPage - 1) * pageSize) + 1;
+    int endItem = Math.Min(currentPage * pageSize, totalItems);
+}
+
+@if (TempData["Success"] != null)
+{
+    <p id="tempdata" class="tempdata">@TempData["Success"]</p>
 }
 
 <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/mypost.css" asp-append-version="true" />
+
+<style>
+    /* 状态标签样式 */
+    .status-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        z-index: 1;
+    }
+
+    /* 不同状态的背景颜色 */
+    .status-pending {
+        background-color: #ffa726; /* 橙色 */
+    }
+
+    .status-approved {
+        background-color: #4caf50; /* 绿色 */
+    }
+
+    .status-rejected {
+        background-color: #f44336; /* 红色 */
+    }
+
+    .status-claimed {
+        background-color: #2196f3; /* 蓝色 */
+    }
+
+    .status-expired {
+        background-color: #9e9e9e; /* 灰色 */
+    }
+
+    .card {
+        position: relative;
+    }
+
+    .card-img-container {
+        position: relative;
+    }
+    
+    /* 修复分页样式 */
+    .paging {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        margin-top: auto;
+        margin-bottom: 20px;
+        padding: 10px 0;
+        width: 100%;
+    }
+    
+    .paging a {
+        text-decoration: none;
+    }
+    
+    .paging button,
+    .paging a.back,
+    .paging a.next {
+        border: none;
+        border-radius: 15px;
+        height: 35px;
+        min-width: 80px;
+        background-color: #61b255;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 13px;
+    }
+    
+    .paging button:hover:not(:disabled),
+    .paging a.back:hover:not([disabled]),
+    .paging a.next:hover:not([disabled]) {
+        transform: scale(1.05);
+    }
+    
+    .paging .back {
+        width: 80px;
+    }
+    
+    .paging .next {
+        width: 80px;
+    }
+    
+    .pagingNumber {
+        width: 40px;
+        min-width: 40px;
+        background-color: #61b255 !important;
+        color: white !important;
+        cursor: default !important;
+    }
+    
+    /* 禁用按钮的样式 - 确保与index一致 */
+    .paging button[disabled] {
+        opacity: 1 !important;
+        background-color: #cccccc !important;
+        color: #666666 !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+    }
+    
+    .paging a[disabled] {
+        opacity: 1 !important;
+        background-color: #cccccc !important;
+        color: #666666 !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+        transform: none !important;
+    }
+    
+    .not_available {
+        margin-left: 35px;
+        font-size: 20px;
+    }
+    
+    /* 移除所有滚动条，使用弹性布局 */
+    .right-container {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .right-container-bottom {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        padding: 20px 30px;
+        overflow: hidden;
+    }
+    
+    /* 卡片容器自动适应高度 */
+    .cardparent {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 25px;
+        padding: 10px;
+        justify-content: flex-start;
+        min-height: 300px;
+        overflow: visible;
+        height: auto;
+        flex: 1;
+    }
+    
+    /* 确保卡片不会溢出 */
+    .card-wrapper {
+        width: 250px;
+        height: 320px;
+    }
+</style>
 
 <div class="parent">
 
@@ -23,25 +192,51 @@
         <div class="line"></div>
 
         <div class="filter-list">
-
-            <a href="@Url.Action("MyPost")"
+            <!-- 全部 -->
+            <a href="@Url.Action("MyPost", new { page = 1 })"
                class="filter-item @(string.IsNullOrEmpty(currentCategory) && string.IsNullOrEmpty(currentStatus) ? "active" : "")">
                 📋 All
             </a>
 
-            <a href="@Url.Action("MyPost", new { category = "LOSTITEM" })"
+            <!-- 类别过滤标题 -->
+            <div class="filter-section-title">📁 Category</div>
+
+            <a href="@Url.Action("MyPost", new { category = "LOSTITEM", page = 1 })"
                class="filter-item @(currentCategory == "LOSTITEM" ? "active" : "")">
                 🔍 Lost
             </a>
 
-            <a href="@Url.Action("MyPost", new { category = "FOUNDITEM" })"
+            <a href="@Url.Action("MyPost", new { category = "FOUNDITEM", page = 1 })"
                class="filter-item @(currentCategory == "FOUNDITEM" ? "active" : "")">
                 📦 Found
             </a>
 
-            <a href="@Url.Action("MyPost", new { status = "CLAIMED" })"
+            <!-- 状态过滤标题 -->
+            <div class="filter-section-title">📊 Status</div>
+
+            <a href="@Url.Action("MyPost", new { status = "PENDING", page = 1 })"
+               class="filter-item @(currentStatus == "PENDING" ? "active" : "")">
+                ⏳ Pending
+            </a>
+
+            <a href="@Url.Action("MyPost", new { status = "APPROVED", page = 1 })"
+               class="filter-item @(currentStatus == "APPROVED" ? "active" : "")">
+                ✅ Approved
+            </a>
+
+            <a href="@Url.Action("MyPost", new { status = "REJECTED", page = 1 })"
+               class="filter-item @(currentStatus == "REJECTED" ? "active" : "")">
+                ❌ Rejected
+            </a>
+
+            <a href="@Url.Action("MyPost", new { status = "CLAIMED", page = 1 })"
                class="filter-item @(currentStatus == "CLAIMED" ? "active" : "")">
                 🏁 Claimed
+            </a>
+
+            <a href="@Url.Action("MyPost", new { status = "EXPIRED", page = 1 })"
+               class="filter-item @(currentStatus == "EXPIRED" ? "active" : "")">
+                ⏰ Expired
             </a>
 
         </div>
@@ -51,62 +246,176 @@
     <div class="middle-line"></div>
 
     <!-- 🔹 RIGHT CONTENT -->
-    <div class="right-container">
+    <div class="right-container" style="overflow: hidden;">
 
-        <div class="right-container-top">
-            <h2>
-                @(currentStatus == "CLAIMED"
-                                ? "Claimed Items"
-                                : string.IsNullOrEmpty(currentCategory)
-                                ? "All Items"
-                                : currentCategory == "LOSTITEM" ? "Lost Items" : "Found Items")
-            </h2>
-            <hr />
-        </div>
+           <div class="right-container-top">
+        <h2>
+            @{
+                var title = "All Items";
+                if (!string.IsNullOrEmpty(currentCategory) && !string.IsNullOrEmpty(currentStatus))
+                {
+                    title = $"{currentCategory} - {currentStatus} Items";
+                }
+                else if (!string.IsNullOrEmpty(currentCategory))
+                {
+                    title = currentCategory == "LOSTITEM" ? "Lost Items" : "Found Items";
+                }
+                else if (!string.IsNullOrEmpty(currentStatus))
+                {
+                    title = $"{currentStatus} Items";
+                }
+            }
+            @title
+        </h2>
+        
+        <!-- 显示项目数量信息 -->
+        @if (totalItems > 0)
+        {
+            <div style="margin: 10px 0; color: #666; font-size: 14px;">
+                Showing <strong>@startItem - @endItem</strong> of <strong>@totalItems</strong> items
+            </div>
+        }
+        
+        <hr />
+    </div>
 
         <div class="right-container-bottom">
-
-            <div class="cardparent">
-
-                @if (!Model.Any())
+        <div class="cardparent">
+            @if (!Model.Any())
+            {
+                <p class="not_available">No items found.</p>
+            }
+            else
+            {
+                foreach (var doc in Model)
                 {
-                    <p class="not_available">No items found.</p>
-                }
-                else
-                {
-                    foreach (var doc in Model)
+                    var name = doc.GetValue<string>("IName");
+                    var category = doc.GetValue<string>("Category");
+                    var date = doc.GetValue<DateTime>("Date").ToString("dd MMM yyyy");
+                    var images = doc.ContainsField("Images")
+                    ? doc.GetValue<List<string>>("Images")
+                    : new List<string>();
+
+                    // 获取状态
+                    var statusValue = doc.ContainsField("IStatus")
+                    ? doc.GetValue<string>("IStatus")?.ToUpper()
+                    : "PENDING";
+
+                    // 状态显示文本
+                    var statusText = statusValue;
+                    var statusClass = "";
+
+                    // 根据状态设置CSS类
+                    switch (statusValue)
                     {
-                        var name = doc.GetValue<string>("IName");
-                        var category = doc.GetValue<string>("Category");
-                        var date = doc.GetValue<DateTime>("Date").ToString("dd MMM yyyy");
-                        var images = doc.ContainsField("Images")
-                        ? doc.GetValue<List<string>>("Images")
-                        : new List<string>();
+                        case "PENDING":
+                            statusClass = "status-pending";
+                            break;
+                        case "APPROVED":
+                            statusClass = "status-approved";
+                            break;
+                        case "REJECTED":
+                            statusClass = "status-rejected";
+                            break;
+                        case "CLAIMED":
+                            statusClass = "status-claimed";
+                            break;
+                        case "EXPIRED":
+                            statusClass = "status-expired";
+                            break;
+                        default:
+                            statusClass = "status-pending";
+                            break;
+                    }
 
-                        var imageUrl = images.Any()
-                        ? images[0]
-                        : Url.Content("~/images/no-image.png");
+                    var imageUrl = images.Any()
+                    ? images[0]
+                    : Url.Content("~/images/no-image.png");
 
-                        var itemId = doc.GetValue<long>("ItemID");
+                    var itemId = doc.GetValue<long>("ItemID");
 
+                    <div class="card-wrapper">
                         <a href="@Url.Action("MyPostDetails", "User", new { itemId = itemId })">
                             <div class="card">
-                                <img src="@imageUrl" class="card-img" />
+                                <!-- 图片容器 -->
+                                <div class="card-img-container">
+                                    <img src="@imageUrl" class="card-img" />
+                                    <!-- 状态标签 -->
+                                    <div class="status-badge @statusClass">
+                                        @statusText
+                                    </div>
+                                </div>
 
                                 <div class="card-details">
                                     <p class="category">@category</p>
-                                    <p><strong>@name</strong></p>
-                                    <p>@date</p>
+                                    <p class="item-name"><strong>@name</strong></p>
+                                    <p class="item-date">@date</p>
                                 </div>
                             </div>
                         </a>
-                    }
+                    </div>
                 }
-
-            </div>
-
+            }
         </div>
-
+        
+        <!-- 分页控件 - 确保在底部 -->
+        @if (totalPages > 1)
+        {
+            <div class="paging">
+                <!-- 上一页按钮 -->
+                @if (currentPage > 1)
+                {
+                    <a href="@Url.Action("MyPost", new { 
+                        category = currentCategory, 
+                        status = currentStatus, 
+                        page = currentPage - 1 
+                    })" class="back">
+                         Back
+                    </a>
+                }
+                else
+                {
+                    <button class="back" disabled style="background-color: #cccccc; color: #666666; cursor: not-allowed;">
+                         Back
+                    </button>
+                }
+                
+                <!-- 当前页码 -->
+                <button class="pagingNumber" style="background-color: #61b255; color: white; cursor: default;">
+                    @currentPage
+                </button>
+                
+                <!-- 下一页按钮 -->
+                @if (currentPage < totalPages)
+                {
+                    <a href="@Url.Action("MyPost", new { 
+                        category = currentCategory, 
+                        status = currentStatus, 
+                        page = currentPage + 1 
+                    })" class="next">
+                        Next 
+                    </a>
+                }
+                else
+                {
+                    <button class="next" disabled style="background-color: #cccccc; color: #666666; cursor: not-allowed;">
+                        Next 
+                    </button>
+                }
+            </div>
+        }
     </div>
-
 </div>
+
+<script>
+    // 处理临时消息的淡出效果
+    const temp = document.getElementById("tempdata");
+    if (temp) {
+        setTimeout(() => {
+            temp.classList.add("hide");
+            setTimeout(() => {
+                temp.style.display = "none";
+            }, 1000);
+        }, 3000);
+    }
+</script>
