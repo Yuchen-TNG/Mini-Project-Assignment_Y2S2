@@ -75,6 +75,33 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpGet]
+        [Route("ViewDetails/{itemId}")]
+        public async Task<IActionResult> ViewDetails(int itemId)
+        {
+            try
+            {
+                QuerySnapshot snapshot = await firestoreDb.Collection("Items")
+                    .WhereEqualTo("ItemID", itemId)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (snapshot.Count == 0)
+                {
+                    TempData["Error"] = "Item not found";
+                    return RedirectToAction("Index");
+                }
+
+                var item = MapToItem(snapshot.Documents[0]);
+                return View("~/Views/Admin/PostManagement/ViewDetails.cshtml", item);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Failed to load item details: " + ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
         [Route("GetItems")]
         public async Task<IActionResult> GetItems(string search = "", string category = "", int page = 1, int pageSize = 10)
         {
@@ -173,6 +200,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     { "IStatus", "Approved" }
                 });
 
+                Console.WriteLine($"[v0] Item {itemId} approved successfully");
                 TempData["Success"] = "Item approved successfully";
                 return RedirectToAction("Index");
             }
@@ -211,6 +239,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     { "IStatus", "Rejected" }
                 });
 
+                Console.WriteLine($"[v0] Item {itemId} rejected successfully");
                 TempData["Success"] = "Item rejected successfully";
                 return RedirectToAction("Index");
             }
