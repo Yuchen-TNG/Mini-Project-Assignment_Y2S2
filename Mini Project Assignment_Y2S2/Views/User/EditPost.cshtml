@@ -64,8 +64,11 @@
                     <input type="text" name="OtherLocation" class="form-control" value="" />
                 </div>
 
-                <label>Found At (Location)</label>
-                <input asp-for="LocationFound" class="form-control" />
+                @if (Model.Category == "FOUNDITEM")
+                {
+                    <label>Found At (Location)</label>
+                    <input asp-for="LocationFound" class="form-control" />
+                }
 
                 <label>Category</label>
                 <input asp-for="Category" class="form-control" readonly />
