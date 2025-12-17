@@ -27,6 +27,7 @@ namespace Mini_Project_Assignment_Y2S2.Models
         [Required(ErrorMessage = "Location is required")]
         public string? LocationID { get; set; }
 
+        public string? LocationOther { get; set; }
         // ⭐ 修正：移除 Images 的 Required，因为它是保存后生成的
         public List<string> Images { get; set; } = new List<string>();
 

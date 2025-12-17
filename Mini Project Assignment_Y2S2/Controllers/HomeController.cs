@@ -83,8 +83,58 @@
 
                 return RedirectToAction("UpdateCard");
             }
+        public async Task<IActionResult> IndexPagingReset(int page, int? size)
+        {
+            var finalsize = 0;
+            if (size != null)
+            {
+                HttpContext.Session.SetObject("sizee", size);
+                finalsize = HttpContext.Session.GetObject<int>("sizee");
+            }
+            else
+            {
+                finalsize = HttpContext.Session.GetObject<int>("sizee");
+            }
 
-            public async Task<IActionResult> UpdateCard()
+            var category = HttpContext.Session.GetObject<string>("ResetCategory") ?? "LOSTITEM";
+            var query = _firestore.Collection("Items")
+                      .WhereEqualTo("Category", category)
+                      .WhereEqualTo("IStatus", "Approved")
+                      .OrderByDescending("Date");
+
+            var snapshot = await query.GetSnapshotAsync();
+
+            var items = snapshot.Documents
+                                .Select(MapToItem)
+                                .ToList();
+
+            var locations = HttpContext.Session.GetObject<List<Location>>("Location");
+
+            var skip = (page - 1) * finalsize;
+            HttpContext.Session.SetObject("Page", page);
+            HttpContext.Session.Remove("ResetCategory");
+
+            var itemCards = items
+                .Skip(skip)
+                .Take(finalsize)
+                .Select(item =>
+                {
+                    var loc = (locations ?? new List<Location>()).FirstOrDefault(l => l.LocationID == item.LocationID);
+                    return new ItemCardViewModel
+                    {
+                        ItemID = item.ItemID,
+                        IType = item.IType,
+                        Date = item.Date,
+                        Images = item.Images,
+                        LocationName = loc?.LocationName ?? "Unknown"
+                    };
+                }).ToList();
+
+            return PartialView("_ItemCard", itemCards);
+        }
+
+
+        public async Task<IActionResult> UpdateCard()
             {
             var itemsFromSession =HttpContext.Session.GetObject<List<Item>>("PageItems")?? HttpContext.Session.GetObject<List<Item>>("FilteredItems");
 
@@ -190,7 +240,7 @@
                 var items = snapshot.Documents.Select(MapToItem).ToList();
 
                 HttpContext.Session.SetObject("FilteredItems", items);
-
+                HttpContext.Session.SetObject("ResetCategory", category);
                 return RedirectToAction("IndexPaging",1);
             }
 
@@ -416,6 +466,7 @@
                 IType = item.IType,
                 Description = item.Idescription,
                 LocationID = item.LocationID,
+                LocationOther=item.LocationOther,
                 Images = imageUrls,
                 Category = item.Category,
                 Date = item.Date.ToUniversalTime(),
@@ -423,6 +474,7 @@
                 CreatedAt = Timestamp.GetCurrentTimestamp(),
                 IStatus = "PENDING",
                 LocationFound = item.LocationFound
+
             });
 
             return RedirectToAction("Index");
