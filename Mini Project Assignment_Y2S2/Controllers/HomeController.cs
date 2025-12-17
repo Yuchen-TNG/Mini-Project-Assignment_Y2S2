@@ -29,7 +29,6 @@
                     LocationOther=doc.ContainsField("LocationOther")? doc.GetValue<string>("LocationOther"):null,
                     Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
                     IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                    IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
                     Idescription = doc.ContainsField("Description")
                                     ? doc.GetValue<string>("Description")
                                     : doc.ContainsField("Idescription")
@@ -467,7 +466,6 @@
             await docRef.SetAsync(new
             {
                 ItemID = item.ItemID,
-                IName = item.IName,
                 IType = item.IType,
                 Description = item.Idescription,
                 LocationID = item.LocationID,
