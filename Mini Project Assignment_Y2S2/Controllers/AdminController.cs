@@ -40,7 +40,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var item = new Item
             {
                 ItemID = doc.ContainsField("ItemID") ? Convert.ToInt32(doc.GetValue<object>("ItemID")) : 0,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
                 IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
                 Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") : null,
                 Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
@@ -370,7 +369,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 var item = new Item
                 {
                     ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                    IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
                     IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
                     Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                     LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
@@ -448,7 +446,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 var item = new Item
                 {
                     ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
-                    IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
                     IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
                     Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                     LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
@@ -668,7 +665,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var items = snapshot.Documents.Select(d => new Item
             {
                 ItemID = d.ContainsField("ItemID") ? d.GetValue<int>("ItemID") : 0,
-                IName = d.ContainsField("IName") ? d.GetValue<string>("IName") : null,
                 IType = d.ContainsField("IType") ? d.GetValue<string>("IType") : null,
                 IStatus = d.ContainsField("IStatus") ? d.GetValue<string>("IStatus") : null,
                 Date = d.ContainsField("Date") ? d.GetValue<DateTime>("Date") : DateTime.MinValue,
@@ -693,7 +689,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 search = search.ToLower();
                 items = items.Where(i =>
                     i.ItemID.ToString().Contains(search) ||
-                    (!string.IsNullOrEmpty(i.IName) && i.IName.ToLower().Contains(search)) ||
                     (!string.IsNullOrEmpty(i.IType) && i.IType.ToLower().Contains(search)) ||
                     (!string.IsNullOrEmpty(i.IStatus) && i.IStatus.ToLower().Contains(search))
                 ).ToList();

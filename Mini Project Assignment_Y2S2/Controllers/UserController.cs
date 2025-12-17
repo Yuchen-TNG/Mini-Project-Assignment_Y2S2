@@ -541,11 +541,11 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 }
                 else if (status == "APPROVED")
                 {
-                    itemQuery = itemQuery.WhereEqualTo("IStatus", "APPROVED");
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "Approved");
                 }
                 else if (status == "REJECTED")
                 {
-                    itemQuery = itemQuery.WhereEqualTo("IStatus", "REJECTED");
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "Rejected");
                 }
                 else if (status == "EXPIRED")
                 {
@@ -600,7 +600,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 LocationOther = doc.ContainsField("LocationOther") ? doc.GetValue<string>("LocationOther") : null,
                 Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
                 IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
                 Idescription = doc.ContainsField("Description")
                                 ? doc.GetValue<string>("Description")
                                 : doc.ContainsField("Idescription")
@@ -751,7 +750,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             var updateData = new Dictionary<string, object>
     {
-        { "IName", model.IName },
         { "IType", model.IType },
         { "Idescription", model.Idescription },
         { "Date", dateTimeUtc }, // 使用UTC时间

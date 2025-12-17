@@ -32,7 +32,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return new Item
             {
                 ItemID = doc.ContainsField("ItemID") ? Convert.ToInt32(doc.GetValue<object>("ItemID")) : 0,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
                 IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
                 Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
                               doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
@@ -100,7 +99,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 {
                     search = search.ToLower();
                     items = items.Where(i =>
-                        (i.IName?.ToLower().Contains(search) ?? false) ||
                         (i.IType?.ToLower().Contains(search) ?? false) ||
                         (i.Idescription?.ToLower().Contains(search) ?? false) ||
                         (i.LocationFound?.ToLower().Contains(search) ?? false) ||
