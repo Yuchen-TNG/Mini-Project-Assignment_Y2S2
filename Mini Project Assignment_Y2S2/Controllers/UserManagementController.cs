@@ -19,14 +19,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         public string Role { get; set; }
     }
 
-    public class UpdateUserRequest
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public string Role { get; set; }
-    }
 
     [Area("Admin")]
     [Route("Admin/UserManagement")]
@@ -117,48 +109,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             }
         }
 
-        // =================================================================
-        // GET USER JSON (FOR EDIT MODAL)
-        // =================================================================
-
-        [HttpGet]
-        [Route("GetUserJson/{id}")]
-        public async Task<IActionResult> GetUserJson(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                return NotFound(new { error = "User ID is required" });
-            }
-
-            try
-            {
-                var docRef = _firestore.Collection("Users").Document(id);
-                var snapshot = await docRef.GetSnapshotAsync();
-
-                if (!snapshot.Exists)
-                {
-                    return NotFound(new { error = "User not found" });
-                }
-
-                var data = snapshot.ToDictionary();
-
-                var model = new UserManagementViewModel
-                {
-                    Id = id,
-                    UserID = GetStringValue(data, "Id"),
-                    Name = GetStringValue(data, "Name"),
-                    Email = GetStringValue(data, "Email"),
-                    PhoneNumber = GetStringValue(data, "PhoneNumber"),
-                    Role = GetStringValue(data, "Role")
-                };
-
-                return Json(model);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "Failed to load user data", message = ex.Message });
-            }
-        }
 
         // =================================================================
         // ADD USER (CREATE)
@@ -265,53 +215,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 Console.WriteLine($"[v0] Error creating user: {ex.Message}");
                 Console.WriteLine($"[v0] Stack trace: {ex.StackTrace}");
                 return StatusCode(500, new { success = false, error = "Failed to create user", message = ex.Message });
-            }
-        }
-
-        // =================================================================
-        // UPDATE USER (EDIT)
-        // =================================================================
-
-        [HttpPost]
-        [Route("UpdateUser")]
-        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
-        {
-            if (string.IsNullOrEmpty(request.Id))
-            {
-                return Json(new { success = false, error = "User ID is required" });
-            }
-
-            try
-            {
-                string roleLower = request.Role?.ToLower() ?? "student";
-                if (roleLower != "admin" && roleLower != "student")
-                {
-                    return Json(new { success = false, error = "Invalid role. Must be Admin or Student" });
-                }
-
-                var docRef = _firestore.Collection("Users").Document(request.Id);
-                var snapshot = await docRef.GetSnapshotAsync();
-
-                if (!snapshot.Exists)
-                {
-                    return Json(new { success = false, error = "User not found" });
-                }
-
-                var updates = new Dictionary<string, object>
-                {
-                    { "Name", request.Name ?? "" },
-                    { "Email", request.Email ?? "" },
-                    { "PhoneNumber", request.PhoneNumber ?? "" },
-                    { "Role", roleLower }
-                };
-
-                await docRef.UpdateAsync(updates);
-
-                return Json(new { success = true, message = "User updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, error = "Failed to update user", message = ex.Message });
             }
         }
 

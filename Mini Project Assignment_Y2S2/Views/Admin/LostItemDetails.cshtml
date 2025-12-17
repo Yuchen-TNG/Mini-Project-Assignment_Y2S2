@@ -1,30 +1,57 @@
 ﻿@{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Item Details";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
+
 @model Mini_Project_Assignment_Y2S2.Models.Item
 
-<h2 class="text-2xl font-bold mb-4">Item Details</h2>
+<h2 class="text-2xl font-bold mb-6">
+    Item Details
+    <span class="ml-3 px-3 py-1 text-sm rounded-full
+        @(Model.Category == "LOSTITEM"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-green-100 text-green-700")">
+        @Model.Category
+    </span>
+</h2>
 
-<div class="bg-white shadow-md rounded-lg p-6">
-    <p><strong>ID:</strong> @Model.ItemID</p>
-    <p><strong>Name:</strong> @Model.IName</p>
-    <p><strong>Type:</strong> @Model.IType</p>
-    <p><strong>Description:</strong> @Model.Idescription</p>
-    <p><strong>Date:</strong> @Model.Date.ToString("yyyy-MM-dd")</p>
-    <p><strong>Location:</strong> @Model.LocationID</p>
-    <p><strong>Category:</strong> @Model.Category</p>
+<div class="bg-white shadow-lg rounded-lg p-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <p><strong>ID:</strong> @Model.ItemID</p>
+        <p><strong>Name:</strong> @Model.IName</p>
+        <p><strong>Type:</strong> @Model.IType</p>
+        <p><strong>Location:</strong> @Model.LocationID</p>
+        <p>
+            <strong>Date:</strong>
+            @(Model.Date == DateTime.MinValue
+                        ? "N/A"
+                        : Model.Date.ToString("dd MMM yyyy"))
+        </p>
+    </div>
+
+    <hr class="my-4" />
+
+    <p>
+        <strong>Description:</strong><br />
+        @(!string.IsNullOrEmpty(Model.Idescription)
+                ? Model.Idescription
+                : "No description provided.")
+    </p>
 
     @if (Model.Images != null && Model.Images.Any())
     {
-        <h3 class="mt-4 font-semibold">Images:</h3>
-        <div class="flex flex-wrap gap-2 mt-2">
+        <h3 class="mt-6 font-semibold">Images</h3>
+        <div class="flex flex-wrap gap-3 mt-3">
             @foreach (var img in Model.Images)
             {
-                <img src="@img" class="w-32 h-32 object-cover rounded border" />
+                <img src="@img"
+                     class="w-32 h-32 object-cover rounded border shadow-sm hover:scale-105 transition" />
             }
         </div>
     }
 
-    <a asp-action="LostItem" class="mt-4 inline-block text-indigo-600 hover:underline">Back to List</a>
+    <div class="mt-4">
+        <a asp-action="LostItem" class="inline-block text-indigo-600 hover:underline">Back to List</a>
+    </div>
 </div>

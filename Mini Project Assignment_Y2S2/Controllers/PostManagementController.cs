@@ -1,198 +1,227 @@
 ﻿using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
-using Mini_Project_Assignment_Y2S2.Filters;
 using Mini_Project_Assignment_Y2S2.Models;
-using Mini_Project_Assignment_Y2S2.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
-    [Area("Admin")]
-    [Route("Admin/PostManagement")]
-    [AdminAuthorize] // Apply admin authorization filter to all actions
+    [Route("PostManagement")]
     public class PostManagementController : Controller
     {
-        private readonly FirestoreDb _firestore;
+        private readonly string projectId = "miniproject-d280e";
+        private readonly FirestoreDb firestoreDb;
 
-        public PostManagementController(FirebaseDB firebaseDB)
+        public PostManagementController()
         {
-            _firestore = firebaseDB.Firestore;
+            // JSON FILE
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "firebase_config.json");
+
+            // Environment Variable
+            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", path);
+
+            // create connection
+            firestoreDb = FirestoreDb.Create(projectId);
         }
 
-        // =================================================================
-        // DISPLAY POST MANAGEMENT PAGE
-        // =================================================================
+        private Item MapToItem(DocumentSnapshot doc)
+        {
+            return new Item
+            {
+                ItemID = doc.ContainsField("ItemID") ? Convert.ToInt32(doc.GetValue<object>("ItemID")) : 0,
+                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
+                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
+                              doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
+                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
+                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
+                IStatus = doc.ContainsField("Status") ? doc.GetValue<string>("Status") :
+                         doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "ACTIVE",
+                UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null
+            };
+        }
 
         [HttpGet]
         [Route("")]
+        [Route("Index")]
         public async Task<IActionResult> Index()
         {
             try
             {
-                // Get all posts with "Pending Approval" status
-                QuerySnapshot snapshot = await _firestore.Collection("Posts")
-                    .WhereEqualTo("Status", "Pending Approval")
-                    .OrderByDescending("DatePosted")
+                QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+
+                var allItems = snapshot.Documents.Select(MapToItem).ToList();
+
+                var items = allItems.Where(i =>
+                    (i.IStatus != null && i.IStatus.Equals("PENDING", StringComparison.OrdinalIgnoreCase))
+                ).OrderByDescending(i => i.Date).ToList();
+
+                Console.WriteLine($"[v0] Total items in Firebase: {allItems.Count}");
+                Console.WriteLine($"[v0] Pending approval items: {items.Count}");
+
+                return View("~/Views/Admin/PostManagement/Index.cshtml", items);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[v0] Error loading items: {ex.Message}");
+                ViewBag.Error = "Failed to load items: " + ex.Message;
+                return View("~/Views/Admin/PostManagement/Index.cshtml", new List<Item>());
+            }
+        }
+
+        [HttpGet]
+        [Route("GetItems")]
+        public async Task<IActionResult> GetItems(string search = "", string category = "", int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                Console.WriteLine($"[v0] GetItems called - search: '{search}', category: '{category}', page: {page}");
+
+                QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+
+                var allItems = snapshot.Documents.Select(MapToItem).ToList();
+
+                Console.WriteLine($"[v0] Total items retrieved: {allItems.Count}");
+
+                var items = allItems.Where(i =>
+                    i.IStatus != null && i.IStatus.Equals("PENDING", StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+
+                Console.WriteLine($"[v0] Pending items: {items.Count}");
+
+                // Apply search filter
+                if (!string.IsNullOrEmpty(search))
+                {
+                    search = search.ToLower();
+                    items = items.Where(i =>
+                        (i.IName?.ToLower().Contains(search) ?? false) ||
+                        (i.IType?.ToLower().Contains(search) ?? false) ||
+                        (i.Idescription?.ToLower().Contains(search) ?? false) ||
+                        (i.LocationFound?.ToLower().Contains(search) ?? false) ||
+                        (i.LocationID?.ToLower().Contains(search) ?? false)
+                    ).ToList();
+
+                    Console.WriteLine($"[v0] After search filter: {items.Count}");
+                }
+
+                // Apply category filter (LOSTITEM or FOUNDITEM)
+                if (!string.IsNullOrEmpty(category))
+                {
+                    items = items.Where(i =>
+                        i.Category != null && i.Category.Equals(category, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+
+                    Console.WriteLine($"[v0] After category filter: {items.Count}");
+                }
+
+                // Order by date
+                items = items.OrderByDescending(i => i.Date).ToList();
+
+                // Calculate pagination
+                var totalCount = items.Count;
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                Console.WriteLine($"[v0] Returning {pagedItems.Count} items for page {page}");
+
+                return Json(new
+                {
+                    success = true,
+                    items = pagedItems,
+                    currentPage = page,
+                    totalPages = totalPages,
+                    totalCount = totalCount,
+                    pageSize = pageSize
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[v0] Error in GetItems: {ex.Message}");
+                Console.WriteLine($"[v0] Stack trace: {ex.StackTrace}");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("Approve/{itemId}")]
+        public async Task<IActionResult> Approve(int itemId)
+        {
+            try
+            {
+                Console.WriteLine($"[v0] Approving item: {itemId}");
+
+                QuerySnapshot snapshot = await firestoreDb.Collection("Items")
+                    .WhereEqualTo("ItemID", itemId)
+                    .Limit(1)
                     .GetSnapshotAsync();
 
-                var posts = snapshot.Documents.Select(doc =>
+                if (snapshot.Count == 0)
                 {
-                    var post = doc.ConvertTo<Post>();
-                    post.Id = doc.Id;
-                    return post;
-                }).ToList();
-
-                return View("~/Views/Admin/PostManagement/Index.cshtml", posts);
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Error = "Failed to load posts: " + ex.Message;
-                return View("~/Views/Admin/PostManagement/Index.cshtml", new List<Post>());
-            }
-        }
-
-        // =================================================================
-        // APPROVE POST
-        // =================================================================
-
-        [HttpPost]
-        [Route("Approve/{id}")]
-        public async Task<IActionResult> Approve(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                TempData["Error"] = "Post ID is required";
-                return RedirectToAction("Index");
-            }
-
-            try
-            {
-                var adminId = HttpContext.Session.GetString("UserId");
-                var docRef = _firestore.Collection("Posts").Document(id);
-                var snapshot = await docRef.GetSnapshotAsync();
-
-                if (!snapshot.Exists)
-                {
-                    TempData["Error"] = "Post not found";
+                    TempData["Error"] = "Item not found";
                     return RedirectToAction("Index");
                 }
 
-                // Update post status to Approved
-                var updates = new Dictionary<string, object>
+                var docRef = snapshot.Documents[0].Reference;
+
+                await docRef.UpdateAsync(new Dictionary<string, object>
                 {
                     { "Status", "Approved" },
-                    { "DateVerified", DateTime.UtcNow },
-                    { "VerifiedByAdminId", adminId ?? "" }
-                };
+                    { "IStatus", "Approved" }
+                });
 
-                await docRef.UpdateAsync(updates);
-
-                TempData["Success"] = "Post approved successfully";
+                TempData["Success"] = "Item approved successfully";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Failed to approve post: " + ex.Message;
+                Console.WriteLine($"[v0] Error approving item: {ex.Message}");
+                TempData["Error"] = "Failed to approve item: " + ex.Message;
                 return RedirectToAction("Index");
             }
         }
 
-        // =================================================================
-        // REJECT POST
-        // =================================================================
-
         [HttpPost]
-        [Route("Reject/{id}")]
-        public async Task<IActionResult> Reject(string id)
+        [Route("Reject/{itemId}")]
+        public async Task<IActionResult> Reject(int itemId)
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                TempData["Error"] = "Post ID is required";
-                return RedirectToAction("Index");
-            }
-
             try
             {
-                var adminId = HttpContext.Session.GetString("UserId");
-                var docRef = _firestore.Collection("Posts").Document(id);
-                var snapshot = await docRef.GetSnapshotAsync();
+                Console.WriteLine($"[v0] Rejecting item: {itemId}");
 
-                if (!snapshot.Exists)
+                QuerySnapshot snapshot = await firestoreDb.Collection("Items")
+                    .WhereEqualTo("ItemID", itemId)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (snapshot.Count == 0)
                 {
-                    TempData["Error"] = "Post not found";
+                    TempData["Error"] = "Item not found";
                     return RedirectToAction("Index");
                 }
 
-                // Update post status to Rejected
-                var updates = new Dictionary<string, object>
+                var docRef = snapshot.Documents[0].Reference;
+
+                await docRef.UpdateAsync(new Dictionary<string, object>
                 {
                     { "Status", "Rejected" },
-                    { "DateVerified", DateTime.UtcNow },
-                    { "VerifiedByAdminId", adminId ?? "" }
-                };
+                    { "IStatus", "Rejected" }
+                });
 
-                await docRef.UpdateAsync(updates);
-
-                TempData["Success"] = "Post rejected successfully";
+                TempData["Success"] = "Item rejected successfully";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Failed to reject post: " + ex.Message;
+                Console.WriteLine($"[v0] Error rejecting item: {ex.Message}");
+                TempData["Error"] = "Failed to reject item: " + ex.Message;
                 return RedirectToAction("Index");
             }
         }
-
-        // =================================================================
-        // GET ALL POSTS (FOR VIEWING HISTORY)
-        // =================================================================
-
-        //[HttpGet]
-        //[Route("History")]
-        //public async Task<IActionResult> History(string statusFilter = "All", int page = 1)
-        //{
-        //    try
-        //    {
-        //        int pageSize = 10;
-        //        Query query = _firestore.Collection("Posts");
-
-        //        // Filter by status if not "All"
-        //        if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "All")
-        //        {
-        //            query = query.WhereEqualTo("Status", statusFilter);
-        //        }
-
-        //        QuerySnapshot snapshot = await query
-        //            .OrderByDescending("DatePosted")
-        //            .GetSnapshotAsync();
-
-        //        var posts = snapshot.Documents.Select(doc =>
-        //        {
-        //            var post = doc.ConvertTo<Post>();
-        //            post.Id = doc.Id;
-        //            return post;
-        //        }).ToList();
-
-        //        int totalCount = posts.Count;
-        //        var pagedPosts = posts
-        //            .Skip((page - 1) * pageSize)
-        //            .Take(pageSize)
-        //            .ToList();
-
-        //        ViewBag.CurrentPage = page;
-        //        ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-        //        ViewBag.StatusFilter = statusFilter;
-
-        //        return View("~/Views/Admin/PostManagement/History.cshtml", pagedPosts);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ViewBag.Error = "Failed to load post history: " + ex.Message;
-        //        return View("~/Views/Admin/PostManagement/History.cshtml", new List<Post>());
-        //    }
-        // }
     }
 }
