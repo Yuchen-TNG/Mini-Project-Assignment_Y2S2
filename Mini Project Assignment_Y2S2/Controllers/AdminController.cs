@@ -298,8 +298,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 .GetSnapshotAsync();
             int totalFoundItems = foundSnapshot.Count;
 
-            var pendingPostSnapshot = await firestoreDb.Collection("Posts")
-                .WhereEqualTo("Status", "Pending Approval")
+            var pendingPostSnapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("IStatus", "PENDING")
                 .GetSnapshotAsync();
             int totalPendingPosts = pendingPostSnapshot.Count;
 

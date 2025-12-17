@@ -145,3 +145,34 @@ admin role problem solved
 -- action can be save into firebase
 
 
+
+17 DEC 2025
+09:30AM
+
+USER MANAGEMENT 
+\\login credential 
+add new user for admin
+S2570
+test23@gmail.com
+test23
+
+
+\\ add new user for student
+student@gmail.com
+8599861
+123
+
+
+paging ok
+searching can search with name and email (user id haven't settle)
+filtering ok
+
+
+
+POST MANAGEMENT- testing
+1. try to login as student and create a post, verify whether can it be sent to admin page 
+2. post show successful in admin page
+3. when approve, it doesnt show on the user page (My Post)
+
+
+istatus use pending, approved, rejected 
