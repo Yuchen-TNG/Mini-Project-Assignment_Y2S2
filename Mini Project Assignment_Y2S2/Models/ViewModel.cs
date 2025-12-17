@@ -8,6 +8,8 @@ namespace Mini_Project_Assignment_Y2S2.Models
         public User? User { get; set; }   // 当前登录用户信息
         public Location? Location { get; set; }
         public bool IsClaimed { get; set; }
+        public bool IsApproved { get; set; }
+
 
     }
 

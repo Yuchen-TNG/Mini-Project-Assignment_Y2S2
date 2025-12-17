@@ -597,6 +597,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             {
                 ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
                 LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationOther = doc.ContainsField("LocationOther") ? doc.GetValue<string>("LocationOther") : null,
                 Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
                 IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
                 IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
@@ -608,7 +609,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
                 UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null, // ⭐ 加这行
-                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null
+                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
+                IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : null
             };
         }
 
@@ -764,6 +766,116 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return RedirectToAction("MyPost");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> DeletePost(int itemId)
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login");
 
+            try
+            {
+                // 找到用户要删除的帖子
+                var collection = _firestore.Collection("Items");
+                var query = collection.WhereEqualTo("ItemID", itemId)
+                                      .WhereEqualTo("UserID", userId);
+                var snapshot = await query.GetSnapshotAsync();
+
+                if (snapshot.Documents.Count == 0)
+                {
+                    TempData["Error"] = "Post not found or you don't have permission to delete it.";
+                    return RedirectToAction("MyPost");
+                }
+
+                // 获取文档引用并删除
+                var docRef = snapshot.Documents[0].Reference;
+                await docRef.DeleteAsync();
+
+                // 可选：删除相关的图片文件
+                var item = snapshot.Documents[0];
+                if (item.ContainsField("Images"))
+                {
+                    var images = item.GetValue<List<string>>("Images");
+                    await DeleteImageFiles(images);
+                }
+
+                TempData["Success"] = "Post deleted successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error deleting post: {ex.Message}";
+            }
+
+            return RedirectToAction("MyPost");
+        }
+
+        // 辅助方法：删除图片文件
+        private async Task DeleteImageFiles(List<string> imageUrls)
+        {
+            if (imageUrls == null || !imageUrls.Any())
+                return;
+
+            try
+            {
+                foreach (var imageUrl in imageUrls)
+                {
+                    if (!string.IsNullOrEmpty(imageUrl) && imageUrl.StartsWith("/images/"))
+                    {
+                        var fileName = Path.GetFileName(imageUrl);
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 记录错误但不影响主流程
+                Console.WriteLine($"Error deleting image files: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkClaimed(int itemId)
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login");
+
+            try
+            {
+                // 找到用户要标记为Claimed的帖子
+                var collection = _firestore.Collection("Items");
+                var query = collection.WhereEqualTo("ItemID", itemId)
+                                      .WhereEqualTo("UserID", userId);
+                var snapshot = await query.GetSnapshotAsync();
+
+                if (snapshot.Documents.Count == 0)
+                {
+                    TempData["Error"] = "Post not found or you don't have permission to update it.";
+                    return RedirectToAction("MyPost");
+                }
+
+                var docRef = snapshot.Documents[0].Reference;
+
+                // 更新状态为CLAIMED
+                await docRef.UpdateAsync(new Dictionary<string, object>
+        {
+            { "IStatus", "CLAIMED" },
+            { "ClaimedAt", Timestamp.GetCurrentTimestamp() }
+        });
+
+                TempData["Success"] = "Post marked as CLAIMED successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error marking post as claimed: {ex.Message}";
+            }
+
+            return RedirectToAction("MyPost");
+        }
     }
 }

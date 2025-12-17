@@ -177,6 +177,21 @@
         width: 250px;
         height: 320px;
     }
+
+    .btn-delete {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+}
 </style>
 
 <div class="parent">
@@ -350,6 +365,14 @@
                                     <p class="category">@category</p>
                                     <p class="item-name"><strong>@name</strong></p>
                                     <p class="item-date">@date</p>
+                                     <form asp-action="DeletePost" asp-controller="User" method="post"
+                      onsubmit="return confirm('Delete this post?');"
+                      style="margin-top:10px;">
+                    <input type="hidden" name="itemId" value="@itemId" />
+                    <button class="btn-delete"  type="submit">
+                        Delete
+                    </button>
+                </form>
                                 </div>
                             </div>
                         </a>
@@ -407,7 +430,7 @@
     </div>
 </div>
 
-<script>
+    <script>
     // 处理临时消息的淡出效果
     const temp = document.getElementById("tempdata");
     if (temp) {
@@ -418,4 +441,26 @@
             }, 1000);
         }, 3000);
     }
-</script>
+
+    function confirmDelete(itemId) {
+    return confirm("Are you sure you want to delete this post?\n\nThis action cannot be undone.");
+}
+
+// 或者使用更漂亮的SweetAlert
+    function deletePost(itemId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // 提交表单
+            document.getElementById('delete-form-' + itemId).submit();
+        }
+        });
+    }
+    </script>
