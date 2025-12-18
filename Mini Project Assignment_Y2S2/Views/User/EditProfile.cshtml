@@ -12,10 +12,14 @@
         <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
 
             <div class="profile-pic-container">
-                <input value=@Model.ProfileImageUrl asp-for="ProfileImageUrl" hidden>
-                @if (Model?.ProfileImageUrl != null && !string.IsNullOrEmpty(Model.ProfileImageUrl))
+                <input value="@Model?.ProfileImageUrl" asp-for="ProfileImageUrl" hidden>
+
+                @if (!string.IsNullOrEmpty(Model?.ProfileImageUrl))
                 {
-                    <img "id="profilePreview" src="@Model.ProfileImageUrl" alt="Profile" class="profile-pic" />
+                    <img id="profilePreview" src="@Model.ProfileImageUrl" alt="Profile" class="profile-pic" />
+                    <div id="profilePlaceholder" class="profile-placeholder" style="display: none;">
+                        Click to Change Picture
+                    </div>
                 }
                 else
                 {
@@ -99,8 +103,6 @@
 <script>
     const profileInput = document.getElementById('profileInput');
     const profileContainer = document.querySelector('.profile-pic-container');
-    const profilePreview = document.getElementById('profilePreview');
-    const profilePlaceholder = document.getElementById('profilePlaceholder');
 
     profileContainer.addEventListener('click', function () {
         profileInput.click();
@@ -108,21 +110,69 @@
 
     profileInput.addEventListener('change', function (e) {
         const file = e.target.files[0];
-        if (file) {
-            const url = URL.createObjectURL(file);
+        if (!file) return;
+
+        // 验证文件类型
+        if (!file.type.match('image.*')) {
+            alert('Please select an image file.');
+            return;
+        }
+
+        // 验证文件大小（例如限制在5MB以内）
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size should be less than 5MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const result = e.target.result;
+
+            // 检查是否已存在预览图片
+            let profilePreview = document.getElementById('profilePreview');
+            const profilePlaceholder = document.getElementById('profilePlaceholder');
 
             if (profilePreview) {
-                profilePreview.src = url;
+                // 更新现有图片
+                profilePreview.src = result;
             } else if (profilePlaceholder) {
-                // Replace placeholder with image
+                // 移除占位符并创建新图片
                 profilePlaceholder.remove();
+
                 const img = document.createElement('img');
                 img.id = 'profilePreview';
-                img.src = url;
+                img.src = result;
+                img.alt = 'Profile Preview';
+                img.classList.add('profile-pic');
+                profileContainer.prepend(img);
+            } else {
+                // 如果既没有预览图也没有占位符，创建新图片
+                const img = document.createElement('img');
+                img.id = 'profilePreview';
+                img.src = result;
+                img.alt = 'Profile Preview';
                 img.classList.add('profile-pic');
                 profileContainer.prepend(img);
             }
-        }
+        };
+
+        reader.onerror = function() {
+            alert('Failed to read the image file.');
+        };
+
+        reader.readAsDataURL(file);
     });
 
+    // 添加一些CSS来改善用户体验
+    const style = document.createElement('style');
+    style.textContent = `
+        .profile-pic-container img.profile-pic {
+            transition: opacity 0.3s ease;
+        }
+        .profile-pic-container:hover img.profile-pic {
+            opacity: 0.8;
+        }
+    `;
+    document.head.appendChild(style);
 </script>
