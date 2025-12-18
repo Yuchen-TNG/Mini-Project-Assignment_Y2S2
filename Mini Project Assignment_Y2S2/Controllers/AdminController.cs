@@ -264,7 +264,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ResetPassword(ChangePasswordViewModel model)
+        public async Task<IActionResult> ResetPassword(UserViewModel model)
         {
             if (!ModelState.IsValid)
             {

@@ -337,6 +337,10 @@ a {
     background-color: #9e9e9e;
 }
 
+.status-deleted {
+    background-color: #808080;
+}
+
 /* ===========================================
    CARD DETAILS
    =========================================== */
@@ -347,6 +351,7 @@ a {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    overflow: hidden;
 }
 
     .card-details p {
@@ -384,6 +389,14 @@ a {
     font-weight: 500;
 }
 
+.item-location {
+    color: #666;
+    font-size: 13px;
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 /* ===========================================
    PAGINATION STYLES
    =========================================== */
