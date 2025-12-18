@@ -190,7 +190,15 @@
                                 ${item.idescription || 'No description available'}
                             </p>
                             <p class="text-xs text-gray-400 mb-2">
-                                Location: <span class="font-medium">${item.locationFound || 'N/A'}</span>
+                                Location: <span class="font-medium">${
+                                    item.locationName && item.locationName.trim() !== ''
+                                        ? item.locationName
+                                        : item.locationFound && item.locationFound.trim() !== ''
+                                            ? item.locationFound
+                                            : item.locationOther && item.locationOther.trim() !== ''
+                                                ? item.locationOther
+                                                : 'N/A'
+                                }</span>
                             </p>
                             <p class="text-xs text-gray-400 mb-4">
                                 Posted on: ${new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}

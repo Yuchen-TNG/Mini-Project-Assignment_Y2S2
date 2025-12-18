@@ -39,7 +39,24 @@
         <div class="bg-white shadow-md rounded-lg p-4">
             <p class="text-sm text-gray-500">@item.IType</p>
             <p class="text-sm text-gray-500">@item.Date.ToString("yyyy-MM-dd")</p>
-            <p class="text-sm text-gray-500">@item.LocationName</p>
+            <p class="text-sm text-gray-500">@{
+                                                    if (!string.IsNullOrWhiteSpace(item.LocationName))
+                                                    {
+                                                        @item.LocationName
+                                                    }
+                                                    else if (!string.IsNullOrWhiteSpace(item.LocationFound))
+                                                    {
+                                                        @item.LocationFound
+                                                    }
+                                                    else if (!string.IsNullOrWhiteSpace(item.LocationOther))
+                                                    {
+                                                        @item.LocationOther
+                                                    }
+                                                    else
+                                                    {
+                                                        @:N/A
+                                                    }
+                                               }</p>
 
             @if (item.Images != null && item.Images.Any())
             {

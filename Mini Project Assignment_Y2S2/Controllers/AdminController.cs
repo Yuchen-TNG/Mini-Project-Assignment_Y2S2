@@ -33,35 +33,56 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         // Safe mapping for Firestore Item document
-        private async Task<Item> MapToItemWithLocationName(DocumentSnapshot doc)
+        private async Task<Item> MapToItemAsync(DocumentSnapshot doc)
         {
             var item = new Item
             {
-                ItemID = doc.ContainsField("ItemID") ? Convert.ToInt32(doc.GetValue<object>("ItemID")) : 0,
+                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
                 IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
                 Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") : null,
                 Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "Approved"
+                IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "PENDING",
+                UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null,
+                LocationName = doc.ContainsField("LocationName") ? doc.GetValue<string>("LocationName") : null,
+                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
+                LocationOther = doc.ContainsField("LocationOther") ? doc.GetValue<string>("LocationOther") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>()
             };
 
-            // 🔹 Get Location Name from Location collection
-            if (!string.IsNullOrEmpty(item.LocationID))
+            string resolvedLocation = null;
+
+            // 1️⃣ Try getting LocationName from Locations collection using LocationID
+            if (doc.ContainsField("LocationID"))
             {
-                var locDoc = await firestoreDb.Collection("Location")
-                                              .Document(item.LocationID)
-                                              .GetSnapshotAsync();
-                if (locDoc.Exists && locDoc.ContainsField("LocationName"))
+                string locationId = doc.GetValue<string>("LocationID");
+
+                QuerySnapshot locationSnap = await firestoreDb
+                    .Collection("Locations")
+                    .WhereEqualTo("LocationID", locationId)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (locationSnap.Count > 0)
                 {
-                    item.LocationName = locDoc.GetValue<string>("LocationName");
-                }
-                else
-                {
-                    item.LocationName = item.LocationID; // fallback
+                    resolvedLocation = locationSnap.Documents[0].GetValue<string>("LocationName");
                 }
             }
+
+            // 2️⃣ If still null, use LocationFound
+            if (string.IsNullOrWhiteSpace(resolvedLocation) && !string.IsNullOrWhiteSpace(item.LocationFound))
+            {
+                resolvedLocation = item.LocationFound;
+            }
+
+            // 3️⃣ If still null, use LocationOther
+            if (string.IsNullOrWhiteSpace(resolvedLocation) && !string.IsNullOrWhiteSpace(item.LocationOther))
+            {
+                resolvedLocation = item.LocationOther;
+            }
+
+            // Set final LocationName
+            item.LocationName = resolvedLocation ?? "Unknown";
 
             return item;
         }
@@ -512,10 +533,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 .Limit(1)
                 .GetSnapshotAsync();
 
-            if (!snapshot.Documents.Any())
+            if (snapshot.Count == 0)
                 return NotFound();
 
-            var item = await MapToItemWithLocationName(snapshot.Documents.First());
+            var item = await MapToItemWithLocationName(snapshot.Documents[0]);
 
             if (!string.IsNullOrEmpty(item.LocationID))
             {
@@ -524,9 +545,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     .Limit(1)
                     .GetSnapshotAsync();
 
-                if (locationSnapshot.Documents.Any())
+                if (locationSnapshot.Count > 0)
                 {
-                    item.LocationName = locationSnapshot.Documents.First().GetValue<string>("LocationName");
+                    item.LocationName = locationSnapshot.Documents[0].GetValue<string>("LocationName");
                 }
             }
 
@@ -540,10 +561,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 .Limit(1)
                 .GetSnapshotAsync();
 
-            if (!snapshot.Documents.Any())
+            if (snapshot.Count == 0)
                 return NotFound();
 
-            var item = await MapToItemWithLocationName(snapshot.Documents.First());
+            var item = await MapToItemWithLocationName(snapshot.Documents[0]);
 
             if (!string.IsNullOrEmpty(item.LocationID))
             {
@@ -552,9 +573,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     .Limit(1)
                     .GetSnapshotAsync();
 
-                if (locationSnapshot.Documents.Any())
+                if (locationSnapshot.Count > 0)
                 {
-                    item.LocationName = locationSnapshot.Documents.First().GetValue<string>("LocationName");
+                    item.LocationName = locationSnapshot.Documents[0].GetValue<string>("LocationName");
                 }
             }
 
@@ -793,5 +814,57 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         #endregion
+
+        // Add this private method to fix CS0103: The name 'MapToItemWithLocationName' does not exist in the current context
+        private async Task<Item> MapToItemWithLocationName(DocumentSnapshot doc)
+        {
+            var item = new Item
+            {
+                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
+                IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
+                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") : null,
+                Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
+                Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
+                IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "PENDING",
+                UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null,
+                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
+                LocationOther = doc.ContainsField("LocationOther") ? doc.GetValue<string>("LocationOther") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>()
+            };
+
+            string resolvedLocation = null;
+
+            // Try getting LocationName from Location collection using LocationID
+            if (!string.IsNullOrEmpty(item.LocationID))
+            {
+                var locQuery = await firestoreDb.Collection("Location")
+                    .WhereEqualTo("LocationID", item.LocationID)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (locQuery.Count > 0)
+                {
+                    resolvedLocation = locQuery.Documents[0].GetValue<string>("LocationName");
+                }
+            }
+
+            // If still null, use LocationFound
+            if (string.IsNullOrWhiteSpace(resolvedLocation) && !string.IsNullOrWhiteSpace(item.LocationFound))
+            {
+                resolvedLocation = item.LocationFound;
+            }
+
+            // If still null, use LocationOther
+            if (string.IsNullOrWhiteSpace(resolvedLocation) && !string.IsNullOrWhiteSpace(item.LocationOther))
+            {
+                resolvedLocation = item.LocationOther;
+            }
+
+            // Set final LocationName
+            item.LocationName = resolvedLocation ?? "Unknown";
+
+            return item;
+        }
     }
 }

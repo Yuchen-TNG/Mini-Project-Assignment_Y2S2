@@ -62,7 +62,26 @@
                     </div>
                     <div class="flex items-start">
                         <span class="font-semibold w-32 text-gray-700">Location Name:</span>
-                        <span class="text-gray-900">@(Model.LocationName ?? "N/A")</span>
+                        <spam class="text-xs text-gray-400 mb-2">
+                                @{
+                                    if (!string.IsNullOrWhiteSpace(Model.LocationName))
+                                    {
+                                        @Model.LocationName
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(Model.LocationFound))
+                                    {
+                                        @Model.LocationFound
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(Model.LocationOther))
+                                    {
+                                        @Model.LocationOther
+                                    }
+                                    else
+                                    {
+                                        @:N/A
+                                    }
+                                }
+                        </spam>
                     </div>
                     <div class="flex items-start">
                         <span class="font-semibold w-32 text-gray-700">Posted By:</span>
