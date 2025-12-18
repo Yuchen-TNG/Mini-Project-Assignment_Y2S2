@@ -33,18 +33,17 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             {
                 ItemID = doc.ContainsField("ItemID") ? Convert.ToInt32(doc.GetValue<object>("ItemID")) : 0,
                 IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                              doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
+                Idescription = doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
                 Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationName = doc.ContainsField("LocationName") ? doc.GetValue<string>("LocationName") : null,
                 LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IStatus = doc.ContainsField("Status") ? doc.GetValue<string>("Status") :
-                         doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "ACTIVE",
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new(),
+                IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "ACTIVE",
                 UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null
             };
         }
+
 
         [HttpGet]
         [Route("")]
@@ -60,6 +59,12 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 var items = allItems.Where(i =>
                     (i.IStatus != null && i.IStatus.Equals("PENDING", StringComparison.OrdinalIgnoreCase))
                 ).OrderByDescending(i => i.Date).ToList();
+
+                var approvedCount = allItems.Count(i =>
+                    i.IStatus != null && i.IStatus.Equals("Approved", StringComparison.OrdinalIgnoreCase));
+                var rejectedCount = allItems.Count(i =>
+                    i.IStatus != null && i.IStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase));
+
 
                 Console.WriteLine($"[v0] Total items in Firebase: {allItems.Count}");
                 Console.WriteLine($"[v0] Pending approval items: {items.Count}");
@@ -129,7 +134,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                         (i.IType?.ToLower().Contains(search) ?? false) ||
                         (i.Idescription?.ToLower().Contains(search) ?? false) ||
                         (i.LocationFound?.ToLower().Contains(search) ?? false) ||
-                        (i.LocationID?.ToLower().Contains(search) ?? false)
+                        (i.LocationName?.ToLower().Contains(search) ?? false)
                     ).ToList();
 
                     Console.WriteLine($"[v0] After search filter: {items.Count}");
@@ -196,12 +201,13 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 await docRef.UpdateAsync(new Dictionary<string, object>
                 {
-                    { "Status", "Approved" },
-                    { "IStatus", "Approved" }
+                    
+                    { "IStatus", "Approved" },
+                    { "ApprovedDate", DateTime.UtcNow }
                 });
 
                 Console.WriteLine($"[v0] Item {itemId} approved successfully");
-                TempData["Success"] = "Item approved successfully";
+                TempData["Success"] = "Post has been approved successfully";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -235,12 +241,12 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 await docRef.UpdateAsync(new Dictionary<string, object>
                 {
-                    { "Status", "Rejected" },
-                    { "IStatus", "Rejected" }
+                    { "IStatus", "Rejected" },
+                    { "RejectedDate", DateTime.UtcNow }
                 });
 
                 Console.WriteLine($"[v0] Item {itemId} rejected successfully");
-                TempData["Success"] = "Item rejected successfully";
+                TempData["Success"] = "Post has been rejected successfully";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -248,6 +254,110 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 Console.WriteLine($"[v0] Error rejecting item: {ex.Message}");
                 TempData["Error"] = "Failed to reject item: " + ex.Message;
                 return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        [Route("Approved")]
+        public async Task<IActionResult> Approved(string search = "", string category = "", int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+                var allItems = snapshot.Documents.Select(MapToItem).ToList();
+
+                var items = allItems.Where(i =>
+                    i.IStatus != null && i.IStatus.Equals("Approved", StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+
+                // Apply filters
+                if (!string.IsNullOrEmpty(search))
+                {
+                    search = search.ToLower();
+                    items = items.Where(i =>
+                        (i.IType?.ToLower().Contains(search) ?? false) ||
+                        (i.Idescription?.ToLower().Contains(search) ?? false) ||
+                        (i.LocationFound?.ToLower().Contains(search) ?? false)
+                    ).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(category))
+                {
+                    items = items.Where(i =>
+                        i.Category != null && i.Category.Equals(category, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+
+                items = items.OrderByDescending(i => i.Date).ToList();
+
+                var totalCount = items.Count;
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalCount = totalCount;
+                ViewBag.Search = search;
+                ViewBag.Category = category;
+
+                return View("~/Views/Admin/PostManagement/Approved.cshtml", pagedItems);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Failed to load approved posts: " + ex.Message;
+                return View("~/Views/Admin/PostManagement/Approved.cshtml", new List<Item>());
+            }
+        }
+
+        [HttpGet]
+        [Route("Rejected")]
+        public async Task<IActionResult> Rejected(string search = "", string category = "", int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+                var allItems = snapshot.Documents.Select(MapToItem).ToList();
+
+                var items = allItems.Where(i =>
+                    i.IStatus != null && i.IStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+
+                // Apply filters
+                if (!string.IsNullOrEmpty(search))
+                {
+                    search = search.ToLower();
+                    items = items.Where(i =>
+                        (i.IType?.ToLower().Contains(search) ?? false) ||
+                        (i.Idescription?.ToLower().Contains(search) ?? false) ||
+                        (i.LocationFound?.ToLower().Contains(search) ?? false)
+                    ).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(category))
+                {
+                    items = items.Where(i =>
+                        i.Category != null && i.Category.Equals(category, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+
+                items = items.OrderByDescending(i => i.Date).ToList();
+
+                var totalCount = items.Count;
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalCount = totalCount;
+                ViewBag.Search = search;
+                ViewBag.Category = category;
+
+                return View("~/Views/Admin/PostManagement/Rejected.cshtml", pagedItems);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Failed to load rejected posts: " + ex.Message;
+                return View("~/Views/Admin/PostManagement/Rejected.cshtml", new List<Item>());
             }
         }
     }

@@ -647,7 +647,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var itemDocs = snap.Documents.ToList();
 
             ViewBag.Category = category;
-            ViewBag.Status = status;
+            ViewBag.IStatus = status;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = totalItems;
@@ -926,7 +926,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 await docRef.UpdateAsync(new Dictionary<string, object>
         {
-            { "Status", "CLAIMED" },
             { "IStatus", "CLAIMED" },
             { "ClaimedAt", Timestamp.GetCurrentTimestamp() }
         });
