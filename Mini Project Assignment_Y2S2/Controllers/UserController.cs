@@ -5,6 +5,11 @@ using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
 using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Services;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
@@ -32,6 +37,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         {
             string errorMessage = "Invalid User ID or Password";
 
+
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(password))
             {
                 ViewBag.Error = errorMessage;
@@ -48,16 +54,25 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return View();
             }
 
-            var user = snapshot.ConvertTo<User>();
-
-            if (!PasswordHelper.VerifyPassword(user.PasswordHash, password))
+            var user = new User
             {
-                ViewBag.Error = errorMessage;
+                UserID = snapshot.GetValue<string>("UserID"),
+                Name = snapshot.GetValue<string>("Name"),
+                Email = snapshot.GetValue<string>("Email"),
+                PhoneNumber = snapshot.GetValue<string>("PhoneNumber"),
+                PasswordHash = snapshot.GetValue<string>("PasswordHash"),
+                Role = snapshot.GetValue<string>("Role"),
+                IsArchived = snapshot.GetValue<bool>("IsArchived") // 明确指定类型
+            };
+
+            if (user.IsArchived)
+            {
+                ViewBag.IsArchived = true;
+                ViewBag.Error = "Your account has been archived. Please contact the administrator for assistance.";
                 return View();
             }
 
-            // for archived account
-            if (user.IsArchived)
+            if (!PasswordHelper.VerifyPassword(user.PasswordHash, password))
             {
                 ViewBag.Error =
                     "Your account has been archived. Please contact the administrator for assistance.";
@@ -69,6 +84,56 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             HttpContext.Session.SetString("UserId", userId);
 
             return RedirectToAction("Index", "Home");
+        }
+
+        // POST: /User/ContactSupport
+        [HttpPost]
+        public async Task<IActionResult> ContactSupport(string userId, string email, string issue)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(issue))
+                {
+                    TempData["ContactError"] = "All fields are required";
+                    return RedirectToAction("Login");
+                }
+
+                // Send email to admin
+                MailMessage mail = new MailMessage();
+                mail.From = new MailAddress("example.notification123@gmail.com", "Student Support System");
+                mail.To.Add("example.notification123@gmail.com"); // Admin email
+                mail.Subject = $"Support Request from User: {userId}";
+                mail.Body = $"User ID: {userId}\nEmail: {email}\n\nIssue:\n{issue}";
+
+                SmtpClient smtp = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    EnableSsl = true,
+                    Credentials = new NetworkCredential(
+                        "example.notification123@gmail.com",
+                        "rwbjrhmkrorbbrpe"
+                    )
+                };
+
+                await smtp.SendMailAsync(mail);
+
+                // Send confirmation to user
+                MailMessage confirmMail = new MailMessage();
+                confirmMail.From = new MailAddress("example.notification123@gmail.com", "Student Support System");
+                confirmMail.To.Add(email);
+                confirmMail.Subject = "Support Request Received";
+                confirmMail.Body = $"Hello,\n\nWe have received your support request. Our team will review it and get back to you soon.\n\nYour Request:\n{issue}\n\nBest regards,\nSupport Team";
+
+                await smtp.SendMailAsync(confirmMail);
+
+                TempData["ContactSuccess"] = "Your message has been sent successfully. We will contact you soon.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ContactError"] = $"Failed to send message: {ex.Message}";
+            }
+
+            return RedirectToAction("Login");
         }
 
         [HttpGet]
@@ -146,12 +211,12 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             TempData["RegisterSuccess"] = "You have successfully registered! Your student ID has been sent to your email.";
 
             return RedirectToAction("Login");
-            }
+        }
 
 
-            // Helper method to generate 7-digit numeric string
-            private string GenerateUserId()
-            {
+        // Helper method to generate 7-digit numeric string
+        private string GenerateUserId()
+        {
             Random rnd = new Random();
             int number = rnd.Next(1000000, 10000000); // generates 7-digit number
             return number.ToString();
@@ -541,11 +606,11 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 }
                 else if (status == "APPROVED")
                 {
-                    itemQuery = itemQuery.WhereEqualTo("IStatus", "APPROVED");
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "Approved");
                 }
                 else if (status == "REJECTED")
                 {
-                    itemQuery = itemQuery.WhereEqualTo("IStatus", "REJECTED");
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "Rejected");
                 }
                 else if (status == "EXPIRED")
                 {
@@ -597,9 +662,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             {
                 ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
                 LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
+                LocationOther = doc.ContainsField("LocationOther") ? doc.GetValue<string>("LocationOther") : null,
                 Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
                 IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
                 Idescription = doc.ContainsField("Description")
                                 ? doc.GetValue<string>("Description")
                                 : doc.ContainsField("Idescription")
@@ -608,7 +673,8 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
                 UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null, // ⭐ 加这行
-                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null
+                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
+                IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : null
             };
         }
 
@@ -749,7 +815,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             var updateData = new Dictionary<string, object>
     {
-        { "IName", model.IName },
         { "IType", model.IType },
         { "Idescription", model.Idescription },
         { "Date", dateTimeUtc }, // 使用UTC时间
@@ -764,6 +829,116 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             return RedirectToAction("MyPost");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> DeletePost(int itemId)
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login");
 
+            try
+            {
+                // 找到用户要删除的帖子
+                var collection = _firestore.Collection("Items");
+                var query = collection.WhereEqualTo("ItemID", itemId)
+                                      .WhereEqualTo("UserID", userId);
+                var snapshot = await query.GetSnapshotAsync();
+
+                if (snapshot.Documents.Count == 0)
+                {
+                    TempData["Error"] = "Post not found or you don't have permission to delete it.";
+                    return RedirectToAction("MyPost");
+                }
+
+                // 获取文档引用并删除
+                var docRef = snapshot.Documents[0].Reference;
+                await docRef.DeleteAsync();
+
+                // 可选：删除相关的图片文件
+                var item = snapshot.Documents[0];
+                if (item.ContainsField("Images"))
+                {
+                    var images = item.GetValue<List<string>>("Images");
+                    await DeleteImageFiles(images);
+                }
+
+                TempData["Success"] = "Post deleted successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error deleting post: {ex.Message}";
+            }
+
+            return RedirectToAction("MyPost");
+        }
+
+        // 辅助方法：删除图片文件
+        private async Task DeleteImageFiles(List<string> imageUrls)
+        {
+            if (imageUrls == null || !imageUrls.Any())
+                return;
+
+            try
+            {
+                foreach (var imageUrl in imageUrls)
+                {
+                    if (!string.IsNullOrEmpty(imageUrl) && imageUrl.StartsWith("/images/"))
+                    {
+                        var fileName = Path.GetFileName(imageUrl);
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 记录错误但不影响主流程
+                Console.WriteLine($"Error deleting image files: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkClaimed(int itemId)
+        {
+            string userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login");
+
+            try
+            {
+                // 找到用户要标记为Claimed的帖子
+                var collection = _firestore.Collection("Items");
+                var query = collection.WhereEqualTo("ItemID", itemId)
+                                      .WhereEqualTo("UserID", userId);
+                var snapshot = await query.GetSnapshotAsync();
+
+                if (snapshot.Documents.Count == 0)
+                {
+                    TempData["Error"] = "Post not found or you don't have permission to update it.";
+                    return RedirectToAction("MyPost");
+                }
+
+                var docRef = snapshot.Documents[0].Reference;
+
+                await docRef.UpdateAsync(new Dictionary<string, object>
+        {
+            { "Status", "CLAIMED" },
+            { "IStatus", "CLAIMED" },
+            { "ClaimedAt", Timestamp.GetCurrentTimestamp() }
+        });
+
+                TempData["Success"] = "Post marked as CLAIMED successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error marking post as claimed: {ex.Message}";
+            }
+
+            return RedirectToAction("MyPost");
+        }
     }
 }

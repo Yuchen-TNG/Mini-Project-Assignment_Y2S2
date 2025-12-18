@@ -1,6 +1,7 @@
 ﻿@model Mini_Project_Assignment_Y2S2.Models.Item
 
 <div class="post-container">
+    <a class="back" href="@Url.Action("MyPost", "User")">Back</a>
     <div class="post-title">EDIT POST</div>
 
     <form asp-action="EditPost"
@@ -26,10 +27,6 @@
         <div class="form-grid">
             <!-- LEFT -->
             <div class="form-group">
-                <label asp-for="IName">Item Name</label>
-                <input asp-for="IName" class="form-control" />
-                <span asp-validation-for="IName" class="text-danger"></span>
-
                 <label asp-for="IType">Item Type</label>
                 <input asp-for="IType" class="form-control" />
                 <span asp-validation-for="IType" class="text-danger"></span>
@@ -67,8 +64,11 @@
                     <input type="text" name="OtherLocation" class="form-control" value="" />
                 </div>
 
-                <label>Found At (Location)</label>
-                <input asp-for="LocationFound" class="form-control" />
+                @if (Model.Category == "FOUNDITEM")
+                {
+                    <label>Found At (Location)</label>
+                    <input asp-for="LocationFound" class="form-control" />
+                }
 
                 <label>Category</label>
                 <input asp-for="Category" class="form-control" readonly />
@@ -247,6 +247,19 @@
             font-family: Arial, sans-serif;
         }
 
+        .back {
+            height: 40px;
+            width: 70px;
+            font-size: 20px;
+            background-color: #FF9500;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            color: black;
+			text-decoration: none;
+        }
         .post-container {
             width: 80%;
             margin: 40px auto;

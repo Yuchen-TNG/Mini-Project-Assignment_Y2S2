@@ -29,7 +29,6 @@
                     LocationOther=doc.ContainsField("LocationOther")? doc.GetValue<string>("LocationOther"):null,
                     Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
                     IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                    IName = doc.ContainsField("IName") ? doc.GetValue<string>("IName") : null,
                     Idescription = doc.ContainsField("Description")
                                     ? doc.GetValue<string>("Description")
                                     : doc.ContainsField("Idescription")
@@ -356,11 +355,15 @@
                 return View(item);
             }
 
-            [HttpPost]
         [HttpPost]
         public async Task<IActionResult> CreatePost(Item item, string? OtherLocation)
         {
             var userId = HttpContext.Session.GetString("UserId");
+
+            // ==========================================
+            // 关键修复：移除LocationName的验证
+            // ==========================================
+            ModelState.Remove("LocationName");
 
             // ⭐ 条件验证1：只有 FOUNDITEM 需要 LocationFound
             if (item.Category == "FOUNDITEM" && string.IsNullOrWhiteSpace(item.LocationFound))
@@ -378,7 +381,7 @@
             {
                 // 验证每个图片的大小和类型
                 var maxSize = 5 * 1024 * 1024; // 5MB
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"};
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
 
                 foreach (var file in item.ImageFiles)
                 {
@@ -463,11 +466,10 @@
             await docRef.SetAsync(new
             {
                 ItemID = item.ItemID,
-                IName = item.IName,
                 IType = item.IType,
                 Description = item.Idescription,
                 LocationID = item.LocationID,
-                LocationOther=item.LocationOther,
+                LocationOther = item.LocationOther,
                 Images = imageUrls,
                 Category = item.Category,
                 Date = item.Date.ToUniversalTime(),

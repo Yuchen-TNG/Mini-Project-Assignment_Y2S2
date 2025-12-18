@@ -6,6 +6,7 @@ using Mini_Project_Assignment_Y2S2.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Threading.Tasks;
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
@@ -79,12 +80,14 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 if (!string.IsNullOrEmpty(search))
                 {
-                    search = search.ToLower();
+                    search = search.Trim().ToLower();
+
                     users = users.Where(u =>
-                        u.Name.ToLower().Contains(search) ||
-                        u.Email.ToLower().Contains(search) ||
-                        u.UserID.Contains(search));
+                        (!string.IsNullOrEmpty(u.Name) && u.Name.ToLower().Contains(search)) ||
+                        (!string.IsNullOrEmpty(u.Email) && u.Email.ToLower().Contains(search))
+                    );
                 }
+
 
                 int totalCount = users.Count();
                 var pagedUsers = users
@@ -135,14 +138,14 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 string roleInput = request.Role.Trim();
                 string roleLower = roleInput.ToLower();
 
-                if (roleLower != "admin" && roleLower != "student")
+                if (roleLower != "admin")
                 {
                     Console.WriteLine($"[v0] Invalid role: {request.Role}");
-                    return Json(new { success = false, error = "Invalid role. Must be Admin or Student" });
+                    return Json(new { success = false, error = "User Management is only for creating Admin accounts. Students can register through the registration page." });
                 }
 
                 // Set proper role casing for storage
-                string roleValue = roleLower == "admin" ? "Admin" : "Student";
+                string roleValue = "Admin";
                 Console.WriteLine($"[v0] Role set to: {roleValue}");
 
                 QuerySnapshot emailSnapshot = await _firestore.Collection("Users")
@@ -157,19 +160,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 }
 
                 string userId;
-                string staffId = null;
-
-                if (roleValue == "Admin")
-                {
-                    staffId = GenerateStaffId();
-                    userId = staffId; // Use StaffID as the document ID for admins
-                    Console.WriteLine($"[v0] Generated StaffID: {staffId}");
-                }
-                else
-                {
-                    userId = GenerateUserId();
-                    Console.WriteLine($"[v0] Generated UserID: {userId}");
-                }
+                string staffId = GenerateStaffId();
+                userId = staffId; // Use StaffID as the document ID for admins
+                Console.WriteLine($"[v0] Generated StaffID: {staffId}");
 
                 string passwordHash = PasswordHelper.HashPassword(request.Password);
                 Console.WriteLine("[v0] Password hashed successfully");
@@ -183,13 +176,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     { "PhoneNumber", request.PhoneNumber ?? "" },
                     { "PasswordHash", passwordHash },
                     { "Role", roleValue }, // Use proper casing
-                    { "IsArchived", false }
+                    { "IsArchived", false },
+                    { "StaffID", staffId }
                 };
-
-                if (roleValue == "Admin" && staffId != null)
-                {
-                    newUser.Add("StaffID", staffId);
-                }
 
                 Console.WriteLine($"[v0] Attempting to save user to Firestore with ID: {userId}");
                 await _firestore.Collection("Users").Document(userId).SetAsync(newUser);
@@ -198,7 +187,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = "User created successfully",
+                    message = "Admin created successfully",
                     user = new
                     {
                         Id = userId,
@@ -214,7 +203,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             {
                 Console.WriteLine($"[v0] Error creating user: {ex.Message}");
                 Console.WriteLine($"[v0] Stack trace: {ex.StackTrace}");
-                return StatusCode(500, new { success = false, error = "Failed to create user", message = ex.Message });
+                return StatusCode(500, new { success = false, error = "Failed to create admin user", message = ex.Message });
             }
         }
 
@@ -274,9 +263,42 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     return Json(new { success = false, message = "User not found" });
                 }
 
+                var userData = snapshot.ToDictionary();
+                string userEmail = GetStringValue(userData, "Email");
+                string userName = GetStringValue(userData, "Name");
+
                 await docRef.UpdateAsync("IsArchived", false);
 
-                return Json(new { success = true, message = "User reactivated successfully" });
+                // Send email notification
+                if (!string.IsNullOrEmpty(userEmail))
+                {
+                    try
+                    {
+                        MailMessage mail = new MailMessage();
+                        mail.From = new MailAddress("example.notification123@gmail.com", "Your School Name");
+                        mail.To.Add(userEmail);
+                        mail.Subject = "Account Reactivated";
+                        mail.Body = $"Hello {userName},\n\nYour account has been unarchived and reactivated. You can now log in to your account.\n\nBest regards,\nAdministration Team";
+
+                        SmtpClient smtp = new SmtpClient("smtp.gmail.com")
+                        {
+                            Port = 587,
+                            EnableSsl = true,
+                            Credentials = new System.Net.NetworkCredential(
+                                "example.notification123@gmail.com",
+                                "rwbjrhmkrorbbrpe"
+                            )
+                        };
+
+                        await smtp.SendMailAsync(mail);
+                    }
+                    catch (Exception emailEx)
+                    {
+                        Console.WriteLine($"Failed to send email: {emailEx.Message}");
+                    }
+                }
+
+                return Json(new { success = true, message = "User reactivated successfully and notification email sent" });
             }
             catch (Exception ex)
             {

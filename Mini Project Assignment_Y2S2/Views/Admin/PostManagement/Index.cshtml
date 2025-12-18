@@ -164,6 +164,10 @@
                             </p>
                         </div>
                         <div class="flex gap-4">
+                            <!-- Added View button to show post details -->
+                            <a href="/PostManagement/ViewDetails/${item.itemID}" class="bg-blue-500 text-white px-6 py-1.5 rounded shadow-sm hover:bg-blue-600 font-medium transition">
+                                View
+                            </a>
                             <form action="/PostManagement/Approve/${item.itemID}" method="post">
                                 <button type="submit" class="bg-[#b9f6ca] text-green-900 px-6 py-1.5 rounded shadow-sm hover:bg-green-300 font-medium transition">
                                     Approve

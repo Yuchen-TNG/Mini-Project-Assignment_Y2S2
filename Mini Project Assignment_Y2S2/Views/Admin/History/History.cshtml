@@ -25,7 +25,8 @@
     <thead>
         <tr class="bg-gray-200">
             <th class="px-2 py-1 border">ID</th>
-            <th class="px-2 py-1 border">Name</th>
+            <th class="px-2 py-1 border">Category</th>
+            <th class="px-2 py-1 border">Type</th>
             <th class="px-2 py-1 border">Status</th>
             <th class="px-2 py-1 border">Date</th>
             <th class="px-2 py-1 border">Action</th>
@@ -37,10 +38,10 @@
         {
             <tr class="border hover:bg-gray-100">
                 <td class="px-3 py-1 border">@item.ItemID</td>
-                <td class="px-15 py-2 border">@item.IName</td>
+                <td class="px-3 py-1 border">@item.Category</td>
+                <td class="center py-1 border">@item.IType</td>
                 <td class="px-10 py-2 border">@item.IStatus</td>
                 <td class="px-10 py-2 border">@item.Date.ToShortDateString()</td>
-
                 <td class="px-10 py-2 border">
                     @if (item.IStatus != "EXPIRED")
                     {

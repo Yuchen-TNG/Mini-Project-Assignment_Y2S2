@@ -11,9 +11,6 @@ namespace Mini_Project_Assignment_Y2S2.Models
         [Key]
         public int ItemID { get; set; }
 
-        [Required(ErrorMessage = "Item name is required")]
-        public string? IName { get; set; }
-
         [Required(ErrorMessage = "Item type is required")]
         public string? IType { get; set; }
 
