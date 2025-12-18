@@ -144,7 +144,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
         // POST: /User/Register
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        public async Task<IActionResult> Register(UserViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -158,6 +158,16 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             if (emailSnapshot.Count > 0)
             {
                 ModelState.AddModelError("Email", "This email is already registered.");
+                return View(model);
+            }
+
+            Query PhoneNumberQuery = _firestore.Collection("Users")
+                                 .WhereEqualTo("PhoneNumber", model.Email)
+                                 .Limit(1);
+            QuerySnapshot PhoneNumberSnapshot = await PhoneNumberQuery.GetSnapshotAsync();
+            if (emailSnapshot.Count > 0)
+            {
+                ModelState.AddModelError("PhoneNumber", "This PhoneNumber is already registered.");
                 return View(model);
             }
 
@@ -367,7 +377,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        public async Task<IActionResult> ChangePassword(UserViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -456,7 +466,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangeCurrentPassword(ChangeCurrentPasswordViewModel model)
+        public async Task<IActionResult> ChangeCurrentPassword(UserViewModel model)
         {
 
             if (!ModelState.IsValid)
@@ -512,7 +522,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             var data = snapshot.ToDictionary();
 
-            var model = new EditProfileViewModel
+            var model = new UserViewModel
             {
                 Name = data["Name"].ToString(),
                 Email = data["Email"].ToString(),
@@ -524,7 +534,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditProfile(EditProfileViewModel model, IFormFile? ProfileImage)
+        public async Task<IActionResult> EditProfile(UserViewModel model, IFormFile? ProfileImage)
         {
 
 
@@ -593,6 +603,22 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             Query itemQuery = _firestore.Collection("Items")
                                         .WhereEqualTo("UserID", userId);
 
+            var locationSnapshot = await _firestore.Collection("Location").GetSnapshotAsync();
+            var locationDict = new Dictionary<string, string>();
+
+            foreach (var doc in locationSnapshot.Documents)
+            {
+                var locationId = doc.GetValue<string>("LocationID");
+                var locationName = doc.GetValue<string>("LocationName");
+                if (!string.IsNullOrEmpty(locationId) && !string.IsNullOrEmpty(locationName))
+                {
+                    locationDict[locationId] = locationName;
+                }
+            }
+
+            // 存储到ViewBag中
+            ViewBag.LocationNames = locationDict;
+
             // 添加状态过滤
             if (!string.IsNullOrEmpty(status))
             {
@@ -615,6 +641,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 else if (status == "EXPIRED")
                 {
                     itemQuery = itemQuery.WhereEqualTo("IStatus", "EXPIRED");
+                }
+                else if (status == "DELETED")
+                {
+                    itemQuery = itemQuery.WhereEqualTo("IStatus", "DELETED");
                 }
             }
 
@@ -830,76 +860,43 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeletePost(int itemId)
+public async Task<IActionResult> DeletePost(int itemId)
+{
+    string userId = HttpContext.Session.GetString("UserId");
+    if (string.IsNullOrEmpty(userId))
+        return RedirectToAction("Login");
+
+    try
+    {
+        // 找到用户要删除的帖子
+        var collection = _firestore.Collection("Items");
+        var query = collection.WhereEqualTo("ItemID", itemId)
+                              .WhereEqualTo("UserID", userId);
+        var snapshot = await query.GetSnapshotAsync();
+
+        if (snapshot.Documents.Count == 0)
         {
-            string userId = HttpContext.Session.GetString("UserId");
-            if (string.IsNullOrEmpty(userId))
-                return RedirectToAction("Login");
-
-            try
-            {
-                // 找到用户要删除的帖子
-                var collection = _firestore.Collection("Items");
-                var query = collection.WhereEqualTo("ItemID", itemId)
-                                      .WhereEqualTo("UserID", userId);
-                var snapshot = await query.GetSnapshotAsync();
-
-                if (snapshot.Documents.Count == 0)
-                {
-                    TempData["Error"] = "Post not found or you don't have permission to delete it.";
-                    return RedirectToAction("MyPost");
-                }
-
-                // 获取文档引用并删除
-                var docRef = snapshot.Documents[0].Reference;
-                await docRef.DeleteAsync();
-
-                // 可选：删除相关的图片文件
-                var item = snapshot.Documents[0];
-                if (item.ContainsField("Images"))
-                {
-                    var images = item.GetValue<List<string>>("Images");
-                    await DeleteImageFiles(images);
-                }
-
-                TempData["Success"] = "Post deleted successfully!";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error deleting post: {ex.Message}";
-            }
-
+            TempData["Error"] = "Post not found or you don't have permission to delete it.";
             return RedirectToAction("MyPost");
         }
 
-        // 辅助方法：删除图片文件
-        private async Task DeleteImageFiles(List<string> imageUrls)
+        // 获取文档引用并更新状态为 DELETED
+        var docRef = snapshot.Documents[0].Reference;
+        await docRef.UpdateAsync(new Dictionary<string, object>
         {
-            if (imageUrls == null || !imageUrls.Any())
-                return;
+            { "IStatus", "DELETED" },
+            { "DeletedAt", Timestamp.GetCurrentTimestamp() }
+        });
 
-            try
-            {
-                foreach (var imageUrl in imageUrls)
-                {
-                    if (!string.IsNullOrEmpty(imageUrl) && imageUrl.StartsWith("/images/"))
-                    {
-                        var fileName = Path.GetFileName(imageUrl);
-                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+        TempData["Success"] = "Post marked as deleted successfully!";
+    }
+    catch (Exception ex)
+    {
+        TempData["Error"] = $"Error deleting post: {ex.Message}";
+    }
 
-                        if (System.IO.File.Exists(filePath))
-                        {
-                            System.IO.File.Delete(filePath);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // 记录错误但不影响主流程
-                Console.WriteLine($"Error deleting image files: {ex.Message}");
-            }
-        }
+    return RedirectToAction("MyPost");
+}
 
         [HttpPost]
         public async Task<IActionResult> MarkClaimed(int itemId)

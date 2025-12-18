@@ -56,6 +56,10 @@
     .status-expired {
         background-color: #9e9e9e; /* 灰色 */
     }
+    
+    .status-deleted {
+        background-color: #000000;
+    }
 
     .card {
         position: relative;
@@ -254,6 +258,11 @@
                 ⏰ Expired
             </a>
 
+             <a href="@Url.Action("MyPost", new { status = "DELETED", page = 1 })"
+               class="filter-item @(currentStatus == "DELETED" ? "active" : "")">
+                🗑️ Deleted
+            </a>
+
         </div>
 
     </div>
@@ -311,6 +320,52 @@
                     ? doc.GetValue<List<string>>("Images")
                     : new List<string>();
 
+                         var locationId = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null;
+            var locationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null;
+            var locationOther = doc.ContainsField("LocationOther") ? doc.GetValue<string>("LocationOther") : null;
+            
+            // 确定显示的地点文本
+            string locationText = "";
+            
+            if (locationId == "Other" || string.IsNullOrEmpty(locationId))
+            {
+                if (!string.IsNullOrEmpty(locationOther))
+                {
+                    locationText = locationOther;
+                }
+                else if (!string.IsNullOrEmpty(locationFound))
+                {
+                    locationText = locationFound;
+                }
+            }
+            else
+            {
+                // 这里可能需要从Location集合获取LocationName
+                // 为了性能，你可以预先获取所有地点并存储在ViewBag中
+                if (ViewBag.LocationNames != null)
+                {
+                    var locationDict = ViewBag.LocationNames as Dictionary<string, string>;
+                    if (locationDict != null && locationDict.ContainsKey(locationId))
+                    {
+                        locationText = locationDict[locationId];
+                    }
+                    else
+                    {
+                        locationText = locationId;
+                    }
+                }
+                else
+                {
+                    locationText = locationId; // 临时显示ID
+                }
+            }
+
+            // 如果地点文本过长，截断
+            if (locationText.Length > 25)
+            {
+                locationText = locationText.Substring(0, 22) + "...";
+            }
+
                     // 获取状态
                     var statusValue = doc.ContainsField("IStatus")
                     ? doc.GetValue<string>("IStatus")?.ToUpper()
@@ -337,6 +392,9 @@
                             break;
                         case "EXPIRED":
                             statusClass = "status-expired";
+                            break;
+                        case "DELETED":
+                            statusClass = "status-deleted";
                             break;
                         default:
                             statusClass = "status-pending";
@@ -365,14 +423,9 @@
                                     <p class="category">@category</p>
                                     <p class="item-type">@type</p>
                                     <p class="item-date">@date</p>
-                                     <form asp-action="DeletePost" asp-controller="User" method="post"
-                      onsubmit="return confirm('Delete this post?');"
-                      style="margin-top:10px;">
-                    <input type="hidden" name="itemId" value="@itemId" />
-                    <button class="btn-delete"  type="submit">
-                        Delete
-                    </button>
-                </form>
+                                     <p class="item-location" title="@(locationText)">
+                                📍 @locationText
+                            </p>
                                 </div>
                             </div>
                         </a>

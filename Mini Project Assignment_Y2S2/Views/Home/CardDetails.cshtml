@@ -46,6 +46,7 @@
                 <p class="label">Email</p>
                 <p class="text">@Model.User.Email</p>
 
+                @if(@Model.Item.Category=="FOUNDITEM"){
                 <p class="label">Item Keep At</p>
                 @if (@Model.Location.LocationName=="Other"){
                     <p class="text">@Model.Item.LocationOther</p>
@@ -53,6 +54,7 @@
                 else
                 {
                     <p class="text">@Model.Location.LocationName</p>
+                }
                 }
             </div>
 
@@ -92,6 +94,22 @@
                         <p class="label">Found At</p>
                     <p class="text">@Model.Item.LocationFound</p>
                 </div>
+                }
+                @if (Model.Item.Category == "LOSTITEM")
+                {
+                    <div class="bottomDetails-right2">
+
+                    @if (@Model.Location.LocationName == "Other")
+                    {
+                            <p class="label">Lost At</p>
+                        <p class="text">@Model.Item.LocationOther</p>
+                    }
+                    else
+                    {
+                            <p class="label">Lost At</p>
+                        <p class="text">@Model.Location.LocationName</p>
+                    }
+                    </div>
                 }
 
             </div>
