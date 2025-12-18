@@ -44,6 +44,7 @@
                 <td class="px-10 py-2 border">@item.Date.ToShortDateString()</td>
                 <td class="px-10 py-2 border">
                     @if (item.IStatus != "EXPIRED")
+
                     {
                         <form asp-action="ChangeStatus" method="post" class="flex items-center gap-2">
                             <input type="hidden" name="itemId" value="@item.ItemID" />

@@ -118,15 +118,22 @@ html, body {
 .bottomDetails-left {
     display: flex;
     flex-grow: 1;
+    width:70%;
     background: white;
     margin-right: 20px;
     padding: 20px;
     border-bottom-left-radius: 15px;
+
 }
 
-.bottomDetails-left2 {
+.bottomDetails-left2-lost {
+    width: 100%;
+    padding-right: 15px;
+}
+
+.bottomDetails-left2-found {
     width: 45%;
-    padding-right:15px;
+    padding-right: 15px;
 }
 
 .bottomDetails-right2 {
@@ -137,6 +144,7 @@ html, body {
 
 /* 底部右侧：描述 */
 .bottomDetails-right {
+    width: 30%;
     background: white;
     flex-grow: 1;
     padding: 20px;

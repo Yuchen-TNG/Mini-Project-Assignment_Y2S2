@@ -5,6 +5,11 @@ using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
 using Mini_Project_Assignment_Y2S2.Models;
 using Mini_Project_Assignment_Y2S2.Services;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace Mini_Project_Assignment_Y2S2.Controllers
 {
@@ -60,17 +65,17 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 IsArchived = snapshot.GetValue<bool>("IsArchived") // 明确指定类型
             };
 
-            if (!PasswordHelper.VerifyPassword(user.PasswordHash, password))
+            if (user.IsArchived)
             {
-                ViewBag.Error = errorMessage;
+                ViewBag.IsArchived = true;
+                ViewBag.Error = "Your account has been archived. Please contact the administrator for assistance.";
                 return View();
             }
 
-            // for archived account
-            if (user.IsArchived)
+            if (!PasswordHelper.VerifyPassword(user.PasswordHash, password))
             {
                 ViewBag.Error =
-                    "Your account has been archived. Please contact example.notification123@gmail.com for assistance.";
+                    "Invalid User ID or Password.";
                 return View();
             }
 
@@ -79,6 +84,56 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             HttpContext.Session.SetString("UserId", userId);
 
             return RedirectToAction("Index", "Home");
+        }
+
+        // POST: /User/ContactSupport
+        [HttpPost]
+        public async Task<IActionResult> ContactSupport(string userId, string email, string issue)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(issue))
+                {
+                    TempData["ContactError"] = "All fields are required";
+                    return RedirectToAction("Login");
+                }
+
+                // Send email to admin
+                MailMessage mail = new MailMessage();
+                mail.From = new MailAddress("example.notification123@gmail.com", "Student Support System");
+                mail.To.Add("example.notification123@gmail.com"); // Admin email
+                mail.Subject = $"Support Request from User: {userId}";
+                mail.Body = $"User ID: {userId}\nEmail: {email}\n\nIssue:\n{issue}";
+
+                SmtpClient smtp = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    EnableSsl = true,
+                    Credentials = new NetworkCredential(
+                        "example.notification123@gmail.com",
+                        "rwbjrhmkrorbbrpe"
+                    )
+                };
+
+                await smtp.SendMailAsync(mail);
+
+                // Send confirmation to user
+                MailMessage confirmMail = new MailMessage();
+                confirmMail.From = new MailAddress("example.notification123@gmail.com", "Student Support System");
+                confirmMail.To.Add(email);
+                confirmMail.Subject = "Support Request Received";
+                confirmMail.Body = $"Hello,\n\nWe have received your support request. Our team will review it and get back to you soon.\n\nYour Request:\n{issue}\n\nBest regards,\nSupport Team";
+
+                await smtp.SendMailAsync(confirmMail);
+
+                TempData["ContactSuccess"] = "Your message has been sent successfully. We will contact you soon.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ContactError"] = $"Failed to send message: {ex.Message}";
+            }
+
+            return RedirectToAction("Login");
         }
 
         [HttpGet]
@@ -156,12 +211,12 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             TempData["RegisterSuccess"] = "You have successfully registered! Your student ID has been sent to your email.";
 
             return RedirectToAction("Login");
-            }
+        }
 
 
-            // Helper method to generate 7-digit numeric string
-            private string GenerateUserId()
-            {
+        // Helper method to generate 7-digit numeric string
+        private string GenerateUserId()
+        {
             Random rnd = new Random();
             int number = rnd.Next(1000000, 10000000); // generates 7-digit number
             return number.ToString();
@@ -869,7 +924,6 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 var docRef = snapshot.Documents[0].Reference;
 
-                // 更新状态为CLAIMED
                 await docRef.UpdateAsync(new Dictionary<string, object>
         {
             { "IStatus", "CLAIMED" },

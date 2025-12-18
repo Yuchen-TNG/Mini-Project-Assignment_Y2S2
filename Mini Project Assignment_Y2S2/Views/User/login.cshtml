@@ -1,28 +1,41 @@
 ﻿@{
     ViewData["Title"] = "Login Page";
-
 }
+
 @if (TempData["RegisterSuccess"] != null)
 {
     <script>
         alert('@TempData["RegisterSuccess"]');
     </script>
 }
+
+@if (TempData["ContactSuccess"] != null)
+{
+    <div class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-6 py-3 rounded shadow-lg z-50">
+        @TempData["ContactSuccess"]
+    </div>
+}
+
+@if (TempData["ContactError"] != null)
+{
+    <div class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-6 py-3 rounded shadow-lg z-50">
+        @TempData["ContactError"]
+    </div>
+}
+
 <head>
-    <link rel="stylesheet" href="~/css/user.css" asp-append-version="true"/>
-
+    <link rel="stylesheet" href="~/css/user.css" asp-append-version="true" />
 </head>
+
 <body>
-
     <div class="container">
-
         <div class="login-card">
             <div class="role-switch">
                 <a href="@Url.Action("Login", "User")"
                    class="role-btn @(ViewContext.RouteData.Values["action"]?.ToString() == "Login" ? "active" : "")">
-                    🧑‍🎓 Student
+                    Student
                 </a>
-                <a href="@Url.Action("Login", "Admin")" class="role-btn">👨🏻‍💼Staff</a>
+                <a href="@Url.Action("Login", "Admin")" class="role-btn">Staff</a>
             </div>
             <div class="login-title">Student Login</div>
 
@@ -48,7 +61,19 @@
 
                 @if (ViewBag.Error != null)
                 {
-                    <div class="error-message">@ViewBag.Error</div>
+                    <div class="error-message">
+                        @ViewBag.Error
+
+                        @* Added contact link for archived users *@
+                        @if (ViewBag.IsArchived == true)
+                        {
+                            <div class="mt-3">
+                                <a href="#" onclick="showContactForm(); return false;" class="text-blue-600 hover:text-blue-800 underline">
+                                    Contact Us for Assistance
+                                </a>
+                            </div>
+                        }
+                    </div>
                 }
 
                 <div class="register-text">
@@ -59,4 +84,63 @@
         </div>
     </div>
 
+    @* Added contact form modal for archived users *@
+    <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="display: none;">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Contact Administrator</h3>
+                <button onclick="closeContactForm()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+
+            <p class="text-sm text-gray-600 mb-4">
+                Admin Email: <strong>example.notification123@gmail.com</strong>
+            </p>
+
+            <form method="post" action="/User/ContactSupport">
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Your User ID *</label>
+                    <input type="text" name="userId" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Your Email *</label>
+                    <input type="email" name="email" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Describe Your Issue *</label>
+                    <textarea name="issue" required rows="4"
+                              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-medium">
+                        Send Message
+                    </button>
+                    <button type="button" onclick="closeContactForm()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400 font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
+
+<script>
+    function showContactForm() {
+        document.getElementById('contactModal').style.display = 'flex';
+    }
+
+    function closeContactForm() {
+        document.getElementById('contactModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('contactModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeContactForm();
+        }
+    });
+</script>
