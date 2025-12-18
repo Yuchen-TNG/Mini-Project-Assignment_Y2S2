@@ -202,7 +202,7 @@
                 <input asp-for="Date" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="Date" class="text-danger"></span>
 
-                <label>Location</label>
+                <label>Keep At (Location)</label>
                 <select asp-for="LocationID" class="form-control" id="locationSelect">
                     <option value="">Select</option>
                     @foreach (var loc in ViewBag.Locations)
