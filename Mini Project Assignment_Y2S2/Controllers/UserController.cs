@@ -75,7 +75,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             if (!PasswordHelper.VerifyPassword(user.PasswordHash, password))
             {
                 ViewBag.Error =
-                    "Your account has been archived. Please contact the administrator for assistance.";
+                    "Invalid User ID or Password.";
                 return View();
             }
 
