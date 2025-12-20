@@ -19,12 +19,32 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <p><strong>ID:</strong> @Model.ItemID</p>
         <p><strong>Type:</strong> @Model.IType</p>
-        <p><strong>Location:</strong> @Model.LocationName</p>
+        <p>
+            <strong>Location:</strong> @{
+            if (!string.IsNullOrWhiteSpace(Model.LocationName))
+            {
+                @Model.LocationName
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.LocationFound))
+            {
+                @Model.LocationFound
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.LocationOther))
+            {
+                @Model.LocationOther
+            }
+            else
+            {
+                @:N/A
+            }
+                        }
+        </p>
         <p>
             <strong>Date:</strong>
             @(Model.Date == DateTime.MinValue ? "N/A" : Model.Date.ToString("yyyy-MM-dd"))
         </p>
-        <p><strong>Status:</strong> @Model.IStatus</p>
+        <p><strong>
+            :</strong> @Model.IStatus</p>
     </div>
 
     <hr class="my-4" />

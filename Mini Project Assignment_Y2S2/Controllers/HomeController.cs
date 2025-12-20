@@ -66,7 +66,7 @@
             {
             var query = _firestore.Collection("Items")
                                   .WhereEqualTo("Category", "LOSTITEM")
-                                  .WhereEqualTo("IStatus", "Approved")
+                                  .WhereEqualTo("IStatus", "APPROVED")
                                   .OrderByDescending("Date");
 
             var snapshot = await query.GetSnapshotAsync();
@@ -99,7 +99,7 @@
             var category = HttpContext.Session.GetObject<string>("ResetCategory") ?? "LOSTITEM";
             var query = _firestore.Collection("Items")
                       .WhereEqualTo("Category", category)
-                      .WhereEqualTo("IStatus", "Approved")
+                      .WhereEqualTo("IStatus", "APPROVED")
                       .OrderByDescending("Date");
 
             var snapshot = await query.GetSnapshotAsync();
@@ -140,7 +140,7 @@
 
 
             var query = _firestore.Collection("Items")
-                      .WhereEqualTo("IStatus", "Approved")
+                      .WhereEqualTo("IStatus", "APPROVED")
                       .OrderByDescending("Date");
 
             var snapshot = await query.GetSnapshotAsync();
@@ -232,7 +232,7 @@
                 if (!string.IsNullOrEmpty(locationID)&& locationID!="null")
                     query = query.WhereEqualTo("LocationID", locationID);
 
-            query = query.WhereEqualTo("IStatus", "Approved");
+            query = query.WhereEqualTo("IStatus", "APPROVED");
             query = query.OrderByDescending("Date");
 
             QuerySnapshot snapshot = await query.GetSnapshotAsync();

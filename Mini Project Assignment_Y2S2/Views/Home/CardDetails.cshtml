@@ -46,6 +46,7 @@
                 <p class="label">Email</p>
                 <p class="text">@Model.User.Email</p>
 
+                @if(@Model.Item.Category=="FOUNDITEM"){
                 <p class="label">Item Keep At</p>
                 @if (@Model.Location.LocationName=="Other"){
                     <p class="text">@Model.Item.LocationOther</p>
@@ -54,6 +55,7 @@
                 {
                     <p class="text">@Model.Location.LocationName</p>
                 }
+                }
             </div>
 
         </div>
@@ -61,27 +63,53 @@
         <!-- 物品详情 -->
         <div class="bottomDetails">
             <div class="bottomDetails-left">
-                <div class="bottomDetails-left2">
+
 
                     @if (Model.Item.Category == "LOSTITEM"){
-                    <p class="label">Lost Date</p>
-                    <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+
+                        <div class="bottomDetails-left2-lost">
+                        <p class="label">Lost Date</p>
+                        <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+
+                        <p class="label">Type</p>
+                        <p class="text">@Model.Item.IType</p>
+                        </div>
                     }
                     @if (Model.Item.Category == "FOUNDITEM")
                     {
+                        <div class="bottomDetails-left2-found">
                         <p class="label">Found Date</p>
                         <p class="text">@Model.Item.Date.ToString("dd/MM/yyyy")</p>
+
+                        <p class="label">Type</p>
+                        <p class="text">@Model.Item.IType</p>
+                        </div>
                     }
 
-                    <p class="label">Type</p>
-                    <p class="text">@Model.Item.IType</p>
-                </div>
+
+
                 @if (Model.Item.Category == "FOUNDITEM")
                 {
                     <div class="bottomDetails-right2">
                         <p class="label">Found At</p>
                     <p class="text">@Model.Item.LocationFound</p>
                 </div>
+                }
+                @if (Model.Item.Category == "LOSTITEM")
+                {
+                    <div class="bottomDetails-right2">
+
+                    @if (@Model.Location.LocationName == "Other")
+                    {
+                            <p class="label">Lost At</p>
+                        <p class="text">@Model.Item.LocationOther</p>
+                    }
+                    else
+                    {
+                            <p class="label">Lost At</p>
+                        <p class="text">@Model.Location.LocationName</p>
+                    }
+                    </div>
                 }
 
             </div>

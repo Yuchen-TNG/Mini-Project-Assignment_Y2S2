@@ -27,79 +27,102 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             firestoreDb = FirestoreDb.Create(projectId);
         }
 
-        private Item MapToItem(DocumentSnapshot doc)
+        private async Task<Item> MapToItemAsync(DocumentSnapshot doc)
         {
-            return new Item
+            var item = new Item
             {
-                ItemID = doc.ContainsField("ItemID") ? Convert.ToInt32(doc.GetValue<object>("ItemID")) : 0,
+                ItemID = doc.ContainsField("ItemID") ? doc.GetValue<int>("ItemID") : 0,
                 IType = doc.ContainsField("IType") ? doc.GetValue<string>("IType") : null,
-                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") :
-                              doc.ContainsField("Idescription") ? doc.GetValue<string>("Idescription") : null,
+                Idescription = doc.ContainsField("Description") ? doc.GetValue<string>("Description") : null,
                 Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
-                LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
-                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
                 Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>(),
-                IStatus = doc.ContainsField("Status") ? doc.GetValue<string>("Status") :
-                         doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "ACTIVE",
-                UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null
+                IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "PENDING",
+                UserID = doc.ContainsField("UserID") ? doc.GetValue<string>("UserID") : null,
+                LocationName = doc.ContainsField("LocationName") ? doc.GetValue<string>("LocationName") : null,
+                LocationFound = doc.ContainsField("LocationFound") ? doc.GetValue<string>("LocationFound") : null,
+                LocationOther = doc.ContainsField("LocationOther") ? doc.GetValue<string>("LocationOther") : null,
+                Images = doc.ContainsField("Images") ? doc.GetValue<List<string>>("Images") : new List<string>()
             };
+
+            string resolvedLocation = null;
+
+            // 1️⃣ Try getting LocationName from Locations collection using LocationID
+            if (doc.ContainsField("LocationID"))
+            {
+                string locationId = doc.GetValue<string>("LocationID");
+
+                QuerySnapshot locationSnap = await firestoreDb
+                    .Collection("Locations")
+                    .WhereEqualTo("LocationID", locationId)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (locationSnap.Count > 0)
+                {
+                    resolvedLocation = locationSnap.Documents[0].GetValue<string>("LocationName");
+                }
+            }
+
+            // 2️⃣ If still null, use LocationFound
+            if (string.IsNullOrWhiteSpace(resolvedLocation) && !string.IsNullOrWhiteSpace(item.LocationFound))
+            {
+                resolvedLocation = item.LocationFound;
+            }
+
+            // 3️⃣ If still null, use LocationOther
+            if (string.IsNullOrWhiteSpace(resolvedLocation) && !string.IsNullOrWhiteSpace(item.LocationOther))
+            {
+                resolvedLocation = item.LocationOther;
+            }
+
+            // Set final LocationName
+            item.LocationName = resolvedLocation ?? "Unknown";
+
+            return item;
         }
+
+
 
         [HttpGet]
         [Route("")]
         [Route("Index")]
         public async Task<IActionResult> Index()
         {
-            try
+            QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+
+            var list = new List<Item>();
+            foreach (var doc in snapshot.Documents)
             {
-                QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
-
-                var allItems = snapshot.Documents.Select(MapToItem).ToList();
-
-                var items = allItems.Where(i =>
-                    (i.IStatus != null && i.IStatus.Equals("PENDING", StringComparison.OrdinalIgnoreCase))
-                ).OrderByDescending(i => i.Date).ToList();
-
-                Console.WriteLine($"[v0] Total items in Firebase: {allItems.Count}");
-                Console.WriteLine($"[v0] Pending approval items: {items.Count}");
-
-                return View("~/Views/Admin/PostManagement/Index.cshtml", items);
+                list.Add(await MapToItemAsync(doc));
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[v0] Error loading items: {ex.Message}");
-                ViewBag.Error = "Failed to load items: " + ex.Message;
-                return View("~/Views/Admin/PostManagement/Index.cshtml", new List<Item>());
-            }
+
+            var items = list
+                .Where(i => i.IStatus.Equals("PENDING", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(i => i.Date)
+                .ToList();
+
+            return View("~/Views/Admin/PostManagement/Index.cshtml", items);
         }
 
         [HttpGet]
         [Route("ViewDetails/{itemId}")]
         public async Task<IActionResult> ViewDetails(int itemId)
         {
-            try
-            {
-                QuerySnapshot snapshot = await firestoreDb.Collection("Items")
-                    .WhereEqualTo("ItemID", itemId)
-                    .Limit(1)
-                    .GetSnapshotAsync();
+            QuerySnapshot snapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("ItemID", itemId)
+                .Limit(1)
+                .GetSnapshotAsync();
 
-                if (snapshot.Count == 0)
-                {
-                    TempData["Error"] = "Item not found";
-                    return RedirectToAction("Index");
-                }
-
-                var item = MapToItem(snapshot.Documents[0]);
-                return View("~/Views/Admin/PostManagement/ViewDetails.cshtml", item);
-            }
-            catch (Exception ex)
+            if (snapshot.Count == 0)
             {
-                TempData["Error"] = "Failed to load item details: " + ex.Message;
+                TempData["Error"] = "Item not found";
                 return RedirectToAction("Index");
             }
+
+            var item = await MapToItemAsync(snapshot.Documents[0]);
+            return View("~/Views/Admin/PostManagement/ViewDetails.cshtml", item);
         }
+
 
         [HttpGet]
         [Route("GetItems")]
@@ -111,9 +134,9 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
 
-                var allItems = snapshot.Documents.Select(MapToItem).ToList();
+                var allItems = await Task.WhenAll(snapshot.Documents.Select(MapToItemAsync));
 
-                Console.WriteLine($"[v0] Total items retrieved: {allItems.Count}");
+                Console.WriteLine($"[v0] Total items retrieved: {allItems.Length}");
 
                 var items = allItems.Where(i =>
                     i.IStatus != null && i.IStatus.Equals("PENDING", StringComparison.OrdinalIgnoreCase)
@@ -129,7 +152,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                         (i.IType?.ToLower().Contains(search) ?? false) ||
                         (i.Idescription?.ToLower().Contains(search) ?? false) ||
                         (i.LocationFound?.ToLower().Contains(search) ?? false) ||
-                        (i.LocationID?.ToLower().Contains(search) ?? false)
+                        (i.LocationName?.ToLower().Contains(search) ?? false)
                     ).ToList();
 
                     Console.WriteLine($"[v0] After search filter: {items.Count}");
@@ -173,82 +196,98 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             }
         }
 
+        // ===================== APPROVE =====================
         [HttpPost]
         [Route("Approve/{itemId}")]
         public async Task<IActionResult> Approve(int itemId)
         {
-            try
+            QuerySnapshot snapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("ItemID", itemId)
+                .Limit(1)
+                .GetSnapshotAsync();
+
+            if (snapshot.Count == 0)
             {
-                Console.WriteLine($"[v0] Approving item: {itemId}");
-
-                QuerySnapshot snapshot = await firestoreDb.Collection("Items")
-                    .WhereEqualTo("ItemID", itemId)
-                    .Limit(1)
-                    .GetSnapshotAsync();
-
-                if (snapshot.Count == 0)
-                {
-                    TempData["Error"] = "Item not found";
-                    return RedirectToAction("Index");
-                }
-
-                var docRef = snapshot.Documents[0].Reference;
-
-                await docRef.UpdateAsync(new Dictionary<string, object>
-                {
-                    { "Status", "Approved" },
-                    { "IStatus", "Approved" }
-                });
-
-                Console.WriteLine($"[v0] Item {itemId} approved successfully");
-                TempData["Success"] = "Item approved successfully";
+                TempData["Error"] = "Item not found";
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+
+            await snapshot.Documents[0].Reference.UpdateAsync(new Dictionary<string, object>
             {
-                Console.WriteLine($"[v0] Error approving item: {ex.Message}");
-                TempData["Error"] = "Failed to approve item: " + ex.Message;
-                return RedirectToAction("Index");
-            }
+                { "IStatus", "APPROVED" },
+                { "ApprovedDate", DateTime.UtcNow }
+            });
+
+            TempData["Success"] = "Post approved successfully";
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
         [Route("Reject/{itemId}")]
         public async Task<IActionResult> Reject(int itemId)
         {
-            try
+            QuerySnapshot snapshot = await firestoreDb.Collection("Items")
+                .WhereEqualTo("ItemID", itemId)
+                .Limit(1)
+                .GetSnapshotAsync();
+
+            if (snapshot.Count == 0)
             {
-                Console.WriteLine($"[v0] Rejecting item: {itemId}");
-
-                QuerySnapshot snapshot = await firestoreDb.Collection("Items")
-                    .WhereEqualTo("ItemID", itemId)
-                    .Limit(1)
-                    .GetSnapshotAsync();
-
-                if (snapshot.Count == 0)
-                {
-                    TempData["Error"] = "Item not found";
-                    return RedirectToAction("Index");
-                }
-
-                var docRef = snapshot.Documents[0].Reference;
-
-                await docRef.UpdateAsync(new Dictionary<string, object>
-                {
-                    { "Status", "Rejected" },
-                    { "IStatus", "Rejected" }
-                });
-
-                Console.WriteLine($"[v0] Item {itemId} rejected successfully");
-                TempData["Success"] = "Item rejected successfully";
+                TempData["Error"] = "Item not found";
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+
+            await snapshot.Documents[0].Reference.UpdateAsync(new Dictionary<string, object>
             {
-                Console.WriteLine($"[v0] Error rejecting item: {ex.Message}");
-                TempData["Error"] = "Failed to reject item: " + ex.Message;
-                return RedirectToAction("Index");
-            }
+                { "IStatus", "REJECTED" },
+                { "RejectedDate", DateTime.UtcNow }
+            });
+
+            TempData["Success"] = "Post rejected successfully";
+            return RedirectToAction("Index");
         }
+
+
+        [HttpGet]
+        [Route("APPROVED")]
+        public async Task<IActionResult> Approved()
+        {
+            QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+
+            var list = new List<Item>();
+            foreach (var doc in snapshot.Documents)
+            {
+                list.Add(await MapToItemAsync(doc));
+            }
+
+            var items = list
+                .Where(i => i.IStatus.Equals("APPROVED", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(i => i.Date)
+                .ToList();
+
+            return View("~/Views/Admin/PostManagement/Approved.cshtml", items);
+        }
+
+
+        [HttpGet]
+        [Route("REJECTED")]
+        public async Task<IActionResult> Rejected()
+        {
+            QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
+
+            var list = new List<Item>();
+            foreach (var doc in snapshot.Documents)
+            {
+                list.Add(await MapToItemAsync(doc));
+            }
+
+            var items = list
+                .Where(i => i.IStatus.Equals("REJECTED", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(i => i.Date)
+                .ToList();
+
+            return View("~/Views/Admin/PostManagement/Rejected.cshtml", items);
+        }
+    
     }
 }

@@ -37,29 +37,40 @@
         @foreach (var item in Model)
         {
             <tr class="border hover:bg-gray-100">
-                <td class="px-3 py-1 border">@item.ItemID</td>
-                <td class="px-3 py-1 border">@item.Category</td>
-                <td class="center py-1 border">@item.IType</td>
-                <td class="px-10 py-2 border">@item.IStatus</td>
-                <td class="px-10 py-2 border">@item.Date.ToShortDateString()</td>
-                <td class="px-10 py-2 border">
+                <td class="px-3 py-1 border text-center align-middle">@item.ItemID</td>
+                <td class="px-3 py-1 border text-center align-middle">@item.Category</td>
+                <td class="px-3 py-1 border text-center align-middle">@item.IType</td>
+                <td class="px-10 py-2 border text-center align-middle">@item.IStatus</td>
+                <td class="px-10 py-2 border text-center align-middle">@item.Date.ToShortDateString()</td>
+                <td class="px-10 py-2 border text-center align-middle">
                     @if (item.IStatus != "EXPIRED")
                     {
                         <form asp-action="ChangeStatus" method="post" class="flex items-center gap-2">
                             <input type="hidden" name="itemId" value="@item.ItemID" />
+
                             <select name="newStatus" class="border rounded px-1 py-0.5">
                                 <option value="PENDING">PENDING</option>
-                                <option value="APPROVED">APPROVED</option>
+                                <option value="APROVED">APPROVED</option>
                                 <option value="REJECTED">REJECTED</option>
                                 <option value="CLAIMED">CLAIMED</option>
                                 <option value="EXPIRED">EXPIRED</option>
                             </select>
-                            <button class="bg-blue-500 text-white px-2 py-1 rounded">Update</button>
+
+                            <button class="bg-blue-500 text-white px-2 py-1 rounded text-center align-middle">
+                                Update
+                            </button>
                         </form>
                     }
+                    else
+                    {
+                        <span class="text-red-600 font-semibold text-center align-middle">
+                            DELETED
+                        </span>
+                    }
+
                 </td>
 
-                <td class="px-10 py-2 border">
+                <td class="px-10 py-2 border text-center align-middle">
                     <a asp-action="ViewHistory" asp-route-itemId="@item.ItemID"
                        class="text-blue-600 underline">View</a>
                 </td>
