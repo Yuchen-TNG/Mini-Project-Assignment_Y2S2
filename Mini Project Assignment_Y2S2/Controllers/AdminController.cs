@@ -379,7 +379,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         {
             var baseQuery = firestoreDb.Collection("Items")
                 .WhereEqualTo("Category", "LOSTITEM")
-                .WhereEqualTo("IStatus", "Approved");
+                .WhereEqualTo("IStatus", "APPROVED");
 
             var snapshot = await baseQuery.GetSnapshotAsync();
 
@@ -393,7 +393,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                     LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
                     Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                    IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "Approved"
+                    IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "APPROVED"
                 };
 
                 // 🔹 Fetch LocationName correctly
@@ -454,7 +454,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         {
             var baseQuery = firestoreDb.Collection("Items")
                 .WhereEqualTo("Category", "FOUNDITEM")
-                .WhereEqualTo("IStatus", "Approved");
+                .WhereEqualTo("IStatus", "APPROVED");
 
             var snapshot = await baseQuery.GetSnapshotAsync();
 
@@ -468,7 +468,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                     Date = doc.ContainsField("Date") ? doc.GetValue<DateTime>("Date") : DateTime.MinValue,
                     LocationID = doc.ContainsField("LocationID") ? doc.GetValue<string>("LocationID") : null,
                     Category = doc.ContainsField("Category") ? doc.GetValue<string>("Category") : null,
-                    IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "Approved"
+                    IStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "APPROVED"
                 };
 
                 // 🔹 Fetch LocationName correctly
@@ -728,7 +728,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         private async Task AutoExpireItems()
         {
             var snapshot = await firestoreDb.Collection("Items")
-                .WhereEqualTo("IStatus", "ACTIVE")
+                .WhereEqualTo("IStatus", "APPROVED")
                 .GetSnapshotAsync();
 
             var now = DateTime.UtcNow;
@@ -739,7 +739,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
                 var itemDate = doc.GetValue<DateTime>("Date");
 
-                if ((now - itemDate).TotalDays >= 4)
+                if ((now - itemDate).TotalDays >= 7)
                 {
                     await ExpireItem(doc);
                 }
@@ -749,7 +749,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         private async Task ExpireItem(DocumentSnapshot doc)
         {
             // Fix: Get the old status value correctly
-            var oldStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "ACTIVE";
+            var oldStatus = doc.ContainsField("IStatus") ? doc.GetValue<string>("IStatus") : "APPROVED";
 
             // Add history
             await firestoreDb.Collection("ItemHistory").AddAsync(new
@@ -776,7 +776,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             var oldStatus = doc.ContainsField("IStatus")
                 ? doc.GetValue<string>("IStatus")
-                : "ACTIVE";
+                : "APPROVED";
 
             await doc.Reference.UpdateAsync("IStatus", newStatus);
 

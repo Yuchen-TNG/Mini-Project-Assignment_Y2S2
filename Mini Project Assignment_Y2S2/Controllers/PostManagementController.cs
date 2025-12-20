@@ -214,7 +214,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             await snapshot.Documents[0].Reference.UpdateAsync(new Dictionary<string, object>
             {
-                { "IStatus", "Approved" },
+                { "IStatus", "APPROVED" },
                 { "ApprovedDate", DateTime.UtcNow }
             });
 
@@ -239,7 +239,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
             await snapshot.Documents[0].Reference.UpdateAsync(new Dictionary<string, object>
             {
-                { "IStatus", "Rejected" },
+                { "IStatus", "REJECTED" },
                 { "RejectedDate", DateTime.UtcNow }
             });
 
@@ -249,7 +249,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
 
         [HttpGet]
-        [Route("Approved")]
+        [Route("APPROVED")]
         public async Task<IActionResult> Approved()
         {
             QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
@@ -261,7 +261,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             }
 
             var items = list
-                .Where(i => i.IStatus.Equals("Approved", StringComparison.OrdinalIgnoreCase))
+                .Where(i => i.IStatus.Equals("APPROVED", StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(i => i.Date)
                 .ToList();
 
@@ -270,7 +270,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
 
 
         [HttpGet]
-        [Route("Rejected")]
+        [Route("REJECTED")]
         public async Task<IActionResult> Rejected()
         {
             QuerySnapshot snapshot = await firestoreDb.Collection("Items").GetSnapshotAsync();
@@ -282,7 +282,7 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             }
 
             var items = list
-                .Where(i => i.IStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+                .Where(i => i.IStatus.Equals("REJECTED", StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(i => i.Date)
                 .ToList();
 
