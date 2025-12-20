@@ -379,7 +379,15 @@
             }
             else
             {
-                // 验证每个图片的大小和类型
+                // ⭐ 新增：最多 10 张图片
+                if (item.ImageFiles.Count > 10)
+                {
+                    ModelState.AddModelError(
+                        nameof(item.ImageFiles),
+                        "You can upload a maximum of 10 images"
+                    );
+                }
+
                 var maxSize = 5 * 1024 * 1024; // 5MB
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
 
@@ -387,20 +395,25 @@
                 {
                     if (file.Length > maxSize)
                     {
-                        ModelState.AddModelError(nameof(item.ImageFiles),
-                            $"File {file.FileName} exceeds 5MB limit");
+                        ModelState.AddModelError(
+                            nameof(item.ImageFiles),
+                            $"File {file.FileName} exceeds 5MB limit"
+                        );
                         break;
                     }
 
                     var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
                     if (!allowedExtensions.Contains(extension))
                     {
-                        ModelState.AddModelError(nameof(item.ImageFiles),
-                            $"File {file.FileName} has invalid file type. Allowed: {string.Join(", ", allowedExtensions)}");
+                        ModelState.AddModelError(
+                            nameof(item.ImageFiles),
+                            $"File {file.FileName} has invalid file type. Allowed: {string.Join(", ", allowedExtensions)}"
+                        );
                         break;
                     }
                 }
             }
+
 
             if (!ModelState.IsValid)
             {
