@@ -373,11 +373,11 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [HttpGet]
         public IActionResult ChangePassword()
         {
-            return View();
+            return View(new ChangePasswordViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangePassword(UserViewModel model)
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model) // For forgot password flow
         {
             if (!ModelState.IsValid)
             {
@@ -462,13 +462,12 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         [HttpGet]
         public IActionResult ChangeCurrentPassword()
         {
-            return View();
+            return View(new ChangeCurrentPasswordViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangeCurrentPassword(UserViewModel model)
+        public async Task<IActionResult> ChangeCurrentPassword(ChangeCurrentPasswordViewModel model)
         {
-
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -481,27 +480,47 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 return RedirectToAction("Login");
             }
 
-            var docRef = _firestore.Collection("Users").Document(userId);
-            var snapshot = await docRef.GetSnapshotAsync();
-            var user = snapshot.ConvertTo<User>();
-
-            if (!PasswordHelper.VerifyPassword(user.PasswordHash, model.CurrentPassword))
+            try
             {
-                ModelState.AddModelError("CurrentPassword", "Current password is incorrect");
+                var docRef = _firestore.Collection("Users").Document(userId);
+                var snapshot = await docRef.GetSnapshotAsync();
+
+                if (!snapshot.Exists)
+                {
+                    ViewBag.Error = "User account not found. Please log in again.";
+                    return View(model);
+                }
+
+                var user = snapshot.ConvertTo<User>();
+
+                // Check if current password is correct
+                if (!PasswordHelper.VerifyPassword(user.PasswordHash, model.CurrentPassword))
+                {
+                    ModelState.AddModelError("CurrentPassword", "Current password is incorrect");
+                    return View(model);
+                }
+
+                // Check if new password is the same as current password
+                if (PasswordHelper.VerifyPassword(user.PasswordHash, model.NewPassword))
+                {
+                    ModelState.AddModelError("NewPassword", "New password cannot be the same as the current password");
+                    return View(model);
+                }
+
+                // Hash and update the new password
+                string newHash = PasswordHelper.HashPassword(model.NewPassword);
+                await docRef.UpdateAsync("PasswordHash", newHash);
+
+                TempData["SuccessMessage"] = "Password changed successfully!";
+
+                return RedirectToAction("MyAccount");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error changing password: {ex.Message}");
+                ViewBag.Error = "An error occurred while changing your password. Please try again.";
                 return View(model);
             }
-
-            if (PasswordHelper.VerifyPassword(user.PasswordHash, model.NewPassword))
-            {
-                ModelState.AddModelError("NewPassword", "New password cannot be the same as the current password");
-                return View(model);
-            }
-
-
-            string newHash = PasswordHelper.HashPassword(model.NewPassword);
-            await docRef.UpdateAsync("PasswordHash", newHash);
-
-            return RedirectToAction("MyAccount");
         }
 
 

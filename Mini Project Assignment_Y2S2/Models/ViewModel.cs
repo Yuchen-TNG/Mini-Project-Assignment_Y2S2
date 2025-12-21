@@ -82,5 +82,45 @@ namespace Mini_Project_Assignment_Y2S2.Models
         public string? ProfileImageUrl { get; set; }
     }
 
+    public class ChangeCurrentPasswordViewModel
+    {
+        [Required(ErrorMessage = "Current password is required")]
+        [Display(Name = "Current Password")]
+        [DataType(DataType.Password)]
+        public string CurrentPassword { get; set; }
+
+        [Required(ErrorMessage = "New password is required")]
+        [Display(Name = "New Password")]
+        [DataType(DataType.Password)]
+        [StringLength(30, MinimumLength = 8, ErrorMessage = "Password must be 8-30 characters")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$",
+            ErrorMessage = "Password must contain at least one uppercase, one lowercase, one number, and one special symbol (@$!%*?&)")]
+        public string NewPassword { get; set; }
+
+        [Required(ErrorMessage = "Please confirm your new password")]
+        [Display(Name = "Confirm New Password")]
+        [DataType(DataType.Password)]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; }
+    }
+
+    public class ChangePasswordViewModel
+    {
+
+        [Required(ErrorMessage = "New password is required")]
+        [Display(Name = "New Password")]
+        [DataType(DataType.Password)]
+        [StringLength(30, MinimumLength = 8, ErrorMessage = "Password must be 8-30 characters")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$",
+            ErrorMessage = "Password must contain at least one uppercase, one lowercase, one number, and one special symbol (@$!%*?&)")]
+        public string NewPassword { get; set; }
+
+        [Required(ErrorMessage = "Please confirm your new password")]
+        [Display(Name = "Confirm New Password")]
+        [DataType(DataType.Password)]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; }
+    }
+
 }
     

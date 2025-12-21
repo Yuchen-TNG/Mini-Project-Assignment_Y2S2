@@ -279,56 +279,77 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
         }
 
         [HttpGet]
-        public IActionResult ResetPassword()
+public IActionResult ResetPassword()
+{
+    // Check if session has email (user came from OTP verification)
+    string email = HttpContext.Session.GetString("AdminResetEmail");
+    if (string.IsNullOrEmpty(email))
+    {
+        TempData["Error"] = "Session expired. Please request a new password reset.";
+        return RedirectToAction("ForgotPassword");
+    }
+    
+    return View("Login/ResetPassword");
+}
+
+[HttpPost]
+public async Task<IActionResult> ResetPassword(ChangePasswordViewModel model)
+{
+    if (!ModelState.IsValid)
+    {
+        return View("Login/ResetPassword", model);
+    }
+
+    string email = HttpContext.Session.GetString("AdminResetEmail");
+    if (string.IsNullOrEmpty(email))
+    {
+        TempData["Error"] = "Session expired. Please request a new password reset.";
+        return RedirectToAction("ForgotPassword");
+    }
+
+    try
+    {
+        Query query = firestoreDb.Collection("Users")
+                                 .WhereEqualTo("Email", email)
+                                 .WhereEqualTo("Role", "Admin")
+                                 .Limit(1);
+
+        QuerySnapshot snapshot = await query.GetSnapshotAsync();
+        if (snapshot.Count == 0)
         {
-            return View("Login/ResetPassword");
+            TempData["Error"] = "User not found.";
+            return RedirectToAction("ForgotPassword");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ResetPassword(UserViewModel model)
+        var docRef = snapshot.Documents[0].Reference;
+        var user = snapshot.Documents[0].ConvertTo<User>();
+
+        // ❌ Prevent resetting to current password
+        if (PasswordHelper.VerifyPassword(user.PasswordHash, model.NewPassword?.Trim()))
         {
-            if (!ModelState.IsValid)
-            {
-                return View("Login/ResetPassword", model); // specify path and pass model
-            }
-
-            string email = HttpContext.Session.GetString("AdminResetEmail");
-            if (string.IsNullOrEmpty(email))
-            {
-                return RedirectToAction("ForgotPassword");
-            }
-
-            Query query = firestoreDb.Collection("Users")
-                                     .WhereEqualTo("Email", email)
-                                     .WhereEqualTo("Role", "Admin")
-                                     .Limit(1);
-
-            QuerySnapshot snapshot = await query.GetSnapshotAsync();
-            if (snapshot.Count == 0)
-            {
-                ViewBag.Error = "User not found";
-                return View("Login/ResetPassword", model);
-            }
-
-            var docRef = snapshot.Documents[0].Reference;
-            var user = snapshot.Documents[0].ConvertTo<User>();
-
-            // ❌ Prevent resetting to current password
-            if (PasswordHelper.VerifyPassword(user.PasswordHash, model.NewPassword?.Trim()))
-            {
-                ModelState.AddModelError("NewPassword", "New password cannot be the same as the current password");
-                return View("Login/ResetPassword", model);
-            }
-
-            string hashedPassword = PasswordHelper.HashPassword(model.NewPassword);
-            await docRef.UpdateAsync("PasswordHash", hashedPassword);
-
-            HttpContext.Session.Remove("AdminResetEmail");
-            HttpContext.Session.Remove("AdminResetOtp");
-
-            TempData["Success"] = "Password reset successfully. Please login.";
-            return RedirectToAction("Login");
+            ModelState.AddModelError("NewPassword", "New password cannot be the same as the current password");
+            return View("Login/ResetPassword", model);
         }
+
+        string hashedPassword = PasswordHelper.HashPassword(model.NewPassword);
+        await docRef.UpdateAsync("PasswordHash", hashedPassword);
+
+        // Clear session
+        HttpContext.Session.Remove("AdminResetEmail");
+        HttpContext.Session.Remove("AdminResetOtp");
+        HttpContext.Session.Remove("OtpAttempts");
+        HttpContext.Session.Remove("OtpGeneratedTime");
+
+        TempData["Success"] = "Password reset successfully! You can now login with your new password.";
+        return RedirectToAction("Login");
+    }
+    catch (Exception ex)
+    {
+        // Log the exception
+        ModelState.AddModelError("", "An error occurred. Please try again.");
+        return View("Login/ResetPassword", model);
+    }
+}
 
         public async Task<IActionResult> Dashboard()
         {
