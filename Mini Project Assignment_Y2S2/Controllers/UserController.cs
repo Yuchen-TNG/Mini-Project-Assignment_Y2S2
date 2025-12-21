@@ -786,7 +786,10 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             var locationSnapshot = await _firestore.Collection("Location").GetSnapshotAsync();
             ViewBag.Locations = locationSnapshot.Documents.Select(d => MapToLocation(d)).ToList();
 
-            return View(item); // pass item as model
+            // ✅ Pass existing images to ViewBag
+            ViewBag.ExistingImages = item.Images ?? new List<string>();
+
+            return View(item);
         }
 
         [HttpPost]
@@ -796,6 +799,85 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             if (string.IsNullOrEmpty(userId))
                 return RedirectToAction("Login");
 
+            // ==========================================
+            // ⭐ SAME VALIDATION AS CREATEPOST
+            // ==========================================
+
+            // Remove LocationName validation
+            ModelState.Remove("LocationName");
+
+            // ⭐ VALIDATION 1: LocationFound for FOUNDITEM (same as CreatePost)
+            if (model.Category == "FOUNDITEM" && string.IsNullOrWhiteSpace(model.LocationFound))
+            {
+                ModelState.AddModelError(nameof(model.LocationFound),
+                    "Where you found is required for found items");
+            }
+
+            // ⭐ VALIDATION 2: Count existing + new images (same max 10 rule)
+            int existingCount = ExistingImages?.Count ?? 0;
+            int newCount = ImageFiles?.Length ?? 0;
+            int totalCount = existingCount + newCount;
+
+            // At least one image required (same as CreatePost)
+            if (totalCount == 0)
+            {
+                ModelState.AddModelError(nameof(model.ImageFiles), "At least one image is required");
+            }
+            else if (totalCount > 10) // Max 10 images (same as CreatePost)
+            {
+                ModelState.AddModelError(
+                    nameof(model.ImageFiles),
+                    "You can upload a maximum of 10 images"
+                );
+            }
+
+            // ⭐ VALIDATION 3: Validate new image files (same as CreatePost)
+            if (ImageFiles != null && ImageFiles.Any())
+            {
+                var maxSize = 5 * 1024 * 1024; // 5MB
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+
+                foreach (var file in ImageFiles)
+                {
+                    if (file.Length > maxSize)
+                    {
+                        ModelState.AddModelError(
+                            nameof(model.ImageFiles),
+                            $"File {file.FileName} exceeds 5MB limit"
+                        );
+                        break;
+                    }
+
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        ModelState.AddModelError(
+                            nameof(model.ImageFiles),
+                            $"File {file.FileName} has invalid file type. Allowed: {string.Join(", ", allowedExtensions)}"
+                        );
+                        break;
+                    }
+                }
+            }
+
+            // ==========================================
+            // ⭐ Return to view if validation fails (same as CreatePost)
+            // ==========================================
+            if (!ModelState.IsValid)
+            {
+                // Reload locations for dropdown
+                var locationSnapshot = await _firestore.Collection("Location").GetSnapshotAsync();
+                ViewBag.Locations = locationSnapshot.Documents.Select(d => MapToLocation(d)).ToList();
+
+                // Preserve ExistingImages
+                ViewBag.ExistingImages = ExistingImages ?? new List<string>();
+
+                return View(model); // Return to EditPost view with errors
+            }
+
+            // ==========================================
+            // ⭐ Continue with existing logic
+            // ==========================================
             var collection = _firestore.Collection("Items");
             var query = collection.WhereEqualTo("ItemID", model.ItemID)
                                   .WhereEqualTo("UserID", userId);
@@ -810,16 +892,16 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
             if (!string.IsNullOrEmpty(OtherLocation))
                 model.LocationID = OtherLocation;
 
-            // ✅ 处理现有图片：使用 ExistingImages 参数
+            // ✅ Process images (keep selected + add new)
             var imageUrls = new List<string>();
 
-            // 1. 保留用户选择的现有图片
+            // 1. Keep selected existing images
             if (ExistingImages != null && ExistingImages.Count > 0)
             {
                 imageUrls.AddRange(ExistingImages);
             }
 
-            // 2. 处理新上传的图片
+            // 2. Process new images (same as CreatePost)
             if (ImageFiles != null && ImageFiles.Length > 0)
             {
                 var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/itemimages");
@@ -840,17 +922,17 @@ namespace Mini_Project_Assignment_Y2S2.Controllers
                 }
             }
 
-            // ✅ 关键修复：将DateTime转换为UTC
+            // ✅ Convert DateTime to UTC
             var dateTimeUtc = model.Date.ToUniversalTime();
 
             var updateData = new Dictionary<string, object>
     {
         { "IType", model.IType },
         { "Idescription", model.Idescription },
-        { "Date", dateTimeUtc }, // 使用UTC时间
+        { "Date", dateTimeUtc },
         { "LocationID", model.LocationID },
         { "LocationFound", model.LocationFound },
-        { "Images", imageUrls } // ✅ 只保存最终的图片列表
+        { "Images", imageUrls }
     };
 
             await docRef.UpdateAsync(updateData);
